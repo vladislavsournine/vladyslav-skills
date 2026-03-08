@@ -10,10 +10,10 @@ git clone git@github.com:VladislavSournine/vladyslav-skills.git ~/.vladyslav-ski
 source ~/.zshrc
 ```
 
-Then install the Claude Code plugin:
-```bash
-claude
-# Inside Claude: /plugin install vladyslav from ~/.vladyslav-skills
+Then install the Claude Code plugin (inside a Claude session):
+```
+/plugin marketplace add VladislavSournine/vladyslav-skills
+/plugin install vladyslav@vladyslav-marketplace
 ```
 
 ## Requirements
