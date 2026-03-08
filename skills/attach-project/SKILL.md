@@ -9,9 +9,13 @@ description: Use when adding Claude Code structure to an existing project - auto
 
 Add Claude Code structure to an existing project. Never overwrites existing files. Auto-detects stacks.
 
-**Recommended model:** Sonnet (`vd-attach` command uses it automatically)
+**Type:** Engineer (Sonnet)
 
 ## Process
+
+### Step 0: Verify model
+
+Check current model. If not Sonnet, switch: `/model sonnet`
 
 ### Step 1: Verify project root
 
@@ -50,14 +54,24 @@ Follow the same creation logic as init-project, but:
 
 ### Step 5: Finish
 
+Print engineer report, then prepared prompt for Opus terminal:
+
 ```
-✓ Claude structure attached.
+✓ Engineer report:
+- Attached Claude structure to <project>
+- Detected stacks: <stacks>
+- Added stacks: <stacks>
+- Created: <list of new files>
+- Skipped: <list of existing files>
 
-Next steps:
-1. Review and update CLAUDE.md with project-specific details
-2. Run: vd-analyze to analyze existing code and fill architecture docs
+Review and update CLAUDE.md with project-specific details.
 
-Remember:
-- Do NOT add translations until vd-release phase
-- /exit to close this session
+━━━ Next (Opus terminal) ━━━━━━━━━━━━━━━━━━
+/vladyslav:analyze-project
+
+Context:
+"Attached Claude structure to <project>.
+Stacks: <detected + added>. Private mode: <yes/no>.
+Analyze codebase and fill architecture docs."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
