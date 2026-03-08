@@ -1,96 +1,95 @@
 ---
 name: help
-description: Use when starting work or unsure which skill to use - shows all available vladyslav skills, recommended workflows, and usage tips
+description: Use when starting work or unsure which skill to use - shows all available vladyslav skills, two-terminal workflow, and superpowers integration
 ---
 
 # Vladyslav Skills — Help
 
-## Available Skills
+## Two-Terminal Workflow
 
-| Bash script | Slash command | Default model | Purpose |
-|-------------|---------------|---------------|---------|
-| `vd-init` | `/vladyslav:init-project` | Sonnet | Create new project from scratch |
-| `vd-attach` | `/vladyslav:attach-project` | Sonnet | Add structure to existing project |
-| `vd-analyze` | `/vladyslav:analyze-project` | Opus | Analyze existing codebase for Claude |
-| `vd-feature` | `/vladyslav:add-feature` | Opus | Add feature (full cycle) |
-| `vd-fix` | `/vladyslav:fix-bug` | Opus | Fix bug (full cycle) |
-| `vd-stories` | `/vladyslav:write-user-stories` | Sonnet | Update implemented user stories |
-| `vd-tests` | `/vladyslav:write-test-docs` | Sonnet | Test plan + manual QA docs |
-| `vd-docs` | `/vladyslav:write-project-docs` | Sonnet | README, onboarding, deployment |
-| `vd-release` | `/vladyslav:pre-release-check` | Sonnet | Pre-release verification gate |
-| `vd-help` | `/vladyslav:help` | Sonnet | This reference |
+Keep two terminals open:
+- **Opus terminal** — research, design, diagnosis
+- **Sonnet terminal** — implementation, documentation
 
-Bash scripts open a new Claude session with the correct model pre-selected.
-Slash commands run inside the current session (uses whatever model is active).
+Each skill verifies its model on start (`/model opus` or `/model sonnet`).
+Architect skills end with prepared prompt for the other terminal.
+Engineer skills end with implementation report + next step.
 
-Override model: `vd-init claude-opus-4-6`
+## Available Skills (`/vladyslav:<name>`)
+
+**Architect (Opus terminal):**
+
+| Skill | Purpose |
+|-------|---------|
+| `analyze-project` | Analyze existing codebase |
+| `add-feature` | Add feature (full cycle, 9 superpowers) |
+| `fix-bug` | Fix bug (full cycle, 7 superpowers) |
+
+**Engineer (Sonnet terminal):**
+
+| Skill | Purpose |
+|-------|---------|
+| `init-project` | Create new project |
+| `attach-project` | Add structure to existing project |
+| `write-user-stories` | Update user stories |
+| `write-test-docs` | Test plan + manual QA docs |
+| `write-project-docs` | README, onboarding, deployment |
+| `pre-release-check` | Pre-release verification |
+| `help` | This reference |
 
 ## Recommended Workflows
 
 **New project:**
 ```
-vd-init → vd-feature → vd-tests → vd-release
+init-project (Sonnet) → analyze-project (Opus) → add-feature (Opus) → write-test-docs (Sonnet) → pre-release-check (Sonnet)
 ```
 
 **Existing project:**
 ```
-vd-attach → vd-analyze → vd-feature
+attach-project (Sonnet) → analyze-project (Opus) → add-feature (Opus)
 ```
 
 **Before release:**
 ```
-vd-stories → vd-tests → vd-docs → vd-release
+write-user-stories → write-test-docs → write-project-docs → pre-release-check (all Sonnet)
 ```
 
 **Bug fix:**
 ```
-vd-fix → vd-tests → vd-release
+fix-bug (Opus) → write-test-docs (Sonnet) → pre-release-check (Sonnet)
 ```
 
 ## Superpowers Integration
 
-These skills automatically invoke superpowers at the right moments:
+All 13 non-meta superpowers skills are integrated:
 
 | Superpowers Skill | Used In | When |
 |-------------------|---------|------|
-| `brainstorming` | vd-feature | Design phase |
-| `writing-plans` | vd-feature | Planning phase |
-| `executing-plans` | vd-feature | Execution (parallel session) |
-| `subagent-driven-development` | vd-feature | Execution (this session) |
-| `dispatching-parallel-agents` | vd-feature | Execution (independent tasks) |
-| `using-git-worktrees` | vd-fix, vd-feature | Isolation before work |
-| `requesting-code-review` | vd-fix, vd-feature | After implementation |
-| `receiving-code-review` | (standalone) | When getting feedback |
-| `finishing-a-development-branch` | vd-fix, vd-feature | Merge/PR after review |
-| `test-driven-development` | vd-fix, vd-tests | Regression test + fix / write actual tests |
-| `verification-before-completion` | vd-release | Verification checks |
-| `systematic-debugging` | vd-fix | Diagnosis phase |
+| `brainstorming` | add-feature | Design phase |
+| `writing-plans` | add-feature | Planning phase |
+| `executing-plans` | add-feature | Execution (parallel session) |
+| `subagent-driven-development` | add-feature | Execution (this session) |
+| `dispatching-parallel-agents` | add-feature, analyze-project | Parallel components |
+| `using-git-worktrees` | add-feature, fix-bug | Isolated branch |
+| `test-driven-development` | add-feature, fix-bug, write-test-docs | Tests + implementation |
+| `systematic-debugging` | fix-bug | Diagnose root cause |
+| `requesting-code-review` | add-feature, fix-bug | After implementation |
+| `receiving-code-review` | add-feature, fix-bug | Process feedback |
+| `finishing-a-development-branch` | add-feature, fix-bug | Merge/PR |
+| `verification-before-completion` | pre-release-check | Evidence-based checks |
+| `writing-skills` | (meta) | Edit vladyslav skills |
 
 ## Rules
 
-- **Translations:** Do NOT add translations until `vd-release` phase
-- **Sessions:** Close session (`/exit`) after each skill completes
-- **Cost:** Opus skills (analyze, feature) cost more — use when needed
+- **Model control:** Each skill switches to its required model on start
+- **Translations:** Do NOT add until `pre-release-check` phase
 - **Commits:** No AI mentions (no Co-Authored-By, no "Generated by Claude")
-- **Superpowers dependency:** These skills use superpowers skills — make sure superpowers plugin is installed
+- **Reports:** Architect → prepared prompt for Sonnet. Engineer → report + next step
+- **Superpowers dependency:** Make sure superpowers plugin is installed
 
 ## Stack Options
-
-When creating/attaching projects, you choose:
 
 **Backend** (single choice): `python` (default) / `go` / `other` / `none`
 **Frontend/Mobile** (multi-select): `flutter` / `swift` / `kotlin` / `other` / `none`
 
-Predefined stacks (python, go, flutter, swift, kotlin) get full scaffold: Dockerfile, compose, starter code.
-
-**"Other"** option: structure + docs only, no scaffold. User provides:
-- Label (e.g. "Vanilla JS", "React", "Django")
-- Directory name (e.g. `frontend/`, `web/`)
-- .gitignore entries (optional)
-
-Examples:
-- python + swift → full scaffold for both
-- none + flutter → Flutter app only, full scaffold
-- go + swift + kotlin → full scaffold for all three
-- python + "React" (other) → full Python scaffold + React directory/docs only
-- "Go + Nakama" (other) + "Vanilla JS" (other) → directories + docs for both, no scaffold
+Predefined stacks get full scaffold. "Other" = directory + docs only.
