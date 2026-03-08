@@ -44,6 +44,25 @@ vd-stories → vd-tests → vd-docs → vd-release
 **Bug fix:**
 Use `superpowers:systematic-debugging` (no separate skill needed).
 
+## Superpowers Integration
+
+These skills automatically invoke superpowers at the right moments:
+
+| Superpowers Skill | Used In | When |
+|-------------------|---------|------|
+| `brainstorming` | vd-feature | Design phase |
+| `writing-plans` | vd-feature | Planning phase |
+| `executing-plans` | vd-feature | Execution (parallel session) |
+| `subagent-driven-development` | vd-feature | Execution (this session) |
+| `dispatching-parallel-agents` | vd-feature | Execution (independent tasks) |
+| `using-git-worktrees` | vd-feature | Isolation before work |
+| `requesting-code-review` | vd-feature | After implementation |
+| `receiving-code-review` | (standalone) | When getting feedback |
+| `finishing-a-development-branch` | vd-feature | Merge/PR after review |
+| `test-driven-development` | vd-tests | Write actual tests |
+| `verification-before-completion` | vd-release | Verification checks |
+| `systematic-debugging` | (standalone) | Bug fix — no vd skill needed |
+
 ## Rules
 
 - **Translations:** Do NOT add translations until `vd-release` phase
@@ -56,10 +75,19 @@ Use `superpowers:systematic-debugging` (no separate skill needed).
 
 When creating/attaching projects, you choose:
 
-**Backend** (single choice): `python` (default) / `go` / `none`
-**Mobile** (multi-select): `flutter` / `swift` / `kotlin` / `none`
+**Backend** (single choice): `python` (default) / `go` / `other` / `none`
+**Frontend/Mobile** (multi-select): `flutter` / `swift` / `kotlin` / `other` / `none`
+
+Predefined stacks (python, go, flutter, swift, kotlin) get full scaffold: Dockerfile, compose, starter code.
+
+**"Other"** option: structure + docs only, no scaffold. User provides:
+- Label (e.g. "Vanilla JS", "React", "Django")
+- Directory name (e.g. `frontend/`, `web/`)
+- .gitignore entries (optional)
 
 Examples:
-- python + swift → backend API + iOS app
-- none + flutter → Flutter app only
-- go + swift + kotlin → Go API + iOS + Android
+- python + swift → full scaffold for both
+- none + flutter → Flutter app only, full scaffold
+- go + swift + kotlin → full scaffold for all three
+- python + "React" (other) → full Python scaffold + React directory/docs only
+- "Go + Nakama" (other) + "Vanilla JS" (other) → directories + docs for both, no scaffold

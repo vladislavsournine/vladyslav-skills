@@ -1,6 +1,6 @@
 ---
 name: init-project
-description: Use when creating a new project from scratch - interactive setup that creates directories, configs, docs, agents, and CLAUDE.md based on chosen stack (python/go/flutter/swift/kotlin)
+description: Use when creating a new project from scratch - interactive setup that creates directories, configs, docs, agents, and CLAUDE.md based on chosen stacks (python/go/flutter/swift/kotlin or custom "other" stacks)
 ---
 
 # Init Project
@@ -18,8 +18,10 @@ Bootstrap a new project with full Claude Code structure. Asks questions, then cr
 Ask these questions one at a time using the AskUserQuestion tool:
 
 1. **Project name** — what is the project called?
-2. **Backend stack** — python (default) / go / none
-3. **Mobile/frontend stacks** — flutter / swift / kotlin / none (multi-select)
+2. **Backend stack** — python (default) / go / other / none
+   - If "other": ask for label (e.g. "Go + Nakama"), directory name (e.g. `server/`), .gitignore entries (optional)
+3. **Frontend/mobile stacks** — flutter / swift / kotlin / other / none (multi-select)
+   - If "other": for each, ask for label (e.g. "React"), directory name (e.g. `frontend/`), .gitignore entries (optional)
 4. **Domain** — optional, skip if no backend selected. Press Enter to skip.
 5. **Private mode** — gitignore AI workflow files? (CLAUDE.md, .claude/, docs/plans/)
 
@@ -51,12 +53,24 @@ If domain is set:
 infra/nginx/
 ```
 
-For each mobile stack selected:
+For each mobile/frontend stack selected:
 ```
 flutter/    # if flutter
 swift/      # if swift
 kotlin/     # if kotlin
 ```
+
+For each "other" stack:
+```
+<user-specified-dir>/    # e.g. frontend/, web/, game-server/
+```
+
+**"Other" stack handling:**
+- Create the user-specified directory
+- Add user-specified .gitignore entries (if any)
+- Add to CLAUDE.md with the user-provided label
+- Create doc stubs referencing the label
+- Do NOT generate Dockerfile, docker-compose, or starter code — user sets up themselves
 
 ### Step 3: Create .gitignore
 

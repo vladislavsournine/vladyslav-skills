@@ -13,6 +13,10 @@ Final gate before deployment. Combines automated checks with doc verification. T
 
 ## Process
 
+### Step 0: Invoke verification discipline
+
+Apply `superpowers:verification-before-completion` — every check must produce actual output (test results, grep output, file contents). Do NOT claim PASS without running the command and seeing the result.
+
 ### Step 1: Read release context
 
 Read:

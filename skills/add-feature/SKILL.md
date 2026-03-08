@@ -26,7 +26,11 @@ Read these files before anything else:
 
 Ask the user to describe the feature they want to add. Free text.
 
-### Step 3: Design the feature
+### Step 3: Create worktree (optional)
+
+Invoke `superpowers:using-git-worktrees` to create an isolated worktree for this feature. Recommended for production projects to keep main branch clean.
+
+### Step 4: Design the feature
 
 Invoke `superpowers:brainstorming` skill. Follow it exactly — it will:
 - Ask clarifying questions
@@ -34,19 +38,30 @@ Invoke `superpowers:brainstorming` skill. Follow it exactly — it will:
 - Present design for approval
 - Save design doc
 
-### Step 4: Create implementation plan
+### Step 5: Create implementation plan
 
 After design is approved, invoke `superpowers:writing-plans` skill. It will:
 - Create bite-sized tasks
 - Save plan to docs/plans/
 
-### Step 5: Execute the plan
+### Step 6: Execute the plan
 
 Ask the user which execution approach:
 - **Subagent-driven (this session):** invoke `superpowers:subagent-driven-development`
-- **Parallel session:** guide user to open new terminal with `vd-feature`
+- **Parallel session:** invoke `superpowers:executing-plans` in a new terminal
+- **Parallel agents:** invoke `superpowers:dispatching-parallel-agents` if tasks are independent
 
-### Step 6: Post-implementation
+### Step 7: Code review
+
+After implementation is complete, invoke `superpowers:requesting-code-review` to verify the work meets requirements.
+
+If feedback is received later, use `superpowers:receiving-code-review` to process it with technical rigor.
+
+### Step 8: Finish the branch
+
+Invoke `superpowers:finishing-a-development-branch` — it will guide merge, PR, or cleanup.
+
+### Step 9: Post-implementation
 
 After implementation is complete:
 

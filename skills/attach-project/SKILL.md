@@ -35,7 +35,8 @@ Report what was detected.
 
 Ask using AskUserQuestion:
 
-1. **Additional stacks** — want to add any stacks not detected? (multi-select)
+1. **Additional stacks** — want to add any stacks not detected? (multi-select: python/go/flutter/swift/kotlin/other/none)
+   - If "other": for each, ask for label, directory name, .gitignore entries
 2. **Domain** — optional, press Enter to skip
 3. **Private mode** — gitignore AI workflow files?
 
