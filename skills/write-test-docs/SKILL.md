@@ -9,9 +9,13 @@ description: Use when test documentation is missing or outdated - generates test
 
 Generate test plan and manual QA checklist from PRD, user stories, and architecture docs.
 
-**Recommended model:** Sonnet (`vd-tests` command uses it automatically)
+**Type:** Engineer (Sonnet)
 
 ## Process
+
+### Step 0: Verify model
+
+Check current model. If not Sonnet, switch: `/model sonnet`
 
 ### Step 1: Read context
 
@@ -63,15 +67,28 @@ Write/update `docs/testing/manual-qa.md`:
 
 ### Step 4: Finish
 
+Print engineer report:
+
 ```
-✓ Test documentation updated.
+✓ Engineer report:
+- Test plan: docs/testing/test-plan.md
+- QA checklist: docs/testing/manual-qa.md
+- Coverage targets: <summary>
 
-Files:
-- docs/testing/test-plan.md
-- docs/testing/manual-qa.md
+━━━ Next (Sonnet terminal) ━━━━━━━━━━━━━━━━
+To write actual tests:
+/superpowers:test-driven-development
 
-Next: Use superpowers:test-driven-development to write actual tests.
+Context:
+"Test plan at docs/testing/test-plan.md.
+Key areas: <summary>. Write tests per plan."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Remember:
-- /exit to close this session
+Or continue to documentation:
+/vladyslav:write-project-docs
+
+Context:
+"Test docs updated. Generate human documentation
+(README, onboarding, deployment)."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
