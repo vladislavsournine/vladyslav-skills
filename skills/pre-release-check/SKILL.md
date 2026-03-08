@@ -7,13 +7,15 @@ description: Use before any production deployment - runs verification checks on 
 
 ## Overview
 
-Final gate before deployment. Combines automated checks with doc verification. This is when translations should be added.
+Final gate before deployment. Combines automated checks with doc verification. Uses `superpowers:verification-before-completion` principles — evidence before assertions. This is when translations should be added.
 
-**Recommended model:** Sonnet (`vd-release` command uses it automatically)
+**Type:** Engineer (Sonnet)
 
 ## Process
 
-### Step 0: Invoke verification discipline
+### Step 0: Verify model and invoke verification discipline
+
+Check current model. If not Sonnet, switch: `/model sonnet`
 
 Apply `superpowers:verification-before-completion` — every check must produce actual output (test results, grep output, file contents). Do NOT claim PASS without running the command and seeing the result.
 
@@ -86,6 +88,19 @@ Overall: WARN — fix warnings before deploy
 Files updated:
 - docs/release/changelog.md
 
-Remember:
-- /exit to close this session
+If PASS:
+━━━ Ready for deploy ━━━━━━━━━━━━━━━━━━━━━━
+All checks passed. Ready for production.
+- Deploy: docs/deployment.md
+- Rollback: docs/release/rollback.md
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+If FAIL (tests failing):
+━━━ Fix needed (Opus terminal) ━━━━━━━━━━━━━
+/vladyslav:fix-bug
+
+Context:
+"Pre-release check failed. <failure details>.
+Diagnose and fix before deploy."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
