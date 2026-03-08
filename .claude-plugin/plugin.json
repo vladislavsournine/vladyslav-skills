@@ -1,0 +1,10 @@
+{
+  "name": "vladyslav",
+  "description": "Project scaffolding, analysis, documentation, and release skills for solo/team development",
+  "version": "1.0.0",
+  "author": {
+    "name": "Vladyslav"
+  },
+  "license": "UNLICENSED",
+  "keywords": ["skills", "scaffolding", "docs", "release", "flutter", "python", "go", "swift"]
+}
