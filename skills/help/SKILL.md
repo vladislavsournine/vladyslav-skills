@@ -13,6 +13,7 @@ description: Use when starting work or unsure which skill to use - shows all ava
 | `vd-attach` | `/vladyslav:attach-project` | Sonnet | Add structure to existing project |
 | `vd-analyze` | `/vladyslav:analyze-project` | Opus | Analyze existing codebase for Claude |
 | `vd-feature` | `/vladyslav:add-feature` | Opus | Add feature (full cycle) |
+| `vd-fix` | `/vladyslav:fix-bug` | Opus | Fix bug (full cycle) |
 | `vd-stories` | `/vladyslav:write-user-stories` | Sonnet | Update implemented user stories |
 | `vd-tests` | `/vladyslav:write-test-docs` | Sonnet | Test plan + manual QA docs |
 | `vd-docs` | `/vladyslav:write-project-docs` | Sonnet | README, onboarding, deployment |
@@ -42,7 +43,9 @@ vd-stories → vd-tests → vd-docs → vd-release
 ```
 
 **Bug fix:**
-Use `superpowers:systematic-debugging` (no separate skill needed).
+```
+vd-fix → vd-tests → vd-release
+```
 
 ## Superpowers Integration
 
@@ -55,13 +58,13 @@ These skills automatically invoke superpowers at the right moments:
 | `executing-plans` | vd-feature | Execution (parallel session) |
 | `subagent-driven-development` | vd-feature | Execution (this session) |
 | `dispatching-parallel-agents` | vd-feature | Execution (independent tasks) |
-| `using-git-worktrees` | vd-feature | Isolation before work |
-| `requesting-code-review` | vd-feature | After implementation |
+| `using-git-worktrees` | vd-fix, vd-feature | Isolation before work |
+| `requesting-code-review` | vd-fix, vd-feature | After implementation |
 | `receiving-code-review` | (standalone) | When getting feedback |
-| `finishing-a-development-branch` | vd-feature | Merge/PR after review |
-| `test-driven-development` | vd-tests | Write actual tests |
+| `finishing-a-development-branch` | vd-fix, vd-feature | Merge/PR after review |
+| `test-driven-development` | vd-fix, vd-tests | Regression test + fix / write actual tests |
 | `verification-before-completion` | vd-release | Verification checks |
-| `systematic-debugging` | (standalone) | Bug fix — no vd skill needed |
+| `systematic-debugging` | vd-fix | Diagnosis phase |
 
 ## Rules
 
