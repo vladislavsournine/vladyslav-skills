@@ -9,9 +9,13 @@ description: Use when human-readable documentation is needed - generates README,
 
 Generate documentation for humans: README, onboarding guide, deployment guide. No AI context — these are for team members, new developers, and stakeholders.
 
-**Recommended model:** Sonnet (`vd-docs` command uses it automatically)
+**Type:** Engineer (Sonnet)
 
 ## Process
+
+### Step 0: Verify model
+
+Check current model. If not Sonnet, switch: `/model sonnet`
 
 ### Step 1: Read context
 
@@ -55,14 +59,26 @@ Write `docs/deployment.md`:
 
 ### Step 5: Finish
 
+Print engineer report:
+
 ```
-✓ Project documentation updated.
+✓ Engineer report:
+- README.md: created/updated
+- docs/onboarding.md: created/updated
+- docs/deployment.md: created/updated
 
-Files:
-- README.md
-- docs/onboarding.md
-- docs/deployment.md
+━━━ Next (Sonnet terminal) ━━━━━━━━━━━━━━━━
+/vladyslav:pre-release-check
 
-Remember:
-- /exit to close this session
+Context:
+"Project docs updated. Run pre-release verification."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Or if all work is complete:
+━━━ Ready for deploy ━━━━━━━━━━━━━━━━━━━━━━
+All features implemented and documented.
+- Live QA: docs/testing/manual-qa.md
+- Deploy: docs/deployment.md
+- Final check: /vladyslav:pre-release-check
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
