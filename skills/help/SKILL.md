@@ -7,17 +7,22 @@ description: Use when starting work or unsure which skill to use - shows all ava
 
 ## Available Skills
 
-| Command | Skill | Model | Purpose |
-|---------|-------|-------|---------|
-| `vd-init` | init-project | Sonnet | Create new project from scratch |
-| `vd-attach` | attach-project | Sonnet | Add structure to existing project |
-| `vd-analyze` | analyze-project | Opus | Analyze existing codebase for Claude |
-| `vd-feature` | add-feature | Opus | Add feature (full cycle) |
-| `vd-stories` | write-user-stories | Sonnet | Update implemented user stories |
-| `vd-tests` | write-test-docs | Sonnet | Test plan + manual QA docs |
-| `vd-docs` | write-project-docs | Sonnet | README, onboarding, deployment |
-| `vd-release` | pre-release-check | Sonnet | Pre-release verification gate |
-| `vd-help` | help | Sonnet | This reference |
+| Bash script | Slash command | Default model | Purpose |
+|-------------|---------------|---------------|---------|
+| `vd-init` | `/vladyslav:init-project` | Sonnet | Create new project from scratch |
+| `vd-attach` | `/vladyslav:attach-project` | Sonnet | Add structure to existing project |
+| `vd-analyze` | `/vladyslav:analyze-project` | Opus | Analyze existing codebase for Claude |
+| `vd-feature` | `/vladyslav:add-feature` | Opus | Add feature (full cycle) |
+| `vd-stories` | `/vladyslav:write-user-stories` | Sonnet | Update implemented user stories |
+| `vd-tests` | `/vladyslav:write-test-docs` | Sonnet | Test plan + manual QA docs |
+| `vd-docs` | `/vladyslav:write-project-docs` | Sonnet | README, onboarding, deployment |
+| `vd-release` | `/vladyslav:pre-release-check` | Sonnet | Pre-release verification gate |
+| `vd-help` | `/vladyslav:help` | Sonnet | This reference |
+
+Bash scripts open a new Claude session with the correct model pre-selected.
+Slash commands run inside the current session (uses whatever model is active).
+
+Override model: `vd-init claude-opus-4-6`
 
 ## Recommended Workflows
 

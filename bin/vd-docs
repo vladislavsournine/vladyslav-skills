@@ -1,3 +1,5 @@
 #!/bin/bash
-# vd-docs — Generate human documentation (Sonnet)
-claude --model claude-sonnet-4-6 "/vladyslav:write-project-docs"
+# vd-docs — Generate human documentation (default: Sonnet)
+# Usage: vd-docs [model]   e.g. vd-docs claude-opus-4-6
+MODEL="${1:-claude-sonnet-4-6}"
+claude --model "$MODEL" "/vladyslav:write-project-docs"

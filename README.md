@@ -23,17 +23,21 @@ Then install the Claude Code plugin (inside a Claude session):
 
 ## Commands
 
-| Command | Purpose | Model |
-|---------|---------|-------|
-| `vd-init` | Create new project | Sonnet |
-| `vd-attach` | Add structure to existing project | Sonnet |
-| `vd-analyze` | Analyze existing codebase | Opus |
-| `vd-feature` | Add feature (full cycle) | Opus |
-| `vd-stories` | Update user stories | Sonnet |
-| `vd-tests` | Test documentation | Sonnet |
-| `vd-docs` | Human documentation | Sonnet |
-| `vd-release` | Pre-release check | Sonnet |
-| `vd-help` | Show help | Sonnet |
+| Bash script | Slash command | Default model | Purpose |
+|-------------|---------------|---------------|---------|
+| `vd-init` | `/vladyslav:init-project` | Sonnet | Create new project |
+| `vd-attach` | `/vladyslav:attach-project` | Sonnet | Add structure to existing project |
+| `vd-analyze` | `/vladyslav:analyze-project` | Opus | Analyze existing codebase |
+| `vd-feature` | `/vladyslav:add-feature` | Opus | Add feature (full cycle) |
+| `vd-stories` | `/vladyslav:write-user-stories` | Sonnet | Update user stories |
+| `vd-tests` | `/vladyslav:write-test-docs` | Sonnet | Test documentation |
+| `vd-docs` | `/vladyslav:write-project-docs` | Sonnet | Human documentation |
+| `vd-release` | `/vladyslav:pre-release-check` | Sonnet | Pre-release check |
+| `vd-help` | `/vladyslav:help` | Sonnet | Show help |
+
+Bash scripts open a new Claude session. Slash commands run inside the current session.
+
+To override the model: `vd-init claude-opus-4-6`
 
 ## Workflows
 
