@@ -9,9 +9,13 @@ description: Use when creating a new project from scratch - interactive setup th
 
 Bootstrap a new project with full Claude Code structure. Asks questions, then creates everything.
 
-**Recommended model:** Sonnet (`vd-init` command uses it automatically)
+**Type:** Engineer (Sonnet)
 
 ## Process
+
+### Step 0: Verify model
+
+Check current model. If not Sonnet, switch: `/model sonnet`
 
 ### Step 1: Gather requirements
 
@@ -19,9 +23,9 @@ Ask these questions one at a time using the AskUserQuestion tool:
 
 1. **Project name** — what is the project called?
 2. **Backend stack** — python (default) / go / other / none
-   - If "other": ask for label (e.g. "Go + Nakama"), directory name (e.g. `server/`), .gitignore entries (optional)
+   - If "other": ask for label, directory name, .gitignore entries
 3. **Frontend/mobile stacks** — flutter / swift / kotlin / other / none (multi-select)
-   - If "other": for each, ask for label (e.g. "React"), directory name (e.g. `frontend/`), .gitignore entries (optional)
+   - If "other": for each, ask for label, directory name, .gitignore entries
 4. **Domain** — optional, skip if no backend selected. Press Enter to skip.
 5. **Private mode** — gitignore AI workflow files? (CLAUDE.md, .claude/, docs/plans/)
 
@@ -262,16 +266,23 @@ git commit -m "chore: bootstrap PROJECT_NAME"
 
 ### Step 11: Finish
 
-Print summary of what was created. Then:
+Print engineer report, then prepared prompt for Opus terminal:
 
 ```
-✓ Project ready.
+✓ Engineer report:
+- Created project <name> with stacks: <stacks>
+- Directories: <list>
+- Files: CLAUDE.md, .gitignore, agents, doc stubs
+- If backend: fill in backend/.env (grep REPLACE_ME)
 
-Next steps:
-1. If backend: fill in backend/.env (grep REPLACE_ME)
-2. Run: vd-analyze (if existing code) or start with superpowers:brainstorming
+Do NOT add translations — wait for pre-release-check phase.
 
-Remember:
-- Do NOT add translations until vd-release phase
-- /exit to close this session
+━━━ Next (Opus terminal) ━━━━━━━━━━━━━━━━━━
+/vladyslav:analyze-project
+
+Context:
+"Project <name> bootstrapped with <stacks>.
+Domain: <domain or none>. Private mode: <yes/no>.
+Analyze codebase and fill architecture docs."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
