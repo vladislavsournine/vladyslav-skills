@@ -5,7 +5,7 @@ Claude Code skills for project scaffolding, analysis, documentation, and release
 ## Install
 
 ```bash
-git clone git@github.com:vladyslav/vladyslav-skills.git ~/.vladyslav-skills
+git clone git@github.com:VladislavSournine/vladyslav-skills.git ~/.vladyslav-skills
 ~/.vladyslav-skills/install.sh
 source ~/.zshrc
 ```
