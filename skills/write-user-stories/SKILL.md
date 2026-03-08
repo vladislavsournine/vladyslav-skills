@@ -9,9 +9,13 @@ description: Use when product or QA needs a registry of implemented features - s
 
 Create or update `docs/product/user-stories.md` — a human-readable registry of implemented features for product owners and QA. Not for development planning — for verification of what's built.
 
-**Recommended model:** Sonnet (`vd-stories` command uses it automatically)
+**Type:** Engineer (Sonnet)
 
 ## Process
+
+### Step 0: Verify model
+
+Check current model. If not Sonnet, switch: `/model sonnet`
 
 ### Step 1: Read context
 
@@ -58,11 +62,18 @@ Rules:
 
 ### Step 5: Finish
 
+Print engineer report:
+
 ```
-✓ User stories updated: N done, M partial, K not started.
+✓ Engineer report:
+- User stories updated: N done, M partial, K not started
+- File: docs/product/user-stories.md
 
-File: docs/product/user-stories.md
+━━━ Next (Sonnet terminal) ━━━━━━━━━━━━━━━━
+/vladyslav:write-test-docs
 
-Remember:
-- /exit to close this session
+Context:
+"User stories updated. N done, M partial, K not started.
+Generate test plan and QA checklist."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
