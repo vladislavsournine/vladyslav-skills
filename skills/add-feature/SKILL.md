@@ -9,9 +9,13 @@ description: Use when adding a new feature to a production project - orchestrate
 
 Full-cycle feature addition: idea → design → plan → implement → docs. Orchestrates superpowers skills in the right order with project-specific reminders.
 
-**Recommended model:** Opus (`vd-feature` command uses it automatically)
+**Type:** Architect (Opus)
 
 ## Process
+
+### Step 0: Verify model
+
+Check current model. If not Opus, switch: `/model opus`
 
 ### Step 1: Read project context
 
@@ -55,7 +59,7 @@ Ask the user which execution approach:
 
 After implementation is complete, invoke `superpowers:requesting-code-review` to verify the work meets requirements.
 
-If feedback is received later, use `superpowers:receiving-code-review` to process it with technical rigor.
+If feedback is received, invoke `superpowers:receiving-code-review` to process it with technical rigor — verify before implementing suggestions.
 
 ### Step 8: Finish the branch
 
@@ -63,24 +67,42 @@ Invoke `superpowers:finishing-a-development-branch` — it will guide merge, PR,
 
 ### Step 9: Post-implementation
 
-After implementation is complete:
+After merge:
 
 1. Update `docs/product/user-stories.md` — add the new feature as a story
 2. Update `docs/architecture/api.md` — if any endpoints changed
 3. Update `docs/plans/tasks.md` — mark completed tasks
 
-Then print:
+Print architect report with prepared prompt for Sonnet terminal:
 
 ```
-✓ Feature implemented.
+✓ Architect report:
+- Feature: <description>
+- Design: <key decisions>
+- Implementation: <files changed, endpoints added>
+- Tests: <count> passing
+- Merged to: <branch>
 
 Updated:
 - docs/product/user-stories.md
 - docs/architecture/api.md (if changed)
 - docs/plans/tasks.md
 
-Remember:
-- Do NOT add translations now — wait for vd-release
-- Run vd-tests to update test documentation
-- /exit to close this session
+Do NOT add translations — wait for pre-release-check phase.
+
+━━━ Next (Sonnet terminal) ━━━━━━━━━━━━━━━━
+/vladyslav:write-test-docs
+
+Context:
+"Implemented <feature>. <count> endpoints added,
+<count> tests passing. Update test documentation."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Or if all work is complete:
+━━━ Ready for deploy ━━━━━━━━━━━━━━━━━━━━━━
+All features implemented and tested.
+- Live QA: docs/testing/manual-qa.md
+- Deploy: docs/deployment.md
+- Final check: /vladyslav:pre-release-check
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
