@@ -1,0 +1,3 @@
+#!/bin/bash
+# vd-init — Bootstrap a new project (Sonnet)
+claude --model claude-sonnet-4-6 "/vladyslav:init-project"

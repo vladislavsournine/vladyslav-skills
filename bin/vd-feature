@@ -1,0 +1,3 @@
+#!/bin/bash
+# vd-feature — Add feature, full cycle (Opus)
+claude --model claude-opus-4-6 "/vladyslav:add-feature"

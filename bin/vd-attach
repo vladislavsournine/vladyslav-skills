@@ -1,0 +1,3 @@
+#!/bin/bash
+# vd-attach — Add Claude structure to existing project (Sonnet)
+claude --model claude-sonnet-4-6 "/vladyslav:attach-project"

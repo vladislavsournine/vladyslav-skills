@@ -1,0 +1,3 @@
+#!/bin/bash
+# vd-release — Pre-release check (Sonnet)
+claude --model claude-sonnet-4-6 "/vladyslav:pre-release-check"
