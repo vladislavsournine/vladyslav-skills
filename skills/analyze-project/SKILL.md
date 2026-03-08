@@ -9,15 +9,21 @@ description: Use after attaching to an existing project or when docs are out of 
 
 Analyze an existing codebase and generate/update architecture documentation so Claude can work with the project effectively.
 
-**Recommended model:** Opus (`vd-analyze` command uses it automatically)
+**Type:** Architect (Opus)
 
 ## Process
+
+### Step 0: Verify model
+
+Check current model. If not Opus, switch: `/model opus`
 
 ### Step 1: Read existing docs
 
 Read CLAUDE.md and any existing docs in `docs/architecture/`. Note what's already documented.
 
 ### Step 2: Scan project structure
+
+If project has 2+ independent components (e.g. backend + mobile app), use `superpowers:dispatching-parallel-agents` to analyze them in parallel.
 
 Use Glob and Grep to understand the codebase:
 
@@ -63,19 +69,37 @@ Write findings to:
 
 ### Step 5: Finish
 
-```
-✓ Analysis complete. Documentation updated.
+Print architect report:
 
-Updated files:
+```
+✓ Architect report:
+- Stacks: <detected>
+- Endpoints: <count> (see docs/architecture/api.md)
+- DB: <schema summary>
+- Auth: <mechanism>
+- External APIs: <list>
+
+Updated:
 - docs/architecture/system.md
 - docs/architecture/api.md
 - CLAUDE.md
 
-Next steps:
-- Review generated docs for accuracy
-- Run architect-reviewer agent for validation
-- Use vd-feature to add new features
+Review generated docs for accuracy.
 
-Remember:
-- /exit to close this session
+━━━ Next (same Opus terminal) ━━━━━━━━━━━━━
+/vladyslav:add-feature
+
+Context:
+"Analyzed <project>. <key findings summary>.
+Architecture documented. Ready to add features."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Or for documentation (Sonnet terminal):
+━━━ Next (Sonnet terminal) ━━━━━━━━━━━━━━━━
+/vladyslav:write-user-stories
+
+Context:
+"Analyzed <project>. Architecture docs updated.
+Generate user stories from implemented features."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
