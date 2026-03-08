@@ -9,9 +9,13 @@ description: Use when fixing a bug in a production project - orchestrates full c
 
 Full-cycle bug fix: diagnose → fix → test → review → merge → update docs. Orchestrates superpowers skills in the right order with project-specific reminders.
 
-**Recommended model:** Opus (`vd-fix` command uses it automatically)
+**Type:** Architect (Opus)
 
 ## Process
+
+### Step 0: Verify model
+
+Check current model. If not Opus, switch: `/model opus`
 
 ### Step 1: Read project context
 
@@ -58,7 +62,7 @@ Invoke `superpowers:requesting-code-review` to verify:
 - No regressions introduced
 - Test coverage is adequate
 
-If feedback is received, use `superpowers:receiving-code-review` to process it.
+If feedback is received, invoke `superpowers:receiving-code-review` to process it with technical rigor — verify before implementing suggestions.
 
 ### Step 7: Finish the branch
 
@@ -74,41 +78,43 @@ After merge:
 
 ### Step 9: Finish
 
-Print summary, then offer flow transition:
+Print architect report with prepared prompt for Sonnet terminal:
 
 ```
-✓ Bug fixed and merged.
-
-Fix: <one-line summary of what was wrong and how it was fixed>
-Regression test: <test file and test name>
+✓ Architect report:
+- Bug: <description>
+- Root cause: <what was wrong>
+- Fix: <what was changed>
+- Regression test: <test file and test name>
+- Merged to: <branch>
 
 Updated:
 - docs/product/user-stories.md
 - docs/testing/manual-qa.md
 - docs/plans/tasks.md
 
-Do NOT add translations now — wait for vd-release.
+Do NOT add translations — wait for pre-release-check phase.
 
-Next step: vd-tests (Sonnet) to update test documentation, or vd-release (Sonnet) if ready to ship.
+━━━ Next (Sonnet terminal) ━━━━━━━━━━━━━━━━
+/vladyslav:write-test-docs
 
-1) Continue to vd-tests here — invoke /vladyslav:write-test-docs in this session
-   ⚠️ Current session uses Opus. vd-tests recommends Sonnet (cheaper).
-2) Continue to vd-release here — invoke /vladyslav:pre-release-check in this session
-   ⚠️ Current session uses Opus. vd-release recommends Sonnet (cheaper).
-3) New session (recommended for cost) — run `vd-tests` or `vd-release` in a new terminal
-4) Done for now — /exit
+Context:
+"Fixed bug: <description>. Root cause: <cause>.
+Regression test in <file>. Update test documentation."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Or if ready to ship:
+/vladyslav:pre-release-check
+
+Context:
+"Bug fixed and tested. Run pre-release verification."
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Or if all work is complete:
+━━━ Ready for deploy ━━━━━━━━━━━━━━━━━━━━━━
+All bugs fixed and tested.
+- Live QA: docs/testing/manual-qa.md
+- Deploy: docs/deployment.md
+- Final check: /vladyslav:pre-release-check
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
-
-**If "Continue here":** invoke the chosen skill via Skill tool.
-
-**If "New session":** print:
-```
-Run in a new terminal:
-  vd-tests    # to update test documentation
-  vd-release  # if ready to ship
-
-Context to paste:
-  "Just fixed bug: <description>. Root cause: <cause>. Regression test added in <file>."
-```
-
-**If "Done":** remind about translations rule and print `/exit`.
