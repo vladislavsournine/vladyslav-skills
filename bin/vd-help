@@ -1,5 +1,0 @@
-#!/bin/bash
-# vd-help — Show all skills and workflows (default: Sonnet)
-# Usage: vd-help [model]
-MODEL="${1:-claude-sonnet-4-6}"
-claude --model "$MODEL" "/vladyslav:help"

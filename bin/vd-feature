@@ -1,5 +1,0 @@
-#!/bin/bash
-# vd-feature — Add feature, full cycle (default: Opus)
-# Usage: vd-feature [model]   e.g. vd-feature claude-sonnet-4-6
-MODEL="${1:-claude-opus-4-6}"
-claude --model "$MODEL" "/vladyslav:add-feature"

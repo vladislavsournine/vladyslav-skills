@@ -1,5 +1,0 @@
-#!/bin/bash
-# vd-release — Pre-release check (default: Sonnet)
-# Usage: vd-release [model]   e.g. vd-release claude-opus-4-6
-MODEL="${1:-claude-sonnet-4-6}"
-claude --model "$MODEL" "/vladyslav:pre-release-check"

@@ -1,5 +1,0 @@
-#!/bin/bash
-# vd-init — Bootstrap a new project (default: Sonnet)
-# Usage: vd-init [model]   e.g. vd-init claude-opus-4-6
-MODEL="${1:-claude-sonnet-4-6}"
-claude --model "$MODEL" "/vladyslav:init-project"

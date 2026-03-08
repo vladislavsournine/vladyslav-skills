@@ -1,5 +1,0 @@
-#!/bin/bash
-# vd-stories — Update implemented user stories (default: Sonnet)
-# Usage: vd-stories [model]   e.g. vd-stories claude-opus-4-6
-MODEL="${1:-claude-sonnet-4-6}"
-claude --model "$MODEL" "/vladyslav:write-user-stories"

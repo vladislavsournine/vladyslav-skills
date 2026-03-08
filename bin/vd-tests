@@ -1,5 +1,0 @@
-#!/bin/bash
-# vd-tests — Generate test documentation (default: Sonnet)
-# Usage: vd-tests [model]   e.g. vd-tests claude-opus-4-6
-MODEL="${1:-claude-sonnet-4-6}"
-claude --model "$MODEL" "/vladyslav:write-test-docs"
