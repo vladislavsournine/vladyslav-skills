@@ -29,6 +29,7 @@ Then install the Claude Code plugin (inside a Claude session):
 | `vd-attach` | `/vladyslav:attach-project` | Sonnet | Add structure to existing project |
 | `vd-analyze` | `/vladyslav:analyze-project` | Opus | Analyze existing codebase |
 | `vd-feature` | `/vladyslav:add-feature` | Opus | Add feature (full cycle) |
+| `vd-fix` | `/vladyslav:fix-bug` | Opus | Fix bug (full cycle) |
 | `vd-stories` | `/vladyslav:write-user-stories` | Sonnet | Update user stories |
 | `vd-tests` | `/vladyslav:write-test-docs` | Sonnet | Test documentation |
 | `vd-docs` | `/vladyslav:write-project-docs` | Sonnet | Human documentation |
@@ -56,9 +57,16 @@ vd-attach → vd-analyze → vd-feature
 vd-stories → vd-tests → vd-docs → vd-release
 ```
 
+**Bug fix:**
+```
+vd-fix → vd-tests → vd-release
+```
+
 ## Stack Support
 
-Backend: `python` (default), `go`, `none`
-Mobile: `flutter`, `swift`, `kotlin`, `none`
+Backend: `python` (default), `go`, `other`, `none`
+Frontend/Mobile: `flutter`, `swift`, `kotlin`, `other`, `none`
 
-Combine freely: `python + swift`, `go + flutter + kotlin`, `none + flutter`, etc.
+Predefined stacks get full scaffold. "Other" creates directory + docs only — you set up the toolchain.
+
+Combine freely: `python + swift`, `go + flutter + kotlin`, `python + "React" (other)`, etc.
