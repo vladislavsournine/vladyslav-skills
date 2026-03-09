@@ -238,7 +238,56 @@ volumes:
   redis_data:
 ```
 
-`backend/docker-compose.prod.yml`: app + nginx, no local DB (use managed services).
+`backend/docker-compose.prod.yml` (managed DB/Redis — use when cloud DB and Redis are available):
+```yaml
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      target: prod
+    env_file: .env
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - web
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - certbot_certs:/etc/letsencrypt:ro
+      - certbot_webroot:/var/www/certbot:ro
+    restart: always
+    depends_on:
+      - app
+    networks:
+      - web
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot_certs:/etc/letsencrypt
+      - certbot_webroot:/var/www/certbot
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done"
+
+volumes:
+  certbot_certs:
+  certbot_webroot:
+
+networks:
+  web:
+```
+
+> Note: If no domain is set, omit the `certbot` service and the `certbot_*` volumes. nginx still uses port 80 only.
 
 `backend/.env.example`: APP_ENV, APP_PORT, APP_SECRET_KEY, DATABASE_URL, REDIS_URL. If domain set: add APP_DOMAIN, ADMIN_URL, GOOGLE_CLIENT_ID/SECRET. If no domain: APP_DOMAIN=localhost.
 
