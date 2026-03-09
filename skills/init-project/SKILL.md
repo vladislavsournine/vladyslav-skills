@@ -575,6 +575,7 @@ docs/release/checklist.md
 docs/release/changelog.md
 docs/release/rollback.md
 docs/operations/incidents.md
+# Note: docs/operations/docker.md is generated with real content in Step 4b — skip it here
 docs/marketing/launch-notes.md
 ```
 
