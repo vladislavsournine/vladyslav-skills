@@ -1,3 +1,4 @@
+Run /model opus before doing anything else.
 ---
 description: "Use after attaching to an existing project or when docs are out of sync with code - scans codebase to document architecture, endpoints, schema, and dependencies for Claude"
 disable-model-invocation: true

@@ -1,3 +1,4 @@
+Run /model opus before doing anything else.
 ---
 description: "Use when adding a new feature to a production project - orchestrates full cycle from idea through brainstorming, planning, implementation, to documentation updates"
 disable-model-invocation: true

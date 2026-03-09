@@ -1,3 +1,4 @@
+Run /model sonnet before doing anything else.
 ---
 description: "Use when human-readable documentation is needed - generates README, onboarding guide, and deployment guide from architecture and code analysis"
 disable-model-invocation: true

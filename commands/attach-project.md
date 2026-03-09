@@ -1,3 +1,4 @@
+Run /model sonnet before doing anything else.
 ---
 description: "Use when adding Claude Code structure to an existing project - auto-detects stack, creates missing docs and agents, never overwrites existing files"
 disable-model-invocation: true
