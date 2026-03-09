@@ -32,38 +32,62 @@ Ask the user to describe the feature they want to add. Free text.
 
 ### Step 3: Create worktree (optional)
 
-Invoke `superpowers:using-git-worktrees` to create an isolated worktree for this feature. Recommended for production projects to keep main branch clean.
+⏸ Stop. Tell the user:
+"Step 3 complete. Now run /superpowers:worktree in your terminal.
+When done, come back and say 'done' to continue."
 
 ### Step 4: Design the feature
 
-Invoke `superpowers:brainstorming` skill. Follow it exactly — it will:
-- Ask clarifying questions
-- Propose approaches
-- Present design for approval
-- Save design doc
+⏸ Stop. Tell the user:
+"Step 4 complete. Now run /superpowers:brainstorm in your terminal.
+When done, come back and say 'done' to continue."
 
 ### Step 5: Create implementation plan
 
-After design is approved, invoke `superpowers:writing-plans` skill. It will:
-- Create bite-sized tasks
-- Save plan to docs/plans/
+After design is approved:
+
+⏸ Stop. Tell the user:
+"Step 5 complete. Now run /superpowers:write-plan in your terminal.
+When done, come back and say 'done' to continue."
 
 ### Step 6: Execute the plan
 
-Ask the user which execution approach:
-- **Subagent-driven (this session):** invoke `superpowers:subagent-driven-development`
-- **Parallel session:** invoke `superpowers:executing-plans` in a new terminal
-- **Parallel agents:** invoke `superpowers:dispatching-parallel-agents` if tasks are independent
+Ask the user which execution approach, then stop with the matching instruction:
+
+- **Subagent-driven (this session):**
+  ⏸ Stop. Tell the user:
+  "Step 6 complete. Now run /superpowers:execute-plan in your terminal.
+  When done, come back and say 'done' to continue."
+
+- **Parallel session:**
+  ⏸ Stop. Tell the user:
+  "Step 6 complete. Now run /superpowers:execute-plan in a new terminal.
+  When done, come back and say 'done' to continue."
+
+- **Parallel agents** (if tasks are independent):
+  ⏸ Stop. Tell the user:
+  "Step 6 complete. Now run /superpowers:parallel in your terminal.
+  When done, come back and say 'done' to continue."
 
 ### Step 7: Code review
 
-After implementation is complete, invoke `superpowers:requesting-code-review` to verify the work meets requirements.
+After implementation is complete:
 
-If feedback is received, invoke `superpowers:receiving-code-review` to process it with technical rigor — verify before implementing suggestions.
+⏸ Stop. Tell the user:
+"Step 7 complete. Now run /superpowers:code-review in your terminal.
+When done, come back and say 'done' to continue."
+
+If feedback is received:
+
+⏸ Stop. Tell the user:
+"Step 7 complete. Now run /superpowers:code-review in your terminal to process the feedback.
+When done, come back and say 'done' to continue."
 
 ### Step 8: Finish the branch
 
-Invoke `superpowers:finishing-a-development-branch` — it will guide merge, PR, or cleanup.
+⏸ Stop. Tell the user:
+"Step 8 complete. Now run /superpowers:finish-branch in your terminal.
+When done, come back and say 'done' to continue."
 
 ### Step 9: Post-implementation
 
