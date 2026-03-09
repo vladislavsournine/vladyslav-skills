@@ -390,7 +390,57 @@ networks:
 
 Only if backend is python/go AND domain is provided.
 
-`infra/nginx/nginx.conf`: reverse proxy with API and admin subdomains.
+`infra/nginx/nginx.conf`:
+```nginx
+events {}
+
+http {
+    # Redirect HTTP to HTTPS
+    server {
+        listen 80;
+        server_name APP_DOMAIN www.APP_DOMAIN;
+
+        # Let's Encrypt ACME challenge
+        location /.well-known/acme-challenge/ {
+            root /var/www/certbot;
+        }
+
+        location / {
+            return 301 https://$host$request_uri;
+        }
+    }
+
+    # HTTPS
+    server {
+        listen 443 ssl;
+        server_name APP_DOMAIN www.APP_DOMAIN;
+
+        ssl_certificate /etc/letsencrypt/live/APP_DOMAIN/fullchain.pem;
+        ssl_certificate_key /etc/letsencrypt/live/APP_DOMAIN/privkey.pem;
+
+        ssl_protocols TLSv1.2 TLSv1.3;
+        ssl_prefer_server_ciphers on;
+
+        location /api/ {
+            proxy_pass http://app:8000/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+
+        location /admin/ {
+            proxy_pass http://app:8000/admin/;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+}
+```
+
+> Replace `APP_DOMAIN` with the actual domain. If no domain is set, skip this file entirely.
 
 ### Step 6: Create CLAUDE.md
 
