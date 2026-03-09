@@ -289,6 +289,93 @@ networks:
 
 > Note: If no domain is set, omit the `certbot` service and the `certbot_*` volumes. nginx still uses port 80 only.
 
+`backend/docker-compose.prod-selfhosted.yml` (self-hosted — use when running postgres and redis on the same VPS):
+```yaml
+# Self-hosted variant — includes DB and Redis. Use when no managed services available.
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      target: prod
+    env_file: .env
+    restart: always
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - web
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-appdb}
+      POSTGRES_USER: ${POSTGRES_USER:-appuser}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-apppassword}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-appuser}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - web
+
+  redis:
+    image: redis:7-alpine
+    volumes:
+      - redis_data:/data
+    restart: always
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - web
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ../infra/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - certbot_certs:/etc/letsencrypt:ro
+      - certbot_webroot:/var/www/certbot:ro
+    restart: always
+    depends_on:
+      - app
+    networks:
+      - web
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot_certs:/etc/letsencrypt
+      - certbot_webroot:/var/www/certbot
+    entrypoint: /bin/sh -c "trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done"
+
+volumes:
+  postgres_data:
+  redis_data:
+  certbot_certs:
+  certbot_webroot:
+
+networks:
+  web:
+```
+
 `backend/.env.example`: APP_ENV, APP_PORT, APP_SECRET_KEY, DATABASE_URL, REDIS_URL. If domain set: add APP_DOMAIN, ADMIN_URL, GOOGLE_CLIENT_ID/SECRET. If no domain: APP_DOMAIN=localhost.
 
 `backend/.env`: stub with "DO NOT COMMIT" comment.
