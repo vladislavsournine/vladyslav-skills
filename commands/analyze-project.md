@@ -1,4 +1,4 @@
-Run /model opus before doing anything else.
+Before starting, check the current model. If it is not Opus, stop and tell the user: "Please run /model opus in your terminal and restart this command."
 ---
 description: "Use after attaching to an existing project or when docs are out of sync with code - scans codebase to document architecture, endpoints, schema, and dependencies for Claude"
 disable-model-invocation: true
