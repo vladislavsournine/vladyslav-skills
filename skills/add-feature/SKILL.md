@@ -65,11 +65,12 @@ Each task in the plan must reference which part of the contract it implements.
 
 ### Step 6: Execute the plan
 
-**Rule: tests and code in parallel.** Both derive from the contract (Step 4.5). No "code first, tests after" — this is what the contract-first step is for.
+Ask the user which execution approach. **Parallel agents is recommended by default** — it lets tests and implementation run on separate agents in true parallel, which is the point of having a contract in Step 4.5.
 
-**Blast Radius Rule applies throughout execution** (see `~/.claude/CLAUDE.md`): smallest justified change, no "while I'm here" refactors, ask the user before expanding scope.
-
-Ask the user which execution approach, then stop with the matching instruction:
+- **Parallel agents (recommended):**
+  ⏸ Stop. Tell the user:
+  "Step 6 complete. Now run /superpowers:parallel in your terminal.
+  When done, come back and say 'done' to continue."
 
 - **Subagent-driven (this session):**
   ⏸ Stop. Tell the user:
@@ -81,10 +82,9 @@ Ask the user which execution approach, then stop with the matching instruction:
   "Step 6 complete. Now run /superpowers:execute-plan in a new terminal.
   When done, come back and say 'done' to continue."
 
-- **Parallel agents** (if tasks are independent — strongly preferred for true parallel test+impl work):
-  ⏸ Stop. Tell the user:
-  "Step 6 complete. Now run /superpowers:parallel in your terminal.
-  When done, come back and say 'done' to continue."
+**Rules that apply to every execution mode:**
+- **Tests and code in parallel** — both derive from the contract (Step 4.5). No "code first, tests after".
+- **Blast Radius Rule** (see `~/.claude/CLAUDE.md`) — smallest justified change, no "while I'm here" refactors, ask the user before expanding scope.
 
 ### Step 7: Code review
 
