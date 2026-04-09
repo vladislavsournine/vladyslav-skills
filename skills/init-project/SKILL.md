@@ -553,6 +553,16 @@ Write these agent files to `.claude/agents/`:
 
 Each agent has frontmatter (name, description) and instructions to read CLAUDE.md and relevant docs before acting.
 
+### Step 8.5: Write StartProject.md discovery template
+
+Read the canonical discovery template from this plugin's `templates/StartProject.md` (typically `~/.vladyslav-skills/templates/StartProject.md` — resolve the plugin install path for the current machine) and write its contents to `docs/product/start-project.md` in the new project, replacing `<PROJECT_NAME>` in the first heading with the actual project name.
+
+This template is the first file the user should fill in. It captures idea / problem / audience / MVP scope / non-goals / competitors / tech constraints / business model / validation / marketing / Apple-check / open questions. Sections 6, 8, 9, 10, 11 can later be auto-filled by `/vladyslav:discover` (and its sub-commands).
+
+If `templates/StartProject.md` cannot be located on the current machine, stop and tell the user: "Cannot find templates/StartProject.md in vladyslav-skills plugin. Please reinstall the plugin or run `git pull` in its directory." Do not attempt to fabricate the template contents.
+
+In Step 11's engineer report, point the user to `docs/product/start-project.md` as the **first** thing to fill in.
+
 ### Step 9: Create doc stubs
 
 Create these files with TBD content:
@@ -595,7 +605,9 @@ Print engineer report, then prepared prompt for Opus terminal:
 ✓ Engineer report:
 - Created project <name> with stacks: <stacks>
 - Directories: <list>
-- Files: CLAUDE.md, .gitignore, agents, doc stubs
+- Files: CLAUDE.md, .gitignore, agents, doc stubs, docs/product/start-project.md
+- First action for the user: fill in docs/product/start-project.md
+  (then run /vladyslav:discover for AI-research of competitors / monetization / validation)
 - If backend: fill in backend/.env (grep REPLACE_ME)
 
 Do NOT add translations — wait for pre-release-check phase.
