@@ -42,15 +42,32 @@ When done, come back and say 'done' to continue."
 "Step 4 complete. Now run /superpowers:brainstorm in your terminal.
 When done, come back and say 'done' to continue."
 
+### Step 4.5: Define contract
+
+Before planning, write down the contract explicitly (3-10 lines is enough):
+- Types / function signatures / API schema
+- 1 input/output example
+- Known error cases / edge cases
+
+The contract is the alignment point between intent, code, and tests. Skipping it means tests will end up verifying what you wrote, not what you intended.
+
+Save the contract as a section inside the design doc from Step 4, or as a separate file `docs/plans/<feature>-contract.md`.
+
 ### Step 5: Create implementation plan
 
-After design is approved:
+After the contract (Step 4.5) is locked:
 
 ⏸ Stop. Tell the user:
 "Step 5 complete. Now run /superpowers:write-plan in your terminal.
 When done, come back and say 'done' to continue."
 
+Each task in the plan must reference which part of the contract it implements.
+
 ### Step 6: Execute the plan
+
+**Rule: tests and code in parallel.** Both derive from the contract (Step 4.5). No "code first, tests after" — this is what the contract-first step is for.
+
+**Blast Radius Rule applies throughout execution** (see `~/.claude/CLAUDE.md`): smallest justified change, no "while I'm here" refactors, ask the user before expanding scope.
 
 Ask the user which execution approach, then stop with the matching instruction:
 
@@ -64,7 +81,7 @@ Ask the user which execution approach, then stop with the matching instruction:
   "Step 6 complete. Now run /superpowers:execute-plan in a new terminal.
   When done, come back and say 'done' to continue."
 
-- **Parallel agents** (if tasks are independent):
+- **Parallel agents** (if tasks are independent — strongly preferred for true parallel test+impl work):
   ⏸ Stop. Tell the user:
   "Step 6 complete. Now run /superpowers:parallel in your terminal.
   When done, come back and say 'done' to continue."

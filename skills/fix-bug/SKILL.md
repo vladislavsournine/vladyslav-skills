@@ -48,12 +48,15 @@ Invoke `superpowers:systematic-debugging` skill. Follow it exactly — it will:
 
 ### Step 5: Write regression test + fix
 
+**Respect the Blast Radius Rule** (see `~/.claude/CLAUDE.md`): the fix must be the smallest justified change that addresses the root cause. If a larger restructuring would genuinely be better, **STOP and ask the user** before expanding scope — don't silently refactor.
+
 Invoke `superpowers:test-driven-development` skill:
 1. Write a failing test that reproduces the bug
 2. Run test — verify it fails
-3. Write the minimal fix
+3. Write the minimal fix that addresses the root cause (not just the symptom)
 4. Run test — verify it passes
 5. Run full test suite — verify nothing else broke
+6. Run `git diff --stat` — confirm the change footprint matches the declared scope
 
 ### Step 6: Code review
 
