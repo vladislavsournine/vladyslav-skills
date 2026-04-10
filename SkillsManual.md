@@ -311,4 +311,158 @@ mempalace_search wing=<project>      # попередні міграції, gotc
 
 ---
 
-*Останнє оновлення: 2026-04-09*
+## Приклади повних флоу
+
+### Приклад 1: Новий проект — "chess-duel" (iOS шахи з ШІ-тренером)
+
+```
+$ mkdir ~/chess-duel && cd ~/chess-duel && claude
+```
+
+**Крок 1 — структура (Engineer Sonnet).**
+```
+> /vladyslav:init-project
+```
+Я питаю стек — ти: "Swift + SwiftUI, iOS 17+". Я створюю `docs/`, `.claude/agents/`, `CLAUDE.md`, Swift skeleton, і пишу порожній `docs/product/start-project.md` зі шаблона `templates/StartProject.md`. Report: "Заповни секції 1–4 і запусти `/vladyslav:discover`".
+
+**Крок 2 — заповнюєш руками секції 1–4** в `docs/product/start-project.md`:
+- §1 Ідея: "iOS шахи з ШІ що пояснює кожен твій хід українською"
+- §2 Проблема: "Новачки не розуміють чому хід поганий"
+- §3 Аудиторія: "1200–1800 ELO, українськомовні"
+- §4 MVP scope: "Дошка + ходи + один простий бот + post-move пояснення"
+
+**Крок 3 — discovery (Architect Opus).** Перемикаєш: `/model opus`
+```
+> /vladyslav:discover
+```
+Я питаю: "Full чи subset?" → ти: "full". Я послідовно запускаю під-скіли (manual mode — зупиняюсь після кожного, ти запускаєш наступний):
+- `discover-competitors` → §6: Chess.com, Lichess, Chess Kid, Play Magnus → `docs/product/competitors.md`
+- `discover-monetization` → §8: freemium + premium пояснення ШІ
+- `discover-valuation` → §9: **YELLOW** (ніша насичена, диференціатор = укр ШІ-тренер)
+- `discover-marketing` → §10: Reddit r/chess_ua, YouTube chess-укр канали, TikTok short games
+- `discover-apple-check` → §11: **GREEN** (немає UGC, IAP стандартний, privacy manifest простий)
+
+Пишу `docs/product/discovery-summary.md`. Ти читаєш YELLOW verdict → вирішуєш що диференціатор OK → продовжуєш.
+
+**Крок 4 — перша фіча (Architect Opus).**
+```
+> /vladyslav:add-feature
+```
+Я: "Manual чи Auto mode?" → ти: "Auto". Я: "Яка фіча?" → ти: "Ядро гри: дошка, фігури, move generation, check/checkmate detection, SwiftUI board view".
+
+Я читаю `CLAUDE.md` + `docs/architecture/` + `docs/product/start-project.md`. Запускаю `mempalace_search wing=chess-duel` (перший раз — порожньо). Викликаю `superpowers:brainstorming`.
+
+- **Approval #1** — ти затвердив brainstorm output (board representation = matrix Int8, move gen = pseudo-legal потім legality filter, SwiftUI + Observation)
+- **Approval #2** — ти затвердив контракт: `Piece`, `Board`, `Move`, `makeMove()`, `isLegal()`, `isCheckmate()`
+- **Approval #3** — ти затвердив план: 6 задач, з файл-листом кожна
+
+**Далі БЕЗ зупинок** (це і є auto mode):
+1. Batch 1 (Piece + Board) → launch 2 subagents (tests + code) в worktree → обидва готові → guard rails pass → auto-gate: `swift test` → code review agent → `owasp-security` → commit
+2. Batch 2 (move generation) → ... → commit
+3. ... (5–15 хвилин без тебе)
+4. Merge `feature/core-chess-game` → `dev`
+
+- **Approval #4** — "Merge в main?" — ти: "yes"
+
+Я оновлюю `docs/product/user-stories.md`, `docs/plans/tasks.md`, пишу MemPalace decision record: `[WHAT] chess core, [DECISIONS] matrix board, pseudo-legal gen, [FILES] Sources/Chess/*.swift`. Architect report.
+
+**Крок 5 — наступна сесія, додаємо "Move history panel":**
+```
+> /vladyslav:add-feature
+```
+Я на старті автоматично роблю `mempalace_search wing=chess-duel` → знаходжу decision record про board representation → знаю що `Move` вже існує → НЕ винаходжу нові типи. Далі звичайний add-feature flow.
+
+---
+
+### Приклад 2: Приєднання до існуючого проекту — "python-tax"
+
+Проект вже існує, працює, але без Claude-структури.
+
+```
+$ cd ~/python-tax && claude
+```
+
+**Крок 1 — attach без руйнування коду (Engineer Sonnet).**
+```
+> /vladyslav:attach-project
+```
+Я детекчу стек (Python/Django 5 + Postgres). Пишу `CLAUDE.md`, створюю `docs/` з порожніми файлами, `.claude/agents/`. НЕ торкаюся коду. Report: "Далі — `/vladyslav:analyze-project`".
+
+**Крок 2 — аналіз коду (Architect Opus).** `/model opus`
+```
+> /vladyslav:analyze-project
+```
+Я сканую репо, заповнюю `docs/architecture/system.md` (модулі, потоки), `docs/architecture/api.md` (endpoints), `docs/architecture/db-schema.sql` (скелет схеми з моделей). Оновлюю `CLAUDE.md` з конвенціями які я побачив (naming, layering, test patterns).
+
+**Крок 3 — seed MemPalace (ОДИН РАЗ).**
+```
+> /vladyslav:seed-mempalace
+```
+Я читаю всі `docs/architecture/*`, витягую ключові рішення (~20–40 штук), записую в `wing=python-tax` як `decision` records. **Після цього майбутні сесії не скануть репу наново** — вони будуть робити `mempalace_search wing=python-tax` і отримувати ці рішення миттєво.
+
+**Крок 4 — user stories з реалізованого (Engineer Sonnet).** `/model sonnet`
+```
+> /vladyslav:write-user-stories
+```
+Я читаю код + роутинг + тести, пишу `docs/product/user-stories.md` зі статусами (Done / Partial / Not started).
+
+**Крок 5 — якщо треба discovery заднім числом:**
+```
+> /vladyslav:discover
+```
+Я помічу що в `start-project.md` секції 1–4 порожні (бо init не запускали), питаю: "Заповниш вручну чи скіпаємо discovery?" Ти вирішуєш.
+
+**Крок 6 — нова фіча (як у Прикладі 1).**
+```
+> /vladyslav:add-feature
+```
+Тепер весь контекст вже є: CLAUDE.md auto-loaded, MemPalace має архітектурні decisions, юзер сторі відомі. Фіча йде швидше.
+
+---
+
+### Приклад 3: Як виглядає розмова — хто коли викликається
+
+Це розбивка "за лаштунками", щоб ти розумів що автоматично, а що ні.
+
+**На старті сесії (`claude` в директорії проекту):**
+- ⚙ SessionStart hook → завантажує Remember (`.remember/`), Vercel-контекст, memory index з `MEMORY.md`
+- ⚙ Я бачу CLAUDE.md (глобальний + проектний) як context
+- ⚙ MCP сервери підключаються (MemPalace, Context7, Pencil, etc.)
+- ❌ Я НЕ роблю mempalace_search автоматично — тільки коли задача потребує
+
+**Ти: "подивись що тут за проект"**
+- ✅ Я можу зробити `mempalace_search wing=<project>` (коштує дешево, вартує спробувати)
+- ✅ Я читаю `CLAUDE.md`, `docs/architecture/system.md`, `docs/product/prd.md`
+- ❌ Я НЕ Grep-аю всю репу — це порушує LSP-over-Grep rule
+
+**Ти: "додай екран налаштувань"** (UI задача в swift-sudoku)
+- ✅ Я ПОВИНЕН `mempalace_search wing=swift-sudoku "settings screen"` — раптом вже обговорювали
+- ⚠ Зараз я НЕ зобов'язаний читати дизайн-систему — **це і є баг який ти хочеш пофіксити (Request 1)**
+- ✅ Я питаю: "Manual чи Auto mode?" (якщо це через `add-feature`)
+- ✅ Всередині add-feature — brainstorm → contract → plan → parallel agents → auto-gate → commit
+
+**Ти: "що ми вирішили про кольори в календарі?"**
+- ✅ Я одразу `mempalace_search wing=<project> "кольори календар"`
+- ✅ Якщо знаходжу — цитую і перевіряю що воно все ще актуальне в коді
+- ❌ Я НЕ перечитую увесь code щоб "згадати" — це втрата часу
+
+**Ти: "запам'ятай що ми вибрали PostgreSQL замість MySQL"**
+- ✅ Я явно викликаю `mempalace_check_duplicate` → `mempalace_add_drawer` з room=`decision`
+- ✅ Повертаю ID запису
+
+**Ти пишеш код, я роблю git commit:**
+- ⚙ Pre-commit hook (`~/.claude/hooks/pre-commit-review.sh`) автоматично друкує Mandatory Code Review чекліст — **без мого виклику, без твого дозволу**
+- ⚙ Коміт йде далі (hook non-blocking)
+
+**Кінець сесії:**
+- ⚙ SessionEnd hook (`~/.claude/scripts/mempalace-mine-session.sh`) автоматично індексує цю розмову в MemPalace (wing detection + room classification) — **асинхронно, ти можеш закривати термінал**
+
+**Легенда:**
+- ⚙ = автоматично, системою, без тебе і без мене
+- ✅ = я роблю згідно правил з CLAUDE.md
+- ❌ = я НЕ роблю (анти-паттерн)
+- ⚠ = поточна прогалина, яку плануємо закрити
+
+---
+
+*Останнє оновлення: 2026-04-10*
