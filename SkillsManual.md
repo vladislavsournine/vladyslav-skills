@@ -31,6 +31,21 @@
   - Auto-gate blocker: впав тест / HIGH-severity review / security finding
 - **Auto-gate (перед кожним комітом в auto-mode, без апрува):** тести → code review agent → owasp-security. Блокує коміт при помилках.
 
+### Дизайн-система (щоб новий екран не виглядав як чужий проект)
+
+- **`/vladyslav:design-sync`** — сканує існуючий UI-код, витягує канонічні токени (кольори, typography, іконки, spacing, компоненти), виявляє drift, канонізує через питання до тебе, пише `docs/design/system.md` + MemPalace decision records. Запускай коли:
+  - Перший раз помітив що новий екран не схожий на старий
+  - Після `init-project` коли вже є 2-3 екрани
+  - Перед major design refresh (канонізувати що є → планувати що змінюємо)
+  - Періодично на активних проектах щоб ловити дрейф
+- **Глобальне правило "Design System Discipline"** (в `~/.claude/CLAUDE.md`) — перед будь-якою UI-задачею я зобов'язаний:
+  1. Прочитати `docs/design/system.md` як контракт
+  2. Просканувати asset catalog за існуючими токенами
+  3. **НЕ винаходити** нові кольори / іконки / шрифти / padding — тільки reuse
+  4. Якщо потрібен новий токен — СТОП, питаю дозволу, реєструю в `docs/design/system.md`
+  5. Якщо дизайн-системи немає — питаю чи запускати `design-sync` чи діяти ad-hoc (не рекомендовано)
+- **Template:** порожній канон живе в `~/.vladyslav-skills/templates/DesignSystem.md` — `init-project` пише його автоматично для UI-проектів (swift/flutter/kotlin/web), скіпає для backend-only.
+
 ### Product Discovery (перед кодом)
 
 - **`/vladyslav:discover`** — монстр-скіл що запускає повний цикл discovery. Питає scope (full / marketing / valuation / competitors / monetization / apple-check), сам послідовно викликає потрібні саб-скіли, наприкінці пише `docs/product/discovery-summary.md`.
@@ -292,6 +307,7 @@ mempalace_search wing=<project>      # попередні міграції, gotc
 | `attach-project` | Engineer | Приєднання Claude до існуючого коду |
 | `analyze-project` | Architect | Скан коду, заповнення architecture docs |
 | `seed-mempalace` | Architect | Одноразовий bootstrap MemPalace wing |
+| `design-sync` | Architect | Сканує UI-код, канонізує токени, пише `docs/design/system.md` + MemPalace |
 | `discover` | Architect | Оркестратор product discovery (запускає саб-скіли) |
 | `discover-competitors` | Architect | Конкурентний аналіз → start-project.md §6 |
 | `discover-monetization` | Architect | Моделі монетизації → start-project.md §8 |
@@ -437,7 +453,8 @@ $ cd ~/python-tax && claude
 
 **Ти: "додай екран налаштувань"** (UI задача в swift-sudoku)
 - ✅ Я ПОВИНЕН `mempalace_search wing=swift-sudoku "settings screen"` — раптом вже обговорювали
-- ⚠ Зараз я НЕ зобов'язаний читати дизайн-систему — **це і є баг який ти хочеш пофіксити (Request 1)**
+- ✅ Я ПОВИНЕН прочитати `docs/design/system.md` як контракт (глобальне правило "Design System Discipline") — без нього не починаю UI задачі
+- ✅ Якщо якогось токена бракує — зупиняюсь і питаю, не винаходжу
 - ✅ Я питаю: "Manual чи Auto mode?" (якщо це через `add-feature`)
 - ✅ Всередині add-feature — brainstorm → contract → plan → parallel agents → auto-gate → commit
 
@@ -461,8 +478,7 @@ $ cd ~/python-tax && claude
 - ⚙ = автоматично, системою, без тебе і без мене
 - ✅ = я роблю згідно правил з CLAUDE.md
 - ❌ = я НЕ роблю (анти-паттерн)
-- ⚠ = поточна прогалина, яку плануємо закрити
 
 ---
 
-*Останнє оновлення: 2026-04-10*
+*Останнє оновлення: 2026-04-10 (design-sync + Design System Discipline)*

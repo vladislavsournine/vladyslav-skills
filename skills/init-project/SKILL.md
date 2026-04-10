@@ -563,6 +563,36 @@ If `templates/StartProject.md` cannot be located on the current machine, stop an
 
 In Step 11's engineer report, point the user to `docs/product/start-project.md` as the **first** thing to fill in.
 
+### Step 8.6: Write DesignSystem.md (UI projects only)
+
+**Skip this step for backend-only / CLI projects.** Run it if ANY of these stacks were selected in Step 1: `swift`, `kotlin`, `flutter`, or an "other" frontend/mobile stack whose label mentions web/UI/frontend (e.g. "Next.js", "React", "SvelteKit").
+
+For pure Python/Go backend or pure CLI — skip entirely (no UI, no design system).
+
+**Process:**
+
+1. Create `docs/design/` directory.
+
+2. Read `~/.vladyslav-skills/templates/DesignSystem.md` (resolve plugin path on current machine).
+
+3. Write its contents to `docs/design/system.md`, replacing `<PROJECT_NAME>` in the first heading with the actual project name.
+
+4. In the "Platform & scope" section, replace the placeholder with the actual stack values:
+   - **Платформа:** the selected stack (iOS / Flutter / Android / web / cross if multiple)
+   - **Код source of truth:** the expected token location for that stack — `Assets.xcassets` (Swift), `tailwind.config.ts` (web), `ThemeData` (Flutter), `colors.xml + themes.xml` (Kotlin/Android)
+   - **Останній design-sync:** leave as `<never>`
+
+5. For iOS specifically: leave the dark mode rules section intact — Apple HIG requires dark mode support, so it's non-negotiable.
+
+6. For non-iOS stacks: the template is iOS-leaning. Leave a note at the top of the written file:
+   ```
+   > NOTE: This template is iOS-leaning. After running `/vladyslav:design-sync` on the actual codebase, adapt sections to your stack's conventions (Tailwind tokens for web, ThemeData for Flutter, Material 3 tokens for Android).
+   ```
+
+7. If `templates/DesignSystem.md` cannot be located, stop and tell the user: "Cannot find templates/DesignSystem.md in vladyslav-skills plugin. Please reinstall the plugin or run `git pull` in its directory." Do not fabricate.
+
+In Step 11's engineer report, add a line: "Design system template written to `docs/design/system.md`. Fill in brand colors / typography manually, or run `/vladyslav:design-sync` later when there's code to scan."
+
 ### Step 9: Create doc stubs
 
 Create these files with TBD content:
@@ -606,8 +636,10 @@ Print engineer report, then prepared prompt for Opus terminal:
 - Created project <name> with stacks: <stacks>
 - Directories: <list>
 - Files: CLAUDE.md, .gitignore, agents, doc stubs, docs/product/start-project.md
+- Design system: <docs/design/system.md written | skipped — backend only>
 - First action for the user: fill in docs/product/start-project.md
   (then run /vladyslav:discover for AI-research of competitors / monetization / validation)
+- If UI stack: fill in brand palette in docs/design/system.md, or run /vladyslav:design-sync later
 - If backend: fill in backend/.env (grep REPLACE_ME)
 
 Do NOT add translations — wait for pre-release-check phase.
