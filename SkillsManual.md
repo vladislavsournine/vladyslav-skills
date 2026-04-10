@@ -241,6 +241,31 @@ mempalace_search wing=<project>      # попередні міграції, gotc
 
 ---
 
+## Довідка по зовнішніх бібліотеках (LSP / Context7 / WebFetch)
+
+Три різних джерела знань — кожне вирішує свою задачу. Використовую **перший ліворуч що відповідає питанню**:
+
+| Задача | Інструмент | Чому саме цей |
+|---|---|---|
+| Де визначена функція/клас/символ у **моєму** коді? | **LSP** (`getDefinition`) | Миттєво, точно, без текстового шуму |
+| Хто викликає цю функцію? | **LSP** (`getReferences`) | Розуміє scope, не матчить рядки і коментарі |
+| Який тип/сигнатура? | **LSP** (`getHover`) | Повна type info, дешево по токенах |
+| Є компіл-помилки? | **LSP** (`getDiagnostics`) | Без запуску білда |
+| Як правильно викликати функцію з **зовнішньої** бібліотеки (React, SwiftUI, FastAPI, Ktor)? | **Context7** | Актуальна документація навіть якщо моє training data застаріло |
+| Який синтаксис в конкретній версії (Prisma 6, AI SDK v6, Vercel config)? | **Context7** | Version-специфічний контент |
+| Apple DocC / Human Interface Guidelines / WWDC tutorials | **WebFetch** на `developer.apple.com/...` | Context7 тонкий по цьому контенту |
+| Android developer guides (Material 3, Jetpack best practices) | **WebFetch** на `developer.android.com/...` | Те саме — бібліотечні API в Context7 є, довгі гайди частково |
+| Рішення які я вже приймав в цьому проекті | **MemPalace** (`mempalace_search wing=<project>`) | Внутрішня пам'ять, не зовнішні доки |
+| Загальні блоги, StackOverflow, обговорення | **WebSearch** | Остання лінія — коли решта не допомагає |
+
+**LSP встановлено для:** Swift, Python, TypeScript/JavaScript, Kotlin, Lua. Для інших мов (Dart, Shell) — Grep.
+
+**Context7 вже увімкнений** (`context7@claude-plugins-official`) — працює через MCP tools `resolve-library-id` + `query-docs`. Не плутай з vladyslav-скілами.
+
+**Правило бренда:** якщо я збираюсь Grep по всій репі щоб "зрозуміти як працює X" — STOP. Якщо X — мій код → LSP. Якщо X — зовнішня бібліотека → Context7. Якщо X — рішення минулого → MemPalace.
+
+---
+
 ## Допоміжні скіли (викликаються автоматично з `vladyslav:*`)
 
 | Superpowers | Для чого |
