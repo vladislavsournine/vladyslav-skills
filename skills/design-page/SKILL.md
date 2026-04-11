@@ -122,12 +122,25 @@ Pencil file: <path>
 
 STEPS:
 1. Call mcp__pencil__open_document("<path>") to open the .pen file.
-2. [iOS only] Mental HIG audit before drawing:
-   - Navigation: Tab Bar (iOS), not Sidebar. Back uses chevron.left.
-   - Tap targets: min 44×44pt for all interactive elements.
-   - Dynamic Type: all text uses semantic styles from §2.
-   - Dark mode: all colors from §1 asset catalog tokens (no raw hex).
-   Flag any violation you detect — include it in your report. Do NOT draw the violation.
+2. [iOS only] HIG audit before drawing. Read `~/.vladyslav-skills/skills/swiftui-pro/references/ios-hig.md`
+   for the full checklist. At minimum verify for this screen:
+
+   **CRITICAL (block — do NOT draw the violation):**
+   - Tap targets ≥ 44×44pt for every interactive element
+   - Safe areas respected (no content under Dynamic Island / home indicator)
+   - Tab bar at bottom for top-level navigation (not hamburger/drawer)
+   - Every interactive element has a VoiceOver label
+
+   **HIGH (flag in report, draw with placeholder if no token exists):**
+   - All text uses Dynamic Type semantic styles from §2 (no hardcoded sizes)
+   - All colors from §1 asset catalog tokens — no raw hex
+   - WCAG AA contrast (4.5:1 body, 3:1 large text / UI)
+   - Primary action placed in thumb zone (bottom)
+   - Layout adapts SE (375pt) → Pro Max (430pt)
+   - Spacing follows 8pt grid (4pt for fine adjustments)
+
+   Flag each violation found: include in your report as `HIG: <rule> — <element>`.
+   **Do NOT draw violations.** Draw a placeholder labeled `[HIG BLOCKED: <rule>]` instead.
 3. Call mcp__pencil__get_style_guide_tags, then mcp__pencil__get_style_guide to pick a style preset matching the design system (Modern Pink / Apple HIG).
 4. Call mcp__pencil__batch_design to draw the screen at x=<x>, y=<y>:
    - Use ONLY tokens defined in the master contract (§1 colors, §2 typography, §3 icons, §4 spacing, §5 components).

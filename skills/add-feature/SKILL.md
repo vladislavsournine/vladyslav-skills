@@ -195,12 +195,14 @@ Execute these three checks sequentially. If all pass → commit. If any fails �
    - Prompt: "Review the staged diff (`git diff --cached`) for bugs, logic errors, security issues, and project-convention violations. Report only HIGH-confidence issues. Flag silent failures and inadequate error handling specifically."
    - **Blocker if the agent reports any HIGH-severity issue.**
 
-3. **Security.** Invoke the security checker:
+3. **SwiftUI review (iOS projects only).** If the project uses Swift/SwiftUI (detected by `.xcodeproj`, `Package.swift`, or `.swift` files in the staged diff), invoke the `vladyslav:swiftui-pro` skill via the Skill tool, scoped to the staged diff files. **Blocker if the skill reports any HIGH-severity issue** (deprecated API, accessibility violation, Swift concurrency data race).
+
+4. **Security.** Invoke the security checker:
    - Preferred: Skill tool → `superpowers:owasp-security` (scoped to the staged diff)
    - Fallback: Agent tool → `subagent_type: "pr-review-toolkit:silent-failure-hunter"`
    - **Blocker if: injection risks, secrets in diff, authZ gaps on mutations, silent catch blocks without logging.**
 
-**If all three pass:** proceed to commit. The pre-commit hook (`~/.claude/hooks/pre-commit-review.sh`) will still fire as an additional safety net — that's expected, not redundant. Compose a concise commit message referencing the contract piece, stage only the files from the plan (not `git add -A`), commit.
+**If all checks pass:** proceed to commit. The pre-commit hook (`~/.claude/hooks/pre-commit-review.sh`) will still fire as an additional safety net — that's expected, not redundant. Compose a concise commit message referencing the contract piece, stage only the files from the plan (not `git add -A`), commit.
 
 **If any check fails:**
 - Print the failure details to the user
@@ -308,7 +310,7 @@ All features implemented and tested.
 **Automatic (no approval — runs nonstop):**
 - Worktree / branch creation (Step 3)
 - Parallel agent dispatch for tests + code (Step 6)
-- Tests → code review → security checks before each commit (Step 6.5)
+- Tests → code review → SwiftUI review (iOS only) → security checks before each commit (Step 6.5)
 - Commit messages, staging, committing
 - Merge to `dev` branch (Step 8)
 - Updates to `docs/product/user-stories.md`, `docs/architecture/api.md`, `docs/plans/tasks.md`

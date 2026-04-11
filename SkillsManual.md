@@ -347,10 +347,71 @@ mempalace_search wing=<project>      # попередні міграції, gotc
 | `write-test-docs` | Engineer | Test plan + QA checklist |
 | `write-project-docs` | Engineer | README + deployment + onboarding |
 | `pre-release-check` | Engineer | Фінальна верифікація перед релізом |
+| `swiftui-pro` | Engineer | Ревю SwiftUI/Swift коду: deprecated API, accessibility, HIG, Swift concurrency (iOS 26 / Swift 6.2). Автоматично викликається в `add-feature` Step 6.5 для iOS проектів. |
 | `help` | — | Список скілів і хелп |
 
 **Architect (Opus)** — для дизайну, планування, архітектурних рішень.
 **Engineer (Sonnet)** — для імплементації, генерації бойлерплейту, репетативних задач.
+
+---
+
+## Інтегровані зовнішні скіли
+
+### `vladyslav:swiftui-pro` — Paul Hudson's SwiftUI Agent Skill
+
+**Джерело:** [twostraws/SwiftUI-Agent-Skill](https://github.com/twostraws/SwiftUI-Agent-Skill) (MIT)
+**Розміщення:** `~/.vladyslav-skills/skills/swiftui-pro/`
+
+Перевіряє SwiftUI/Swift код за 9 категоріями:
+
+| Reference | Що перевіряє |
+|---|---|
+| `api.md` | Deprecated API → сучасний еквівалент (iOS 26 / Swift 6.2) |
+| `views.md` | Структура view, composition, анімації |
+| `data.md` | Data flow, `@Observable`, property wrappers |
+| `navigation.md` | NavigationStack, alerts, sheets |
+| `design.md` | Flexible layout, ContentUnavailableView, системні компоненти |
+| `accessibility.md` | Dynamic Type, VoiceOver, Reduce Motion |
+| `performance.md` | AnyView, lazy stacks, `task()` vs `onAppear()` |
+| `swift.md` | Modern Swift, concurrency, актори |
+| `hygiene.md` | Keychain, LocalizedStrings, SwiftLint |
+| `ios-hig.md` | Apple HIG compact checklist (layout, nav, a11y, color, components) |
+
+**Автоматичний виклик:** `add-feature` Step 6.5 — якщо diff містить `.swift` файли.
+**Ручний виклик:** `/vladyslav:swiftui-pro` для окремого ревю.
+
+---
+
+### iOS HIG Rules (ehmo/platform-design-skills)
+
+**Джерело:** [ehmo/platform-design-skills](https://github.com/ehmo/platform-design-skills) (MIT)
+**Розміщення:** вбудовано в `skills/swiftui-pro/references/ios-hig.md` + `design-page` subagent prompt
+
+HIG правила по 10 категоріях (CRITICAL/HIGH/MEDIUM) з Correct/Incorrect прикладами Swift кодe. Перевіряються на двох рівнях:
+- **Design time** (`design-page`): subagent робить HIG audit перед малюванням в Pencil, блокує CRITICAL порушення
+- **Code review time** (`swiftui-pro`): `ios-hig.md` входить у Step 6 ревю SwiftUI коду
+
+---
+
+### Android Agent Skills (defer до появи Android проекту)
+
+**Джерело:** [krutikJain/android-agent-skills](https://github.com/krutikJain/android-agent-skills) (MIT)
+**Статус:** задокументовано, не інтегровано — немає Android проектів
+
+34 скіли для Android/Compose розробки:
+
+| Категорія | Скіли |
+|---|---|
+| Compose | compose-foundations, compose-state-effects, compose-performance, compose-accessibility, compose-xml-interoperability |
+| Архітектура | architecture-clean, state-management, modularization, navigation-deeplinks |
+| DI & Storage | di-hilt, room-database, local-persistence-datastore |
+| Мережа | networking-retrofit-okhttp, serialization-offline-sync |
+| Тести | testing-unit, testing-ui |
+| Дизайн | material3-design-system, mobile-frontend-design |
+| CI/CD | ci-cd-release-playstore, gradle-build-logic, gradle-build-performance |
+| Інше | kotlin-core, coroutines-flow, security-best-practices, performance-observability, workmanager-notifications |
+
+**Коли інтегрувати:** при старті першого Android проекту — клонувати репо, створити `skills/android-pro/` аналогічно `swiftui-pro`, зареєструвати команди.
 
 ---
 
