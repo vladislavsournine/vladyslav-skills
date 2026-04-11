@@ -31,8 +31,19 @@ Check current model. If not Opus, switch: `/model opus`. Extracting good decisio
 ### Step 1: Identify the wing
 
 1. Determine current project name from `pwd` or from `CLAUDE.md` / `.claude-plugin/plugin.json` / `package.json` / `pubspec.yaml`.
-2. Run `mempalace_list_wings` to see existing wings.
-3. If a matching wing exists → use it. If not → ask the user what wing name to use (suggest one based on naming convention: `swift-*`, `python-*`, `flutter-*`, or project name).
+
+2. **Derive the canonical wing name** (mandatory normalization):
+   - Start from `basename $(pwd)` (directory name only, not full path)
+   - Lowercase it entirely
+   - Replace spaces, underscores, dots with hyphens
+   - If it doesn't start with a platform prefix, prepend one: `swift-`, `python-`, `flutter-`, `kotlin-`, `web-`, `go-`
+   - Examples: `Sudoku` in `swift/` → `swift-sudoku` | `MyApp` → `python-myapp`
+   - **Never** write to a wing with capital letters or wrong casing — this creates duplicate wings (e.g. `swift-Sudoku` vs `swift-sudoku`) that accumulate stale records in parallel.
+
+3. Run `mempalace_list_wings`. Scan for any wing that looks like a wrong-case version of the canonical name. If found → warn the user:
+   > "Found existing wing `<wrong-case>` that appears to be a stale duplicate of canonical `<correct-case>`. Records in the stale wing may reference paths that no longer exist. Using canonical wing for all writes."
+
+4. If no matching wing exists → confirm canonical name with the user before creating.
 
 ### Step 2: Check existing records
 

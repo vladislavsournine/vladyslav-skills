@@ -17,6 +17,23 @@ Full-cycle bug fix: diagnose → fix → test → review → merge → update do
 
 Check current model. If not Opus, switch: `/model opus`
 
+### Step 0.1: Verify working directory
+
+**This step is mandatory. Do not skip it.**
+
+1. Check that `CLAUDE.md` exists in `pwd`. If not → **STOP**:
+   > "No CLAUDE.md found in current directory. Are you in the right project? Current path: `<pwd>`"
+
+2. Derive the canonical wing name:
+   - `basename $(pwd)` → lowercase → replace spaces/underscores with hyphens
+   - Prepend platform prefix if not present (`swift-`, `python-`, `flutter-`, etc.)
+   - Example: `Sudoku` in `swift/` → `swift-sudoku` (NOT `swift-Sudoku`)
+
+3. Run `mempalace_list_wings`. If a wrong-case duplicate wing exists → warn the user (same project under two names = stale records risk).
+
+4. **Path validation rule (mandatory for all MemPalace reads this session):**
+   After any `mempalace_search`, for each result containing absolute file paths: verify the path exists on disk. If not → mark `[STALE: path not found]` and do not act on it.
+
 ### Step 1: Read project context
 
 Read these files before anything else:

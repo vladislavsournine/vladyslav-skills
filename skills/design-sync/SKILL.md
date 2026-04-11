@@ -23,9 +23,14 @@ Scans an existing UI codebase, extracts the **actual** design tokens being used 
 
 ## Process
 
-### Step 0: Verify model and scope
+### Step 0: Verify model, scope, and working directory
 
 Check current model. If not Opus, switch: `/model opus`.
+
+**Verify working directory and canonical wing name:**
+1. Check that `CLAUDE.md` exists in `pwd`. If not → STOP: "No CLAUDE.md found. Are you in the right project directory?"
+2. Derive canonical wing name: `basename $(pwd)` → lowercase → hyphens → platform prefix (e.g. `swift-sudoku`, not `swift-Sudoku`).
+3. Run `mempalace_list_wings`. If a wrong-case duplicate exists → warn the user before proceeding. Always write to the lowercase canonical wing.
 
 Verify this is a UI project. Check for at least one:
 - `swift/` directory with `.swift` files OR `*.xcodeproj` / `Package.swift` with UI targets
@@ -52,7 +57,7 @@ If `docs/design/system.md` already exists and is **not just the template**, ask 
 
 Record the choice. Default to (1) if empty/template.
 
-### Step 2: MemPalace — prior design decisions
+### Step 2: MemPalace — prior design decisions (hypothesis, NOT truth)
 
 Search the project wing:
 ```
@@ -66,7 +71,23 @@ mempalace_search wing=<project> "spacing"
 mempalace_search wing=<project> "component"
 ```
 
-Compile into a "known design decisions" list. If any of them conflict with what's in the code, that's a sync problem — flag for Step 6.
+**Path validation first:** For any result containing absolute file paths, verify each path exists on disk. If a path does not exist → mark the drawer `[STALE]` and exclude it from the findings list entirely.
+
+**Present findings as hypothesis — never apply silently:**
+
+After gathering results, for each significant design decision found (color direction, icon library, primary accent, typography system), present it to the user and ask explicitly:
+
+> "MemPalace has this from `<date>`: **`<finding>`**
+> Is this still the design direction?
+> (y) Yes — use as a constraint in this session
+> (n) No — ignore it, the code / mockup is the source of truth
+> (?) Unsure — I'll verify it against current code before deciding"
+
+Wait for confirmation before including any MemPalace finding in the design decisions list.
+
+**Why this rule exists:** On 2026-04-10, design-sync silently applied a stale Indigo direction from MemPalace, overriding the user's actual Modern Pink direction. The result: a full design system document in the wrong color direction that had to be manually corrected. One wrong memory silently corrupted an hour of work.
+
+**Only after user confirmation**, compile the validated list into "known design decisions". If any conflict with what's in the code, that's a sync problem — flag for Step 6.
 
 ### Step 3: Extract color tokens
 

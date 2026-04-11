@@ -208,9 +208,12 @@ mempalace_search wing=<project>      # попередні міграції, gotc
 
 1. **Blast Radius Rule** — найменша оправдана зміна. Більший рефакторинг = STOP і питаю дозволу.
 2. **MemPalace strict use** — шукаю в MemPalace ПЕРЕД скануванням коду, записую в MemPalace ПІСЛЯ виконаного.
+   - **Path validation (завжди):** після `mempalace_search` перевіряю кожен абсолютний шлях у результатах. Якщо шлях не існує на диску → drawer `[STALE]`, не використовую.
+   - **Wing naming:** канонічна назва wing = `basename(pwd)` → lowercase → hyphens → platform prefix. Ніколи не пишу у wing з великими літерами.
 3. **Contract-First** — контракт (типи/сигнатури/приклади) перед кодом, тести в паралель з кодом.
 4. **Mandatory Code Review** — чекліст перед "done": correctness → security → code smell → minimal change compliance.
 5. **LSP over Grep** — для Swift/Python/TS/Kotlin/Lua використовую LSP для пошуку символів, не Grep.
+6. **MCP Tool Discipline** — ніколи не читаю `~/.claude/projects/*/tool-results/*.txt` через Bash/Grep. Це внутрішній кеш Claude Code. Для повторного отримання даних — викликаю MCP tool напряму (заблоковано hook-ом автоматично).
 
 ---
 
@@ -221,6 +224,7 @@ mempalace_search wing=<project>      # попередні міграції, gotc
 | Механізм | Тригер | Що робить |
 |---|---|---|
 | **Pre-commit hook** (`~/.claude/hooks/pre-commit-review.sh`) | Будь-який `git commit` з Bash tool | Друкує Mandatory Code Review чекліст як нагадування (non-blocking). Вимикається через `NO_COMMIT_REVIEW=1`. |
+| **Tool-results block hook** (`~/.claude/hooks/block-tool-results-grep.sh`) | Будь-який Bash що чіпає `~/.claude/projects/*/tool-results/` | **Блокує** з поясненням. Примусовий — обходу немає. |
 | **MemPalace session-end indexing** | Кінець сесії | Індексує сесію в MemPalace (wing detection + room classification). |
 | **Mandatory Code Review чекліст** | Кінець будь-якої задачі | Я сам проходжу корректність → секюріті → код-смел → мінімальність. Прописано в `~/.claude/CLAUDE.md`. |
 | **Blast Radius Rule** | Перед будь-яким edit | Я сам декларую scope і не виходжу за нього без дозволу. |
