@@ -57,6 +57,17 @@ If `docs/design/system.md` already exists and is **not just the template**, ask 
 
 Record the choice. Default to (1) if empty/template.
 
+**iOS projects only — HIG baseline check:**
+If platform is iOS (detected via `Assets.xcassets`, `*.xcodeproj`, `Package.swift` with SwiftUI imports), invoke the `apple-hig-expert` skill (available via `c-level-skills@claude-code-skills` plugin) for a quick baseline audit before extraction:
+
+```
+Invoke: apple-hig-expert (Mode 2: HIG Audit)
+Input: current screen list from docs/product/start-project.md
+Output: list of HIG violations to flag in the drift log §8
+```
+
+Add any HIG findings as drift items in §8 with severity `hig-violation`. These are not blocking — design-sync continues. But they must be documented so future sessions know they exist.
+
 ### Step 2: MemPalace — prior design decisions (hypothesis, NOT truth)
 
 Search the project wing:

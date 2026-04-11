@@ -33,18 +33,40 @@
 
 ### Дизайн-система (щоб новий екран не виглядав як чужий проект)
 
-- **`/vladyslav:design-sync`** — сканує існуючий UI-код, витягує канонічні токени (кольори, typography, іконки, spacing, компоненти), виявляє drift, канонізує через питання до тебе, пише `docs/design/system.md` + MemPalace decision records. Запускай коли:
+Правильний порядок: **design-sync → design-page → add-feature**
+
+- **`/vladyslav:design-sync`** — сканує існуючий UI-код, витягує канонічні токени (кольори, typography, іконки, spacing, компоненти), виявляє drift, канонізує через питання до тебе, пише `docs/design/system.md` + MemPalace decision records. Для iOS проектів автоматично запускає `apple-hig-expert` аудит і додає HIG-порушення в §8 drift log. Запускай коли:
   - Перший раз помітив що новий екран не схожий на старий
   - Після `init-project` коли вже є 2-3 екрани
   - Перед major design refresh (канонізувати що є → планувати що змінюємо)
   - Періодично на активних проектах щоб ловити дрейф
+
+- **`/vladyslav:design-page`** — після того як `docs/design/system.md` затверджений, проектує **всі екрани в Pencil паралельно** (окремий субагент на кожен екран). Full-auto: зупиняється лише якщо потрібен новий токен або помилка Pencil. Запускай коли:
+  - Дизайн-напрямок підтверджений (system.md написаний)
+  - Маєш список екранів для проектування
+  - Хочеш уникнути переповнення контексту від проектування всіх екранів в одній сесії
+
+  **Як працює паралелізм:**
+  1. Оркестратор (Opus) попередньо резервує canvas-координати для кожного екрану
+  2. Синхронізує Pencil variables з `docs/design/system.md §1` токенами (один раз)
+  3. Диспатчить паралельні субагенти (один на екран) — кожен малює у своїй зарезервованій зоні
+  4. Кожен субагент пише `docs/design/pages/<screen-name>.md` з рішеннями
+  5. Агрегує результати, виводить звіт
+
+  **Full-auto межа:** єдині тверді стопи — відсутній токен (продуктове рішення) або Pencil API error.
+
+- **`apple-hig-expert`** (з `c-level-skills@claude-code-skills`, вже підключений) — iOS HIG аудит: Liquid Glass (2026), Tab Bar nav, 44pt targets, Dynamic Type, Dark Mode, VoiceOver. Використовується автоматично в `design-sync` і в кожному субагенті `design-page`. Можна викликати окремо для аудиту конкретного екрану.
+
 - **Глобальне правило "Design System Discipline"** (в `~/.claude/CLAUDE.md`) — перед будь-якою UI-задачею я зобов'язаний:
   1. Прочитати `docs/design/system.md` як контракт
   2. Просканувати asset catalog за існуючими токенами
   3. **НЕ винаходити** нові кольори / іконки / шрифти / padding — тільки reuse
   4. Якщо потрібен новий токен — СТОП, питаю дозволу, реєструю в `docs/design/system.md`
   5. Якщо дизайн-системи немає — питаю чи запускати `design-sync` чи діяти ad-hoc (не рекомендовано)
+
 - **Template:** порожній канон живе в `~/.vladyslav-skills/templates/DesignSystem.md` — `init-project` пише його автоматично для UI-проектів (swift/flutter/kotlin/web), скіпає для backend-only.
+
+- **Page decisions:** `docs/design/pages/<screen>.md` — рішення кожного субагента для конкретного екрану (відступи від master, вжиті компоненти, знайдені issues). Інспіровано ui-ux-pro-max-skill MASTER + per-page overrides патерном.
 
 ### Product Discovery (перед кодом)
 
@@ -311,7 +333,8 @@ mempalace_search wing=<project>      # попередні міграції, gotc
 | `attach-project` | Engineer | Приєднання Claude до існуючого коду |
 | `analyze-project` | Architect | Скан коду, заповнення architecture docs |
 | `seed-mempalace` | Architect | Одноразовий bootstrap MemPalace wing |
-| `design-sync` | Architect | Сканує UI-код, канонізує токени, пише `docs/design/system.md` + MemPalace |
+| `design-sync` | Architect | Сканує UI-код, канонізує токени, пише `docs/design/system.md` + MemPalace. iOS: автоматичний HIG аудит через `apple-hig-expert` |
+| `design-page` | Architect | Паралельні субагенти для кожного екрану в Pencil. Full-auto. Читає `docs/design/system.md` як контракт, пише `docs/design/pages/<screen>.md` |
 | `discover` | Architect | Оркестратор product discovery (запускає саб-скіли) |
 | `discover-competitors` | Architect | Конкурентний аналіз → start-project.md §6 |
 | `discover-monetization` | Architect | Моделі монетизації → start-project.md §8 |
