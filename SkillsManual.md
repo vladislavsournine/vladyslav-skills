@@ -109,6 +109,18 @@
 - **`/vladyslav:write-user-stories`** — генерує `docs/product/user-stories.md` у форматі `As [role], I can [action], so that [benefit]` з acceptance criteria і статусами (Done / Partial / Not started).
 - Джерело: реальний код + PRD + існуючі сторі. Корисно коли QA потрібен registry реалізованих фіч.
 
+### Session Continuity
+
+- **`/vladyslav:stash`** — pause-and-resume primitive. Snapshots the current conversation's mental state (task summary, open question, decisions made, pending files, deferred items) into a MemPalace `stash` drawer for the active wing. Use when you need to close a session mid-flight or switch to a separate task without losing context. Latest-wins: the newest drawer IS the active stash; older drawers remain as history.
+
+- **`/vladyslav:unstash`** — restores the latest stash for the current wing into the conversation. Validates `pending_files` against git state (live / committed-since-stash / missing) before showing them. Use at the start of a session to resume previously-stashed work.
+
+These pair with two global rules in `~/.claude/CLAUDE.md`:
+- **Scope Sentinel** — catches "let's also add X" mid-execution; classifies as (A) clarification (silent), (B) extension (asks before expanding plan), or (C) separate task (offers to stash + switch).
+- **Active Stash Notification** — at session start, if a stash exists for the current wing, prepends an informational line to the first response: `ℹ Latest stash: <task> (from <created_at>, source <source>). /unstash to resume.` — does not block.
+
+`vladyslav:add-feature` and `vladyslav:fix-bug` invoke `vladyslav:stash` automatically at defined checkpoints (contract approval, plan approval, each subagent task complete, etc.) so incomplete runs still leave a recoverable stash.
+
 ---
 
 ## Робочі сценарії
