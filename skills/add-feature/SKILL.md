@@ -131,6 +131,8 @@ Do not proceed to Step 6 until the user approves. Record the file lists — main
 
 Each task in the plan must reference which part of the contract it implements.
 
+> **Tests mandate (both modes):** Every task in the plan must include a "Write tests" sub-step *alongside* implementation — not deferred to after the feature is complete. Tests derive from the contract (Step 4.5). Remind the user of this rule before finalizing the plan.
+
 ### Step 6: Execute the plan
 
 **Manual mode:**
@@ -210,14 +212,26 @@ Execute these three checks sequentially. If all pass → commit. If any fails �
 - Ask: "Auto-gate failure at <step>. <details>. How to proceed? (fix and retry / reopen plan / abort feature)"
 - Do NOT bypass the gate. Do NOT weaken the check ("the test is flaky, let's skip it"). The gate is a contract with the user.
 
-### Step 7: Code review
+> **Tests checkpoint:** Before accepting "done" from Step 6, explicitly ask: "Did each task include tests written alongside the implementation (not deferred)?" If not, send the user back to write the missing tests before proceeding.
 
-**Manual mode:**
+**Manual mode — PR review after each chunk:**
 
-After implementation is complete:
+After **each chunk/phase** of the plan completes (not just at the very end):
 
 ⏸ Stop. Tell the user:
-"Step 7 complete. Now run /superpowers:code-review in your terminal.
+"Chunk complete. Run /pr-review-toolkit:code-reviewer now for a focused review of what was just implemented.
+This is mandatory — do not skip. When done, come back and say 'done' to continue to the next chunk."
+
+If the reviewer returns feedback → fix issues in the same chunk before moving on. Do NOT accumulate technical debt across chunks.
+
+Repeat this step after each chunk until all chunks are done.
+
+### Step 7: Final code review
+
+After ALL chunks are complete:
+
+⏸ Stop. Tell the user:
+"Step 7 complete. Now run /superpowers:code-review in your terminal for a final full-feature review.
 When done, come back and say 'done' to continue."
 
 If feedback is received:
