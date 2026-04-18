@@ -1,8 +1,15 @@
 # Design: Session Continuity — Stash/Unstash + Scope Sentinel
 
 **Date:** 2026-04-16
-**Status:** Draft (awaiting user review)
-**Scope:** New `vladyslav:stash` and `vladyslav:unstash` skills + 2 global rules in `~/.claude/CLAUDE.md` + MemPalace taxonomy update.
+**Status:** Revised — Latest-wins semantics + auto-stash integration
+**Scope:** New `vladyslav:stash` and `vladyslav:unstash` skills + 2 global rules in `~/.claude/CLAUDE.md` + auto-stash checkpoints in `add-feature` / `fix-bug`.
+
+## Revision Notes (2026-04-16, after pre-flight)
+
+Two design changes after pre-flight revealed MemPalace API constraints and user mid-design requirement change:
+
+1. **Drawer API is immutable.** `mempalace_add_drawer` only adds; there is no update. Therefore `active: true/false` + `archived_at` approach is infeasible. Replaced with **Latest-wins semantics** — the newest drawer with `room=stash` for a wing IS the active stash; older drawers are archived by virtue of not being newest. All stash history remains searchable.
+2. **Auto-stash added** (user request): long-running skills (`add-feature`, `fix-bug`) invoke `vladyslav:stash` at meaningful checkpoints so that incomplete executions are captured even if the user never runs `/stash`. See Component 6.
 
 ## Problem
 
@@ -49,10 +56,11 @@ These were decided during brainstorming. Each is locked unless explicitly reopen
 | 1 | What does stash capture? | (b) Conversational state + pending file list (no diffs, no auto-commit) |
 | 2 | Where is stash persisted? | MemPalace only (no disk file duplication) |
 | 3 | Scope Sentinel classification — who decides? | (iii) Agent decides (A) "clarification" silently; always asks user for (B) "extension" and (C) "separate task" |
-| 4 | How many active stashes per project? | (a) One active per wing |
+| 4 | How many active stashes per project? | (a) One active per wing — realized via Latest-wins |
 | 5 | Session-start behavior when stash exists? | (d) Show informational status line in first response, do not block |
-| 6a | Conflict — new `stash` while one is already active? | (ii) Auto-archive the old one (set `active: false`, add `archived_at`); new stash becomes active. Old remains searchable. |
-| 6b | How is wing detected? | (i+fallback) Map `cwd` → wing (root folder name ≈ wing name) with hardcoded list from `~/.claude/CLAUDE.md`; if no match, ask user with autocomplete |
+| 6a | Conflict — new `stash` while one is already active? | (ii) **Latest-wins** — the newest drawer with `room=stash` for the wing IS active. No explicit archive step. Older drawers remain in MemPalace, searchable, but are not "active". |
+| 6b | How is wing detected? | (i+fallback) Map `cwd` → wing. Take `basename $(pwd)`, **strip leading dots** (handles `.vladyslav-skills` → `vladyslav-skills`), lowercase, replace `_`/`.`/spaces with `-`, prepend platform prefix if missing. Compare against wings list in `~/.claude/CLAUDE.md`; if no match, ask user with autocomplete. |
+| 7 | Auto-stash in long-running skills? | **Yes** — `add-feature` and `fix-bug` invoke `vladyslav:stash` at defined checkpoints (Component 6). `added_by` field distinguishes auto from manual. |
 
 ## Component 1 — `vladyslav:stash`
 
@@ -70,27 +78,31 @@ These were decided during brainstorming. Each is locked unless explicitly reopen
    - `pending_files` — list of modified-but-uncommitted files with one-line description per file ("what I was doing there"); detect via `git status -s` if available, otherwise from session memory
    - `deferred` — items the user explicitly deferred or that surfaced as "while I'm here" but were not done
 
-3. **Archive previous active stash for this wing.** `mempalace_search` with filters `wing=<wing>, room_type=stash, active=true`. If found, update that drawer: `active: false`, `archived_at: <now>`. (Old stash remains searchable but is no longer the active one.)
+3. **No explicit archive step** (Latest-wins). The new drawer created in Step 4 becomes the active stash automatically because it has the newest timestamp. Older stash drawers remain in MemPalace and are searchable but are no longer considered active.
 
-4. **Create new stash drawer.** Call `mempalace_kg_add` with:
+4. **Create new stash drawer.** Call `mempalace_add_drawer` with:
+   - `wing`: `<canonical-wing-from-step-1>`
+   - `room`: `"stash"`
+   - `added_by`: `"mcp"` (for manual `/stash`) or `"add-feature:auto"` / `"fix-bug:auto"` (for auto-stash — see Component 6)
+   - `content`: serialized as a single string with the exact YAML below (MemPalace stores content verbatim; keeping it as YAML lets `unstash` parse it back):
+
    ```yaml
-   wing: <wing>
-   room_type: stash
-   active: true
-   created_at: <iso8601>
-   archived_at: null
-   content:
-     task: "..."
-     open_question: "..."
-     done_in_session: ["...", "..."]
-     pending_files:
-       - path: "src/auth/middleware.ts"
-         note: "added skeleton, needs tests"
-     deferred:
-       - "verify CORS — out of scope of feature X"
+   created_at: 2026-04-16T14:32:00+03:00
+   source: manual | add-feature:auto:<checkpoint-name> | fix-bug:auto:<checkpoint-name>
+   task: "1-2 sentence summary"
+   open_question: "current decision point, or 'no open question'"
+   done_in_session:
+     - "decision or file written"
+   pending_files:
+     - path: "src/auth/middleware.ts"
+       note: "added skeleton, needs tests"
+   deferred:
+     - "verify CORS — out of scope of feature X"
    ```
 
-5. **Confirm to user.** Output: `Stashed for <wing>. Previous stash archived. /unstash to resume.`
+   `created_at` is written into the content (not a separate field) because `mempalace_add_drawer` does not return a server timestamp we can rely on. `unstash` sorts by this `created_at` to find the latest.
+
+5. **Confirm to user.** Output: `Stashed for <wing>. Older stashes remain as history. /unstash to resume.`
 
 ## Component 2 — `vladyslav:unstash`
 
@@ -101,9 +113,9 @@ These were decided during brainstorming. Each is locked unless explicitly reopen
 
 1. **Detect wing** (same logic as `stash`).
 
-2. **Find active stash.** `mempalace_search` with `wing=<wing>, room_type=stash, active=true`. Expect 0 or 1 result.
+2. **Find latest stash (Latest-wins).** `mempalace_search` with `wing=<wing>, room="stash"`, query="stash created_at" (broad match), limit=20. Parse each drawer's YAML content; extract `created_at`. Select the drawer with the **newest `created_at`** as active. Older drawers are implicitly archived — they remain searchable but are not restored by default.
 
-3. **Handle empty case.** If no active stash → output: `No active stash for <wing>. Search archived? (y/n)`. If yes → list recent archived stashes for this wing with timestamps and let user pick.
+3. **Handle empty case.** If no stash drawers found for this wing → output: `No stash for wing <wing>.` Offer cross-wing search as optional: `Search other wings? (y/n)`.
 
 4. **Validate freshness.** For each `pending_files` entry, `git status -s` to confirm the file still has changes. If a file is now clean → flag it in output ("file `<path>` is now clean — likely committed since stash"). This implements the "before recommending from memory" rule from `~/.claude/CLAUDE.md` (verify before acting).
 
@@ -159,45 +171,84 @@ This rule complements the Blast Radius Rule (which governs agent-driven scope ex
 ## Active Stash Notification (Session Start)
 
 At the start of any session inside a project that maps to a wing:
-1. Run `mempalace_search` with filters `wing=<current-wing>, room_type=stash, active=true`.
-2. If a result exists, prefix the FIRST response in the session with:
-   > ℹ Active stash: `<task>` (from `<created_at>`). `/unstash` to resume.
-3. Then proceed with the user's actual request. Do NOT block, do NOT ask for confirmation. Pure information.
+1. Run `mempalace_search` with `wing=<current-wing>, room="stash"`, query="stash created_at", limit=5. Parse each returned drawer's YAML `content` and extract `created_at`.
+2. If at least one result exists, take the drawer with the **newest `created_at`** — this is the latest stash. Prefix the FIRST response in the session with:
+   > ℹ Latest stash: `<task>` (from `<created_at>`, source `<source>`). `/unstash` to resume.
+3. Then proceed with the user's actual request. Do NOT block, do NOT ask for confirmation. Pure information. Do NOT fetch or display older stashes.
 
 This runs once per session, not per message. If the user explicitly says "ignore stash" or "no memory", skip this check.
 ```
 
-## Component 5 — MemPalace taxonomy update
+## Component 5 — MemPalace room convention
 
-Verify whether `room_type: stash` already exists by calling `mempalace_get_taxonomy`. If absent, add it (mechanism depends on MemPalace's taxonomy API — the plan must include the exact call). Document the schema:
+MemPalace `room` parameter is free-form; there is no enum enforcement. Creating a drawer with `room="stash"` automatically registers the room type in the taxonomy. No separate registration step is needed.
+
+**Drawer schema for stash (content field, stored verbatim as YAML text):**
 
 ```yaml
-room_type: stash
-purpose: Pause-and-resume snapshot of an active work session within a wing.
-fields:
-  active: bool          # exactly one active stash per wing at any time
-  archived_at: iso8601? # null while active, timestamp once archived
-  content:
-    task: string                     # 1-2 sentence summary
-    open_question: string            # current decision point or "no open question"
-    done_in_session: string[]
-    pending_files: { path, note }[]
-    deferred: string[]
+created_at: <iso8601-with-timezone>         # used by unstash/notification for latest-wins
+source: manual | add-feature:auto:<checkpoint> | fix-bug:auto:<checkpoint>
+task: "1-2 sentence summary"
+open_question: "current decision point or 'no open question'"
+done_in_session:
+  - "each item one line"
+pending_files:
+  - path: "<repo-relative-path>"
+    note: "<one-line description of work in progress>"
+deferred:
+  - "item with reason"
 ```
 
-## Integration With Existing `vladyslav:*` Skills
+**Distinguishing fields:**
+- `wing` + `room="stash"` filters drawers to stashes for one project.
+- Within that set, `created_at` orders them — newest is active.
+- `source` distinguishes manual from auto-stash (affects `unstash` output phrasing: "last manual stash" vs "auto-checkpoint at <checkpoint-name>").
 
-**No changes to existing skills are needed.** This is by design:
+## Component 6 — Auto-stash integration in long-running skills
 
-- Component 4 (session-start notification) surfaces active stash before any skill runs, so all existing skills (`add-feature`, `write-user-stories`, `init-project`, etc.) inherit continuity for free.
-- Component 3 (Scope Sentinel) lives in global `CLAUDE.md` and applies to every skill invocation globally.
+**Goal:** Guarantee that incomplete executions of `add-feature` or `fix-bug` leave a recoverable stash, even if the user closes the session without invoking `/stash`.
 
-If a future need arises (e.g. `add-feature` should refuse to start when an active stash exists for the same wing), it can be added later as an opt-in check inside that skill. For now, YAGNI.
+**Mechanism:** The two long-running skills invoke `vladyslav:stash` (same skill used by `/stash`) at defined checkpoints. Each invocation passes `source` metadata identifying which skill and which checkpoint fired the auto-stash. `unstash` displays this source so the user knows whether they are resuming manual or automatic state.
+
+### 6.1 — `skills/add-feature` checkpoints
+
+Trigger an auto-stash (via `vladyslav:stash` call with `source: "add-feature:auto:<name>"`) at each of:
+
+| Checkpoint name | Fires after | `open_question` content |
+|-----------------|-------------|-------------------------|
+| `contract-approved` | User approves the contract in Step 4.5 | `"Contract approved — awaiting plan writing"` |
+| `plan-approved` | User approves the implementation plan | `"Plan approved — awaiting execution start"` |
+| `subagent-task-complete:N` | Each completed subagent task in auto-mode | `"Subagent task N complete — awaiting task N+1"` |
+| `auto-gate-blocker` | Auto-gate finds a blocker (tests/review/security) | `"Auto-gate blocked on: <reason>"` |
+
+Auto-stash calls do NOT re-execute wing detection — they inherit wing from the skill's current directory (`add-feature` already validates this in Step 0.1).
+
+### 6.2 — `skills/fix-bug` checkpoints
+
+Trigger an auto-stash at each of:
+
+| Checkpoint name | Fires after | `open_question` content |
+|-----------------|-------------|-------------------------|
+| `reproduction-written` | Failing test that reproduces the bug is committed | `"Reproduction test committed — awaiting fix"` |
+| `fix-applied` | Fix committed, test now passes | `"Fix applied and test passing — awaiting regression verification"` |
+| `regression-passed` | Full test suite passes after fix | `"Regression clean — ready to merge"` |
+
+### 6.3 — `pending_files` collection in auto-stash
+
+Same logic as manual: `git status --short` at the time of the checkpoint. If between checkpoints the user committed interim work, `pending_files` may be empty — that's correct and `unstash` will reflect "no pending files".
+
+### 6.4 — `done_in_session` in auto-stash
+
+Populate with the skill's internal step summary (e.g., `add-feature` already records what step it just finished). Do NOT replay the entire conversation — keep it to 3-5 bullets of the most recent significant events.
+
+### 6.5 — Failure handling inside auto-stash
+
+If `mempalace_add_drawer` fails during auto-stash → log a warning inline (*"Auto-stash failed: <reason>. Continuing — manual `/stash` recommended."*) but do NOT abort the parent skill. Auto-stash is best-effort insurance; it must not break the primary workflow.
 
 ## Out of Scope
 
-- **No git auto-commit / auto-stash.** User retains full control of their git state. `pending_files` is a textual note only.
-- **No multi-stash stack** (named stashes, `stash list`, `stash pop <id>`). One active per wing. Archived stashes are searchable via `mempalace_search` if needed but have no first-class UI.
+- **No git-level auto-commit or `git stash`.** The conversational auto-stash in Component 6 writes to MemPalace only. User retains full control of their git state. `pending_files` is a textual note only.
+- **No multi-stash stack** (named stashes, `stash list`, `stash pop <id>`). One active per wing (Latest-wins). Older stashes remain in MemPalace and are searchable via `mempalace_search` if needed but have no first-class UI.
 - **No mid-session conversation replay.** `unstash` reconstructs context as a structured summary, not a verbatim transcript.
 - **No changes to `superpowers:*` skills.** They remain untouched (per user constraint — "не буду апдейтіть чужий репозитарій"). Continuity for superpowers-driven specs is handled indirectly via session-start notification + manual `unstash`.
 - **No automatic linking from stash → spec/plan files.** If a stash references a spec at `docs/plans/X-design.md`, the `pending_files` field handles that. No separate "linked spec" field.

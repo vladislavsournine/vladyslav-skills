@@ -101,3 +101,12 @@ All 13 non-meta superpowers skills are integrated:
 | `finishing-a-development-branch` | `add-feature`, `fix-bug` | Merge/PR |
 | `verification-before-completion` | `pre-release-check` | Evidence-based checks |
 | `writing-skills` | (meta) | Edit vladyslav skills |
+
+### Session Continuity
+
+- **`/vladyslav:stash`** — pause an in-progress task. Captures the current mental state (open question, decisions made, pending files, deferred items) to MemPalace as a `stash` drawer for the current wing.
+- **`/vladyslav:unstash`** — resume a previously stashed task. Reads the latest stash (Latest-wins by `created_at`) for the current wing and restores its open question, prior work, pending files, and deferred items into the conversation. Validates `pending_files` against git state before showing them.
+
+One active stash per wing via Latest-wins semantics — the newest `stash` drawer for a wing IS the active one. Older drawers remain as history (MemPalace drawer API is add-only). `vladyslav:add-feature` and `vladyslav:fix-bug` invoke `stash` automatically at defined checkpoints so incomplete runs are recoverable.
+
+Companion to two global rules in `~/.claude/CLAUDE.md`: **Scope Sentinel** (catches scope creep mid-execution) and **Active Stash Notification** (informs you at session start if a stash exists for this wing).
