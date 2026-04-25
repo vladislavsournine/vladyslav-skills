@@ -1,0 +1,38 @@
+name: PROJECT_NAME
+options:
+  bundleIdPrefix: BUNDLE_ID_PREFIX   # e.g. com.vlad
+  deploymentTarget:
+    iOS: "DEPLOYMENT_TARGET"
+  xcodeVersion: "15"
+  createIntermediateGroups: true
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    DEVELOPMENT_TEAM: ""             # fill in after Xcode login
+
+targets:
+  PROJECT_NAME:
+    type: application
+    platform: iOS
+    deploymentTarget: "DEPLOYMENT_TARGET"
+    sources:
+      - path: app
+    resources:
+      - path: app/Resources
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: BUNDLE_ID_PREFIX.PROJECT_NAME_LOWER
+        INFOPLIST_FILE: app/Info.plist
+
+  PROJECT_NAMETests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "DEPLOYMENT_TARGET"
+    sources:
+      - path: tests
+    dependencies:
+      - target: PROJECT_NAME
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: BUNDLE_ID_PREFIX.PROJECT_NAME_LOWERTests
