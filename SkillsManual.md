@@ -4,6 +4,20 @@
 
 ---
 
+## Передумови
+
+- **Claude Code** — встановлений
+- **Superpowers plugin** — потрібен для `add-feature`, `fix-bug`, `analyze-project`, `pre-release-check`, `write-test-docs`
+- **MemPalace MCP server** 🧠 — потрібен для 9 скілів нижче. Без нього вони впадуть на першому ж виклику `mempalace_*` тулзи.
+
+### Скіли що вимагають MemPalace 🧠
+
+`add-feature` · `fix-bug` · `discover` · `discover-apple-check` · `design-sync` · `seed-mempalace` · `pre-release-check` · `stash` · `unstash`
+
+Інші скіли (`init-project`, `attach-project`, `analyze-project`, `write-user-stories`, `write-test-docs`, `write-project-docs`, `help`, `swiftui-pro`, `design-page`) працюють без MemPalace.
+
+---
+
 ## За завданням
 
 ### Старт проекту з нуля
@@ -15,11 +29,11 @@
 
 - **`/vladyslav:attach-project`** — додає Claude-структуру до існуючого коду **не ламаючи** файли. Auto-detect стеків.
 - **`/vladyslav:analyze-project`** — сканує код, заповнює `docs/architecture/system.md`, `api.md`, `db-schema.sql`, оновлює `CLAUDE.md`.
-- **`/vladyslav:seed-mempalace`** — ОДНОРАЗОВО записує ключові архітектурні рішення в MemPalace wing проекту. Після цього майбутні сесії не сканують репу наново.
+- **`/vladyslav:seed-mempalace`** 🧠 — ОДНОРАЗОВО записує ключові архітектурні рішення в MemPalace wing проекту. Після цього майбутні сесії не сканують репу наново.
 
 ### Додавання фічі
 
-- **`/vladyslav:add-feature`** — повний цикл: `brainstorm → contract → plan → parallel execution (tests + code) → auto-gate (tests + review + security) → merge → docs update`.
+- **`/vladyslav:add-feature`** 🧠 — повний цикл: `brainstorm → contract → plan → parallel execution (tests + code) → auto-gate (tests + review + security) → merge → docs update`.
 - Автоматично діють: Blast Radius Rule (мінімальні зміни), Contract-First (контракт до коду), Mandatory Code Review (чекліст).
 - **Два режими** (скіл питає на старті):
   - **Manual** — stop-and-tell після кожної фази. Для нетипових/ризикових фіч.
@@ -35,7 +49,7 @@
 
 Правильний порядок: **design-sync → design-page → add-feature**
 
-- **`/vladyslav:design-sync`** — сканує існуючий UI-код, витягує канонічні токени (кольори, typography, іконки, spacing, компоненти), виявляє drift, канонізує через питання до тебе, пише `docs/design/system.md` + MemPalace decision records. Для iOS проектів автоматично запускає `apple-hig-expert` аудит і додає HIG-порушення в §8 drift log. Запускай коли:
+- **`/vladyslav:design-sync`** 🧠 — сканує існуючий UI-код, витягує канонічні токени (кольори, typography, іконки, spacing, компоненти), виявляє drift, канонізує через питання до тебе, пише `docs/design/system.md` + MemPalace decision records. Для iOS проектів автоматично запускає `apple-hig-expert` аудит і додає HIG-порушення в §8 drift log. Запускай коли:
   - Перший раз помітив що новий екран не схожий на старий
   - Після `init-project` коли вже є 2-3 екрани
   - Перед major design refresh (канонізувати що є → планувати що змінюємо)
@@ -70,13 +84,13 @@
 
 ### Product Discovery (перед кодом)
 
-- **`/vladyslav:discover`** — монстр-скіл що запускає повний цикл discovery. Питає scope (full / marketing / valuation / competitors / monetization / apple-check), сам послідовно викликає потрібні саб-скіли, наприкінці пише `docs/product/discovery-summary.md`.
+- **`/vladyslav:discover`** 🧠 — монстр-скіл що запускає повний цикл discovery. Питає scope (full / marketing / valuation / competitors / monetization / apple-check), сам послідовно викликає потрібні саб-скіли, наприкінці пише `docs/product/discovery-summary.md`.
 - Саб-скіли можна викликати окремо:
   - **`/vladyslav:discover-competitors`** — `c-level-skills:competitive-intel` → секція 6 `start-project.md` + `docs/product/competitors.md`.
   - **`/vladyslav:discover-monetization`** — `cpo-advisor` + `cfo-advisor` → секція 8 `start-project.md`.
   - **`/vladyslav:discover-valuation`** — PMF scorer + `ceo-advisor` → зелений/жовтий/червоний verdict → секція 9.
   - **`/vladyslav:discover-marketing`** — `cmo-advisor` → channel hypothesis, first-100-users, retention hook → секція 10.
-  - **`/vladyslav:discover-apple-check`** — iOS only — підтягує рішення зі swift-calories wing, викликає `apple-appstore-reviewer`, заповнює секцію 11 (rejection-risk checklist).
+  - **`/vladyslav:discover-apple-check`** 🧠 — iOS only — підтягує рішення зі swift-calories wing, викликає `apple-appstore-reviewer`, заповнює секцію 11 (rejection-risk checklist).
 - **Вхід:** має існувати `docs/product/start-project.md` (створюється автоматично в `/vladyslav:init-project` зі шаблона `templates/StartProject.md`).
 
 ### Документування проекту
@@ -89,7 +103,7 @@
 
 - **`/vladyslav:write-test-docs`** — генерує `docs/testing/test-plan.md` (unit/integration/edge cases) і `docs/testing/manual-qa.md` (QA чекліст).
 - **`/superpowers:test-driven-development`** — реально пише тести (test-first). Викликається автоматично всередині `add-feature` і `fix-bug`.
-- **`/vladyslav:pre-release-check`** — фінальна верифікація перед релізом (тести, docs, rollback, translations). **iOS only:** запускає submission-phase Apple App Store review — hard gate, BLOCKER/HIGH робить весь чек FAIL. Cross-reference з `docs/product/apple-review.md` (pre-dev audit) + свіжі rejection patterns зі `swift-calories` wing. Output → `docs/release/apple-review-submission.md`.
+- **`/vladyslav:pre-release-check`** 🧠 — фінальна верифікація перед релізом (тести, docs, rollback, translations). **iOS only:** запускає submission-phase Apple App Store review — hard gate, BLOCKER/HIGH робить весь чек FAIL. Cross-reference з `docs/product/apple-review.md` (pre-dev audit) + свіжі rejection patterns зі `swift-calories` wing. Output → `docs/release/apple-review-submission.md`.
 
 ### Перевірка секуріті
 
@@ -100,7 +114,7 @@
 
 ### Фікс багу
 
-- **`/vladyslav:fix-bug`** — повний цикл: `worktree → systematic-debugging → regression test → minimal fix → code review → merge → docs update`.
+- **`/vladyslav:fix-bug`** 🧠 — повний цикл: `worktree → systematic-debugging → regression test → minimal fix → code review → merge → docs update`.
 - Автоматично використовує `superpowers:systematic-debugging` (не стрибає до висновків).
 - Автоматично діє Blast Radius Rule — якщо потрібен більший рефакторинг, спитає дозволу.
 
@@ -111,9 +125,9 @@
 
 ### Session Continuity
 
-- **`/vladyslav:stash`** — pause-and-resume primitive. Snapshots the current conversation's mental state (task summary, open question, decisions made, pending files, deferred items) into a MemPalace `stash` drawer for the active wing. Use when you need to close a session mid-flight or switch to a separate task without losing context. Latest-wins: the newest drawer IS the active stash; older drawers remain as history.
+- **`/vladyslav:stash`** 🧠 — pause-and-resume primitive. Snapshots the current conversation's mental state (task summary, open question, decisions made, pending files, deferred items) into a MemPalace `stash` drawer for the active wing. Use when you need to close a session mid-flight or switch to a separate task without losing context. Latest-wins: the newest drawer IS the active stash; older drawers remain as history.
 
-- **`/vladyslav:unstash`** — restores the latest stash for the current wing into the conversation. Validates `pending_files` against git state (live / committed-since-stash / missing) before showing them. Use at the start of a session to resume previously-stashed work.
+- **`/vladyslav:unstash`** 🧠 — restores the latest stash for the current wing into the conversation. Validates `pending_files` against git state (live / committed-since-stash / missing) before showing them. Use at the start of a session to resume previously-stashed work.
 
 These pair with two global rules in `~/.claude/CLAUDE.md`:
 - **Scope Sentinel** — catches "let's also add X" mid-execution; classifies as (A) clarification (silent), (B) extension (asks before expanding plan), or (C) separate task (offers to stash + switch).

@@ -18,7 +18,14 @@ claude
 ## Requirements
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview)
-- [Superpowers plugin](https://github.com/obra/superpowers) (dependency)
+- [Superpowers plugin](https://github.com/obra/superpowers) — used by `add-feature`, `fix-bug`, `analyze-project`, `pre-release-check`, `write-test-docs`
+- **MemPalace MCP server** (required for 9 skills marked 🧠 below) — long-term cross-session memory. Configure as an MCP server in your Claude Code setup; without it, the skills below will fail when trying to read/write memory.
+
+### Skills that require MemPalace 🧠
+
+`add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `seed-mempalace`, `pre-release-check`, `stash`, `unstash`
+
+The other skills (`init-project`, `attach-project`, `analyze-project`, `write-*`, `help`, `swiftui-pro`, `design-page`) work without MemPalace.
 
 ## Two-Terminal Workflow
 

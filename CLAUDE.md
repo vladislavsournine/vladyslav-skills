@@ -43,3 +43,4 @@ Version is defined in `.claude-plugin/plugin.json`. Bump on every meaningful cha
 ## Dependencies
 
 - [Superpowers plugin](https://github.com/obra/superpowers) — all 13 non-meta superpowers skills are referenced
+- **MemPalace MCP server** — required by 9 skills (`add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `seed-mempalace`, `pre-release-check`, `stash`, `unstash`). When editing or adding skills that call `mempalace_*` tools, declare the dependency in the skill's SKILL.md and update the README "Skills that require MemPalace" list.
