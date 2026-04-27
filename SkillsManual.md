@@ -84,13 +84,14 @@
 
 ### Product Discovery (перед кодом)
 
-- **`/vladyslav:discover`** 🧠 — монстр-скіл що запускає повний цикл discovery. Питає scope (full / marketing / valuation / competitors / monetization / apple-check), сам послідовно викликає потрібні саб-скіли, наприкінці пише `docs/product/discovery-summary.md`.
-- Саб-скіли можна викликати окремо:
-  - **`/vladyslav:discover-competitors`** — `c-level-skills:competitive-intel` → секція 6 `start-project.md` + `docs/product/competitors.md`.
-  - **`/vladyslav:discover-monetization`** — `cpo-advisor` + `cfo-advisor` → секція 8 `start-project.md`.
-  - **`/vladyslav:discover-valuation`** — PMF scorer + `ceo-advisor` → зелений/жовтий/червоний verdict → секція 9.
-  - **`/vladyslav:discover-marketing`** — `cmo-advisor` → channel hypothesis, first-100-users, retention hook → секція 10.
-  - **`/vladyslav:discover-apple-check`** 🧠 — iOS only — підтягує рішення зі swift-calories wing, викликає `apple-appstore-reviewer`, заповнює секцію 11 (rejection-risk checklist).
+- **`/vladyslav:discover`** 🧠 — монстр-скіл повного циклу discovery. Питає scope (`All` / `Custom` — вибрати конкретні секції / `Skip done` — авто-детект уже заповнених). Внутрішньо послідовно проходить:
+  - **Section 6 — Competitive landscape** (`c-level-skills:competitive-intel`) → `docs/product/competitors.md`.
+  - **Section 8 — Monetization** (`cpo-advisor` + `cfo-advisor`) → start-project.md §8.
+  - **Section 9 — Valuation / PMF** (PMF scorer + `ceo-advisor`) → green / yellow / red verdict → §9.
+  - **Section 10 — Marketing** (`cmo-advisor`) → channel hypothesis, first-100-users, retention hook → §10.
+  - **Section 11 — Apple-check** (iOS only, авто-детект через `swift/` чи CLAUDE.md) → виноситься в окремий скіл `discover-apple-check`.
+  - В кінці пише `docs/product/discovery-summary.md`.
+- **`/vladyslav:discover-apple-check`** 🧠 — iOS only — підтягує рішення зі swift-calories wing, викликає `apple-appstore-reviewer`, заповнює секцію 11 (rejection-risk checklist). Можна запускати окремо.
 - **Вхід:** має існувати `docs/product/start-project.md` (створюється автоматично в `/vladyslav:init-project` зі шаблона `templates/StartProject.md`).
 
 ### Документування проекту
@@ -361,12 +362,8 @@ mempalace_search wing=<project>      # попередні міграції, gotc
 | `seed-mempalace` | Architect | Одноразовий bootstrap MemPalace wing |
 | `design-sync` | Architect | Сканує UI-код, канонізує токени, пише `docs/design/system.md` + MemPalace. iOS: автоматичний HIG аудит через `apple-hig-expert` |
 | `design-page` | Architect | Паралельні субагенти для кожного екрану в Pencil. Full-auto. Читає `docs/design/system.md` як контракт, пише `docs/design/pages/<screen>.md` |
-| `discover` | Architect | Оркестратор product discovery (запускає саб-скіли) |
-| `discover-competitors` | Architect | Конкурентний аналіз → start-project.md §6 |
-| `discover-monetization` | Architect | Моделі монетизації → start-project.md §8 |
-| `discover-valuation` | Architect | PMF + CEO оцінка → start-project.md §9, verdict |
-| `discover-marketing` | Architect | Канали, first-100-users, retention → §10 |
-| `discover-apple-check` | Architect | iOS App Store rejection-risk check → §11 |
+| `discover` | Architect | Повний цикл product discovery — competitors §6, monetization §8, valuation §9, marketing §10. Scope-вибір: All / Custom / Skip done |
+| `discover-apple-check` | Architect | iOS App Store rejection-risk check → §11. Можна запускати окремо або всередині `discover` |
 | `add-feature` | Architect | Повний цикл нової фічі (manual / auto mode) |
 | `fix-bug` | Architect | Повний цикл фіксу багу |
 | `write-user-stories` | Engineer | Генерація user stories |
@@ -465,12 +462,12 @@ $ mkdir ~/chess-duel && cd ~/chess-duel && claude
 ```
 > /vladyslav:discover
 ```
-Я питаю: "Full чи subset?" → ти: "full". Я послідовно запускаю під-скіли (manual mode — зупиняюсь після кожного, ти запускаєш наступний):
-- `discover-competitors` → §6: Chess.com, Lichess, Chess Kid, Play Magnus → `docs/product/competitors.md`
-- `discover-monetization` → §8: freemium + premium пояснення ШІ
-- `discover-valuation` → §9: **YELLOW** (ніша насичена, диференціатор = укр ШІ-тренер)
-- `discover-marketing` → §10: Reddit r/chess_ua, YouTube chess-укр канали, TikTok short games
-- `discover-apple-check` → §11: **GREEN** (немає UGC, IAP стандартний, privacy manifest простий)
+Я питаю: "All / Custom / Skip done?" → ти: "All". Я послідовно проходжу всі секції всередині одного скіла:
+- §6 Competitors: Chess.com, Lichess, Chess Kid, Play Magnus → `docs/product/competitors.md`
+- §8 Monetization: freemium + premium пояснення ШІ
+- §9 Valuation: **YELLOW** (ніша насичена, диференціатор = укр ШІ-тренер)
+- §10 Marketing: Reddit r/chess_ua, YouTube chess-укр канали, TikTok short games
+- §11 Apple-check (через `discover-apple-check`): **GREEN** (немає UGC, IAP стандартний, privacy manifest простий)
 
 Пишу `docs/product/discovery-summary.md`. Ти читаєш YELLOW verdict → вирішуєш що диференціатор OK → продовжуєш.
 
