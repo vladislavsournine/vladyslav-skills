@@ -73,7 +73,7 @@ Ask the user to describe the feature they want to add. Free text.
 
 **Manual mode:**
 ⏸ Stop. Tell the user:
-"Step 3 complete. Now run /superpowers:worktree in your terminal.
+"Step 3 complete. Now run /superpowers:using-git-worktrees in your terminal.
 When done, come back and say 'done' to continue."
 
 **Auto mode:**
@@ -83,7 +83,7 @@ Invoke the `superpowers:using-git-worktrees` skill via the Skill tool to create 
 
 **Manual mode:**
 ⏸ Stop. Tell the user:
-"Step 4 complete. Now run /superpowers:brainstorm in your terminal.
+"Step 4 complete. Now run /superpowers:brainstorming in your terminal.
 When done, come back and say 'done' to continue."
 
 **Auto mode:**
@@ -128,7 +128,7 @@ After the contract (Step 4.5) is locked:
 
 **Manual mode:**
 ⏸ Stop. Tell the user:
-"Step 5 complete. Now run /superpowers:write-plan in your terminal.
+"Step 5 complete. Now run /superpowers:writing-plans in your terminal.
 When done, come back and say 'done' to continue."
 
 **Auto mode:**
@@ -167,17 +167,17 @@ Ask the user which execution approach. **Parallel agents is recommended by defau
 
 - **Parallel agents (recommended):**
   ⏸ Stop. Tell the user:
-  "Step 6 complete. Now run /superpowers:parallel in your terminal.
+  "Step 6 complete. Now run /superpowers:dispatching-parallel-agents in your terminal.
   When done, come back and say 'done' to continue."
 
 - **Subagent-driven (this session):**
   ⏸ Stop. Tell the user:
-  "Step 6 complete. Now run /superpowers:execute-plan in your terminal.
+  "Step 6 complete. Now run /superpowers:executing-plans in your terminal.
   When done, come back and say 'done' to continue."
 
 - **Parallel session:**
   ⏸ Stop. Tell the user:
-  "Step 6 complete. Now run /superpowers:execute-plan in a new terminal.
+  "Step 6 complete. Now run /superpowers:executing-plans in a new terminal.
   When done, come back and say 'done' to continue."
 
 **Auto mode:**
@@ -239,7 +239,7 @@ Execute these three checks sequentially. If all pass → commit. If any fails �
 3. **SwiftUI review (iOS projects only).** If the project uses Swift/SwiftUI (detected by `.xcodeproj`, `Package.swift`, or `.swift` files in the staged diff), invoke the `vladyslav:swiftui-pro` skill via the Skill tool, scoped to the staged diff files. **Blocker if the skill reports any HIGH-severity issue** (deprecated API, accessibility violation, Swift concurrency data race).
 
 4. **Security.** Invoke the security checker:
-   - Preferred: Skill tool → `superpowers:owasp-security` (scoped to the staged diff)
+   - Preferred: Skill tool → `owasp-security` (scoped to the staged diff)
    - Fallback: Agent tool → `subagent_type: "pr-review-toolkit:silent-failure-hunter"`
    - **Blocker if: injection risks, secrets in diff, authZ gaps on mutations, silent catch blocks without logging.**
 
@@ -283,13 +283,13 @@ Repeat this step after each chunk until all chunks are done.
 After ALL chunks are complete:
 
 ⏸ Stop. Tell the user:
-"Step 7 complete. Now run /superpowers:code-review in your terminal for a final full-feature review.
+"Step 7 complete. Now run /superpowers:requesting-code-review in your terminal for a final full-feature review.
 When done, come back and say 'done' to continue."
 
 If feedback is received:
 
 ⏸ Stop. Tell the user:
-"Step 7 complete. Now run /superpowers:code-review in your terminal to process the feedback.
+"Step 7 complete. Now run /superpowers:receiving-code-review in your terminal to process the feedback.
 When done, come back and say 'done' to continue."
 
 **Auto mode:**
@@ -303,7 +303,7 @@ If the whole-branch review surfaces issues: dispatch another subagent to fix the
 **Manual mode:**
 
 ⏸ Stop. Tell the user:
-"Step 8 complete. Now run /superpowers:finish-branch in your terminal.
+"Step 8 complete. Now run /superpowers:finishing-a-development-branch in your terminal.
 When done, come back and say 'done' to continue."
 
 **Auto mode:**
