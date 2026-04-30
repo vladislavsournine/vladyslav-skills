@@ -342,7 +342,7 @@ docs/marketing/launch-notes.md
 
 ### Step 9.5: Roadmap question (optional)
 
-After creating doc stubs, ask the user:
+After creating doc stubs, ask the user using the AskUserQuestion tool:
 > "Які ключові фічі плануєш в цьому проекті? Розіб'ємо на MVP-фази в `ROADMAP.md` (Enter щоб пропустити)"
 
 **If user provides features:**
@@ -365,6 +365,8 @@ Generate `ROADMAP.md` at the project root using this format:
 - [ ] <Feature from user>
 <!-- Add Phase 3, 4… as needed — one phase per logical milestone -->
 ```
+
+Replace `YYYY-MM-DD` with today's date and `<Project Name>` with the project name from Step 1.
 
 Distribute the user's features across phases based on their description (MVP = core functionality, Post-MVP = enhancements). Ask if unclear which phase a feature belongs to.
 
