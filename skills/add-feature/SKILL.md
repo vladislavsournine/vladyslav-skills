@@ -84,7 +84,7 @@ Invoke the `superpowers:using-git-worktrees` skill via the Skill tool to create 
 **Existing roadmap check (both modes):**
 Before starting brainstorming, check if `docs/roadmap/` contains any `.md` file whose slug matches the feature name from Step 2 (compare lowercased, hyphens-normalized). If a match is found, ask:
 > "Знайшов роадмап `<slug>`. Продовжуємо з наступної незакінченої фази?"
-- **Yes** → skip brainstorming and contract (Steps 4, 4.5). Load the roadmap file, identify the first phase with unchecked items, pass those items as the scope to writing-plans (Step 5). Record that this run is a phase continuation.
+- **Yes** → skip brainstorming (Step 4). Load the roadmap file, identify the first phase with unchecked items, pass those items as the scope to Step 4.5. In Step 4.5, write a focused contract scoped to that phase only (not the full feature), then continue normally to Step 4.7 and Step 5. Record that this run is a phase continuation.
 - **No** → proceed with normal brainstorming as if no roadmap exists.
 
 **Manual mode:**
@@ -142,7 +142,7 @@ If any condition is true, ask:
 
 **If yes:**
 1. Create `docs/roadmap/` directory if it does not exist.
-2. If a file `docs/roadmap/<feature-slug>.md` already exists, ask: "Роадмап для `<slug>` вже існує. Перезаписати чи створити новий?"
+2. If a file `docs/roadmap/<feature-slug>.md` already exists, ask: "Роадмап для `<slug>` вже існує. Перезаписати чи зберегти старий і створити `<slug>-v2.md`?" — on overwrite, replace the file; on "v2", write to `<slug>-v2.md` and use that filename for all subsequent references in this run.
 3. Generate `docs/roadmap/<feature-slug>.md` using this format:
 
 ```markdown
@@ -161,6 +161,8 @@ If any condition is true, ask:
 
 - [ ] Task 1
 - [ ] Task 2
+
+<!-- Add Phase 3, 4… as needed — one phase per logical milestone -->
 ```
 
 4. Commit: `git add docs/roadmap/<feature-slug>.md && git commit -m "docs: add roadmap for <feature-slug>"`
@@ -421,6 +423,7 @@ All features implemented and tested.
 5. Merge to `main` (Step 8 end)
 6. Any guard rail trigger (Step 6 checks #1-4, Step 6.5 failures)
 7. Final pre-release check (separate skill: `/vladyslav:pre-release-check`)
+8. Roadmap generation (Step 4.7) — when multi-phase gate fires and user confirms roadmap creation
 
 **Automatic (no approval — runs nonstop):**
 - Worktree / branch creation (Step 3)
