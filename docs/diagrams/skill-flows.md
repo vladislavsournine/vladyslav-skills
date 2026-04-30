@@ -75,7 +75,7 @@ flowchart LR
     C --> D[Ask: which sections\nto fill?]
     D --> E[Parallel research\ncompetitors · monetization\nvaluation · marketing]
     E --> F{iOS?}
-    F -- yes --> G[/discover-apple-check\nApp Store feasibility]
+    F -- yes --> G["/discover-apple-check\nApp Store feasibility"]
     F -- no  --> H[Write start-project.md\nsections 6–10]
     G --> H
     H --> I[MemPalace records]
@@ -264,7 +264,7 @@ flowchart LR
     B --> C[Run checks:\ntasks complete?\ntests pass?\nno REPLACE_ME?\ndocs up to date?\nchangelog written?]
     C --> D["⚠️ Translations reminder\n— add them NOW"]
     D --> E{iOS?}
-    E -- yes --> F[/discover-apple-check\nApp Store submission review]
+    E -- yes --> F["/discover-apple-check\nApp Store submission review"]
     E -- no  --> G[Print release report\nPASS / FAIL / WARN per check]
     F --> G
     G --> H([Done]):::done
