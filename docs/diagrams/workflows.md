@@ -1,0 +1,122 @@
+# Skill Workflows
+
+Four recommended sequences for achieving results with vladyslav skills. Render natively on GitHub.
+
+---
+
+## New Project
+
+From zero to first deployed feature.
+
+```mermaid
+flowchart LR
+    A([Start:\nnew idea]):::start
+    A --> B["/init-project\nBootstrap dirs / files\nstack setup / agents"]
+    B --> C["/analyze-project\nDocument architecture\nendpoints / schema"]
+    C --> D["/discover\nCompetitors / monetization\nvaluation / marketing"]
+    D --> E["/add-feature\nDesign → contract\n→ plan → implement"]
+    E --> F["/write-test-docs\nTest plan\n+ manual QA"]
+    F --> G["/write-project-docs\nREADME\n+ onboarding + deploy"]
+    G --> H["/pre-release-check\nFinal gate\nbefore production"]
+    H --> I([Shipped 🚀]):::done
+
+    classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
+    classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
+```
+
+---
+
+## Existing Project
+
+Attach Claude Code to a project that already exists.
+
+```mermaid
+flowchart LR
+    A([Start:\nexisting codebase]):::start
+    A --> B["/attach-project\nAuto-detect stacks\nadd missing structure"]
+    B --> C["/seed-mempalace\nSeed memory from\nexisting code + history"]
+    C --> D["/analyze-project\nDocument architecture\nendpoints / schema"]
+    D --> E["/add-feature\nDesign → contract\n→ plan → implement"]
+    E --> F([Continue feature\nloop]):::done
+
+    classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
+    classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
+```
+
+---
+
+## Before Release
+
+Final docs and verification before shipping.
+
+```mermaid
+flowchart LR
+    A([Start:\nfeatures done]):::start
+    A --> B["/write-user-stories\nRegistry of what's\nactually built + status"]
+    B --> C["/write-test-docs\nTest plan\n+ manual QA checklist"]
+    C --> D["/write-project-docs\nREADME + onboarding\n+ deployment guide"]
+    D --> E["/pre-release-check\nTasks · tests · config\ndocs · changelog\n+ translations now!"]
+    E --> F([Shipped 🚀]):::done
+
+    classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
+    classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
+```
+
+---
+
+## Bug Fix
+
+Reproduce → fix root cause → verify → ship.
+
+```mermaid
+flowchart LR
+    A([Start:\nbug reported]):::start
+    A --> B["/fix-bug\nReproduce → failing test\n→ fix root cause\n→ code review → merge"]
+    B --> C["/write-test-docs\nUpdate test plan\nfor the fixed scenario"]
+    C --> D["/pre-release-check\nVerify nothing regressed\nbefore hotfix deploy"]
+    D --> E([Fixed 🐛→✅]):::done
+
+    classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
+    classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
+```
+
+---
+
+## Session Continuity
+
+Pause and resume long-running work across sessions.
+
+```mermaid
+flowchart LR
+    A([Mid-task:\nneed to stop]):::start
+    A --> B["/stash\nCaptures: task · open question\ndone · pending files · deferred\n→ MemPalace"]
+    B --> C([Session ends])
+
+    D([New session\nsame project]) --> E[Active stash notification\nautomatically shown\nat session start]
+    E --> F["/unstash\nValidates pending files\nrestores mental state"]
+    F --> G([Resume exactly\nwhere you stopped]):::done
+
+    classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
+    classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
+```
+
+---
+
+## Design System
+
+Bootstrap or repair a consistent UI design system.
+
+```mermaid
+flowchart LR
+    A([Start:\nUI project]):::start
+    A --> B{Design system\nexists?}
+    B -- no  --> C["/design-sync\nScan codebase\ncanonize tokens\nwrite system.md"]
+    B -- yes --> D{Design drift\ndetected?}
+    D -- yes --> C
+    D -- no  --> E
+    C --> E["/design-page\nGenerate new screens\nusing canonical tokens"]
+    E --> F([Consistent UI]):::done
+
+    classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
+    classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
+```
