@@ -340,6 +340,41 @@ docs/marketing/launch-notes.md
 
 > `docs/operations/docker.md` is written with real content in Step 4b — skip it here.
 
+### Step 9.5: Roadmap question (optional)
+
+After creating doc stubs, ask the user using the AskUserQuestion tool:
+> "Які ключові фічі плануєш в цьому проекті? Розіб'ємо на MVP-фази в `ROADMAP.md` (Enter щоб пропустити)"
+
+**If user provides features:**
+Generate `ROADMAP.md` at the project root using this format:
+
+```markdown
+# Roadmap: <Project Name>
+
+> Created: YYYY-MM-DD
+
+## Phase 1: MVP
+**Done when:** <one sentence criteria>
+
+- [ ] <Feature from user>
+- [ ] <Feature from user>
+
+## Phase 2: Post-MVP
+**Done when:** <one sentence criteria>
+
+- [ ] <Feature from user>
+<!-- Add Phase 3, 4… as needed — one phase per logical milestone -->
+```
+
+Replace `YYYY-MM-DD` with today's date and `<Project Name>` with the project name from Step 1.
+
+Distribute the user's features across phases based on their description (MVP = core functionality, Post-MVP = enhancements). Ask if unclear which phase a feature belongs to.
+
+**If user skips (empty answer, "потім", "не знаю"):**
+Do not create the file. Continue to Step 10 immediately.
+
+This step is **non-blocking** — `init-project` completes regardless of the answer.
+
 ### Step 10: Git init and commit
 
 ```bash
@@ -356,6 +391,7 @@ git commit -m "chore: bootstrap PROJECT_NAME"
 - Directories: <list>
 - Files: CLAUDE.md, .gitignore, agents, doc stubs, docs/product/start-project.md
 - Design system: <docs/design/system.md written | skipped — backend only>
+- Roadmap: <ROADMAP.md written with N phases | skipped>
 - First action for the user: fill in docs/product/start-project.md
   (then run /vladyslav:discover for AI-research of competitors / monetization / validation)
 - If UI stack: fill in brand palette in docs/design/system.md, or run /vladyslav:design-sync later
