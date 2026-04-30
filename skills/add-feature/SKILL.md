@@ -82,7 +82,11 @@ Invoke the `superpowers:using-git-worktrees` skill via the Skill tool to create 
 ### Step 4: Design the feature
 
 **Existing roadmap check (both modes):**
-Before starting brainstorming, check if `docs/roadmap/` contains any `.md` file whose slug matches the feature name from Step 2 (compare lowercased, hyphens-normalized). If a match is found, ask:
+Before starting brainstorming, check for an existing roadmap in two locations (in order):
+1. `docs/roadmap/` — look for a `.md` file whose slug matches the feature name from Step 2 (lowercased, hyphens-normalized)
+2. `ROADMAP.md` at the project root — check if it exists and contains phases with unchecked items relevant to this feature
+
+If a match is found in either location, ask:
 > "Знайшов роадмап `<slug>`. Продовжуємо з наступної незакінченої фази?"
 - **Yes** → skip brainstorming (Step 4). Load the roadmap file, identify the first phase with unchecked items, pass those items as the scope to Step 4.5. In Step 4.5, write a focused contract scoped to that phase only (not the full feature), then continue normally to Step 4.7 and Step 5. Record that this run is a phase continuation.
 - **No** → proceed with normal brainstorming as if no roadmap exists.
@@ -367,11 +371,18 @@ Do **NOT** merge into `main` automatically. Merge-to-main is **approval point #5
 
 After merge (both modes — auto does this without stopping, manual requires the user to confirm merge happened):
 
-1. Update `docs/product/user-stories.md` — add the new feature as a story
-2. Update `docs/architecture/api.md` — if any endpoints changed
-3. Update `docs/plans/tasks.md` — mark completed tasks
-4. Write a MemPalace `decision` record to the project wing: `[WHAT] feature <name> implemented, [CONTRACT] <path>, [FILES] <list>, [DATE] <today>`
-5. **Auto mode:** run `git diff --stat main...HEAD` to produce the blast-radius summary for the report (files touched vs plan)
+1. **Update roadmap (if applicable):** If a roadmap file was used in this run (created in Step 4.7 or loaded via the resume path in Step 4):
+   - Open the roadmap file (`docs/roadmap/<slug>.md` or `ROADMAP.md` — whichever was used)
+   - Find the phase that was just implemented
+   - Replace `- [ ]` with `- [x]` for every task that was completed
+   - If all tasks in the phase are now checked, add `**Status: Complete ✓**` on the line immediately after the `**Done when:**` line
+   - Commit: `git add <roadmap-file> && git commit -m "docs: mark Phase N complete in <slug> roadmap"`
+   - If no roadmap was used in this run, skip this step entirely.
+2. Update `docs/product/user-stories.md` — add the new feature as a story
+3. Update `docs/architecture/api.md` — if any endpoints changed
+4. Update `docs/plans/tasks.md` — mark completed tasks
+5. Write a MemPalace `decision` record to the project wing: `[WHAT] feature <name> implemented, [CONTRACT] <path>, [FILES] <list>, [DATE] <today>`
+6. **Auto mode:** run `git diff --stat main...HEAD` to produce the blast-radius summary for the report (files touched vs plan)
 
 Print architect report with prepared prompt for Sonnet terminal:
 
