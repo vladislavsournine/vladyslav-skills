@@ -81,6 +81,12 @@ Invoke the `superpowers:using-git-worktrees` skill via the Skill tool to create 
 
 ### Step 4: Design the feature
 
+**Existing roadmap check (both modes):**
+Before starting brainstorming, check if `docs/roadmap/` contains any `.md` file whose slug matches the feature name from Step 2 (compare lowercased, hyphens-normalized). If a match is found, ask:
+> "Знайшов роадмап `<slug>`. Продовжуємо з наступної незакінченої фази?"
+- **Yes** → skip brainstorming and contract (Steps 4, 4.5). Load the roadmap file, identify the first phase with unchecked items, pass those items as the scope to writing-plans (Step 5). Record that this run is a phase continuation.
+- **No** → proceed with normal brainstorming as if no roadmap exists.
+
 **Manual mode:**
 ⏸ Stop. Tell the user:
 "Step 4 complete. Now run /superpowers:brainstorming in your terminal.
@@ -122,6 +128,49 @@ After the user approves the contract, invoke the `vladyslav:stash` skill (best-e
 
 If `mempalace_add_drawer` fails → print a warning inline: *"Auto-stash failed: `<reason>`. Continuing — run `/stash` manually if you want a guaranteed snapshot."* and continue. Auto-stash is best-effort insurance; it MUST NOT break the primary workflow.
 
+### Step 4.7: Roadmap gate
+
+**Applies to:** both modes. Runs after contract approval, before writing-plans.
+
+Assess whether the feature is multi-phase using **any one** of:
+- Design from Step 4 has ≥3 distinct components/subsystems
+- Design from Step 4 implies ≥5 major tasks
+- User language in Step 2 signals phasing: "поетапно", "спочатку X потім Y", "фази", "поступово", "gradually", "phases", "step by step"
+
+If any condition is true, ask:
+> "Ця фіча виглядає багатофазно — є сенс розбити на фази з роадмапом перед тим як писати детальний план. Зробити?"
+
+**If yes:**
+1. Create `docs/roadmap/` directory if it does not exist.
+2. If a file `docs/roadmap/<feature-slug>.md` already exists, ask: "Роадмап для `<slug>` вже існує. Перезаписати чи створити новий?"
+3. Generate `docs/roadmap/<feature-slug>.md` using this format:
+
+```markdown
+# Roadmap: <Feature Name>
+
+> Created: YYYY-MM-DD
+
+## Phase 1: <Name>
+**Done when:** <one sentence criteria>
+
+- [ ] Task 1
+- [ ] Task 2
+
+## Phase 2: <Name>
+**Done when:** <one sentence criteria>
+
+- [ ] Task 1
+- [ ] Task 2
+```
+
+4. Commit: `git add docs/roadmap/<feature-slug>.md && git commit -m "docs: add roadmap for <feature-slug>"`
+5. Pass **only Phase 1 tasks** as the scope to writing-plans in Step 5.
+
+**`<feature-slug>` derivation:** feature name from Step 2, lowercased, spaces replaced with hyphens. Example: "User Authentication" → `user-authentication`.
+
+**If no (or gate did not fire):**
+Proceed to Step 5 with the full feature scope as before. No file is created.
+
 ### Step 5: Create implementation plan
 
 After the contract (Step 4.5) is locked:
@@ -132,7 +181,7 @@ After the contract (Step 4.5) is locked:
 When done, come back and say 'done' to continue."
 
 **Auto mode:**
-Invoke the `superpowers:writing-plans` skill via the Skill tool, feeding it the contract + brainstorm output. Capture the plan — it must list each bite-sized task, which contract piece it implements, and (crucially) **which files each task will create or modify**. The file list is the baseline for the "files touched outside plan" guard rail.
+Invoke the `superpowers:writing-plans` skill via the Skill tool, feeding it the contract + brainstorm output. Capture the plan — it must list each bite-sized task, which contract piece it implements, and (crucially) **which files each task will create or modify**. The file list is the baseline for the "files touched outside plan" guard rail. If a roadmap was created in Step 4.7, pass the Phase 1 task list as the scope constraint — writing-plans must produce a plan that implements Phase 1 only, not the full feature.
 
 Present the plan to the user and ⏸ **stop for approval** — this is **approval point #4**. Show:
 - Task list (numbered)
