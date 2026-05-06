@@ -13,13 +13,9 @@ Standalone or part of `/vladyslav:discover`. Fills section 11 of `docs/product/s
 
 **Scope:** iOS only. Do not run for web / Android / non-Apple projects.
 
-**Type:** Architect (Opus)
+**Type:** Architect
 
 ## Process
-
-### Step 0: Verify model
-
-Check current model. If not Opus: `/model opus`.
 
 ### Step 1: Verify this is an iOS project
 
@@ -171,12 +167,9 @@ Also: if you discovered NEW rejection patterns not already in the `swift-calorie
   - docs/product/apple-review.md (new)
 - MemPalace records: <project> wing + <count> new patterns in swift-calories wing
 
-━━━ Next ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-If GREEN: proceed with /vladyslav:add-feature for the first feature
-If YELLOW: address high-severity items in the architecture phase BEFORE coding
-If RED: reopen the idea — some concepts fundamentally conflict with App Store rules
-Final submission check: /vladyslav:pre-release-check (also runs apple-appstore-reviewer)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Next steps:
+- /vladyslav:add-feature — start building once Apple risk status is GREEN or YELLOW (high-severity resolved)
+- /vladyslav:design-sync — canonize the design system before committing to screen layouts
 ```
 
 ## Notes
