@@ -11,7 +11,7 @@ One-time action per project: extract key architectural decisions, design rationa
 
 **Each wing is an isolated project memory.** This skill does NOT merge decisions across projects. It populates one wing with one project's history.
 
-**Type:** Architect (Opus)
+**Type:** Architect
 
 ## When to use
 
@@ -23,10 +23,6 @@ One-time action per project: extract key architectural decisions, design rationa
 Do NOT use this skill on a project that was already seeded unless you explicitly want to add newer decisions (it will ask before duplicating).
 
 ## Process
-
-### Step 0: Verify model
-
-Check current model. If not Opus, switch: `/model opus`. Extracting good decisions requires judgement.
 
 ### Step 1: Identify the wing
 
@@ -154,6 +150,10 @@ Future sessions on this project should start with:
   mempalace_search wing=<name> <task-related terms>
 
 Re-seed only if major architecture changes happen.
+
+Next steps:
+- /vladyslav:add-feature — build new features with MemPalace context now seeded
+- /vladyslav:fix-bug — diagnose and fix bugs with full project history available
 ```
 
 ## Notes
