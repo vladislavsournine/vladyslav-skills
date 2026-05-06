@@ -1,5 +1,5 @@
 ---
-description: "Use when starting work or unsure which skill to use - shows all available vladyslav skills, two-terminal workflow, and superpowers integration"
+description: "Use when starting work or unsure which skill to use - shows all available vladyslav skills, single-terminal workflow, and superpowers integration"
 disable-model-invocation: true
 ---
 

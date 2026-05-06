@@ -35,7 +35,7 @@ docs/            # Architecture, product, and planning docs
 - **Architect skills** run interactively in Opus main session. When they dispatch a subagent via `Agent(...)`, they MUST specify `model` explicitly: `model="sonnet"` for executor work (write tests, write impl, run review/security checks); `model="opus"` for synthesis/research work (deep analysis, multi-source research, design decisions)
 - **Heavy Engineer skills** wrap their body in a Sonnet subagent dispatch with pre-flight Q&A in Opus main + a YAML return contract. Pre-flight verifies inputs and asks the user about ambiguity; the subagent runs deterministic work against a strict file allowlist
 - **Light Engineer skills** (`stash`, `unstash`) run inline in main thread (~30s utility operations; dispatch overhead would exceed the work)
-- Engineer skill summaries end with a "Next: …" suggestion; Architect skills end with a "Next steps:" list. Both use one-terminal language — no `━━━ Next (… terminal) ━━━` blocks, no `/model …` switches
+- Engineer skill summaries end with a "Next: …" suggestion; Architect skills end with a "Next steps:" list. Both use one-terminal language — no decorator-handoff blocks, no model-switch instructions
 - Do not add translations until the finalization phase (pre-release-check)
 
 ## Versioning
