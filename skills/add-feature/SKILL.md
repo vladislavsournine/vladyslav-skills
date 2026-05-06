@@ -9,13 +9,9 @@ description: Use when adding a new feature to a production project - orchestrate
 
 Full-cycle feature addition: idea → design → plan → implement → docs. Orchestrates superpowers skills in the right order with project-specific reminders.
 
-**Type:** Architect (Opus)
+**Type:** Architect
 
 ## Process
-
-### Step 0: Verify model
-
-Check current model. If not Opus, switch: `/model opus`
 
 ### Step 0.1: Verify working directory
 
@@ -242,10 +238,10 @@ Execute the plan directly via parallel subagents. **Do NOT stop to ask between t
 For each batch of parallelizable tasks from the plan:
 
 1. **Launch two subagents in parallel via the Agent tool** (single message, two tool calls):
-   - Agent A — `subagent_type: "general-purpose"`, `isolation: "worktree"`. Prompt includes: the contract, the brainstorm result, the relevant task from the plan, and this strict instruction:
+   - Agent A — `subagent_type: "general-purpose"`, `isolation: "worktree"`, `model: "sonnet"`. Prompt includes: the contract, the brainstorm result, the relevant task from the plan, and this strict instruction:
      > "You may only CREATE or MODIFY these files: `<plan's file list for this task>`. Files outside this list are read-only — do NOT touch them. If you discover you need to modify a file outside the list, STOP and report `SCOPE EXPANSION REQUIRED: <path> — <reason>` instead of making the change. Do NOT modify the contract file `<contract path>` under any circumstances — that file is frozen."
    - Agent A writes **tests** for the contract piece.
-   - Agent B — same settings. Agent B writes the **implementation** for the contract piece, against the same file list constraint.
+   - Agent B — `subagent_type: "general-purpose"`, `isolation: "worktree"`, `model: "sonnet"`. Agent B writes the **implementation** for the contract piece, against the same file list constraint.
 
 2. **Wait for both agents to return.**
 
@@ -287,7 +283,7 @@ Execute these three checks sequentially. If all pass → commit. If any fails �
 1. **Tests.** Detect the project's test command (`package.json scripts.test`, `pytest`, `go test ./...`, `xcodebuild test`, `Makefile test` target, or CLAUDE.md's documented test command). Run it against the current worktree. **Blocker if any test fails.**
 
 2. **Code review.** Dispatch a review agent via the Agent tool:
-   - `subagent_type: "pr-review-toolkit:code-reviewer"` (preferred), or `"feature-dev:code-reviewer"` as fallback
+   - `subagent_type: "pr-review-toolkit:code-reviewer"`, `model: "sonnet"` (preferred), or `subagent_type: "feature-dev:code-reviewer"`, `model: "sonnet"` as fallback
    - Prompt: "Review the staged diff (`git diff --cached`) for bugs, logic errors, security issues, and project-convention violations. Report only HIGH-confidence issues. Flag silent failures and inadequate error handling specifically."
    - **Blocker if the agent reports any HIGH-severity issue.**
 
@@ -295,7 +291,7 @@ Execute these three checks sequentially. If all pass → commit. If any fails �
 
 4. **Security.** Invoke the security checker:
    - Preferred: Skill tool → `owasp-security` (scoped to the staged diff)
-   - Fallback: Agent tool → `subagent_type: "pr-review-toolkit:silent-failure-hunter"`
+   - Fallback: Agent tool → `subagent_type: "pr-review-toolkit:silent-failure-hunter"`, `model: "sonnet"`
    - **Blocker if: injection risks, secrets in diff, authZ gaps on mutations, silent catch blocks without logging.**
 
 **If all checks pass:** proceed to commit. The pre-commit hook (`~/.claude/hooks/pre-commit-review.sh`) will still fire as an additional safety net — that's expected, not redundant. Compose a concise commit message referencing the contract piece, stage only the files from the plan (not `git add -A`), commit.
@@ -349,7 +345,7 @@ When done, come back and say 'done' to continue."
 
 **Auto mode:**
 
-The per-commit auto-gate (Step 6.5) already runs the code review agent on each commit, so a final code review pass is usually redundant. Exception: run one **whole-branch review** at the end via Agent tool `subagent_type: "pr-review-toolkit:code-reviewer"` with prompt "Review the entire branch diff (`git diff main...HEAD`) for cross-commit issues — inconsistencies, partial refactors, dead code left between commits."
+The per-commit auto-gate (Step 6.5) already runs the code review agent on each commit, so a final code review pass is usually redundant. Exception: run one **whole-branch review** at the end via Agent tool `subagent_type: "pr-review-toolkit:code-reviewer"`, `model: "sonnet"` with prompt "Review the entire branch diff (`git diff main...HEAD`) for cross-commit issues — inconsistencies, partial refactors, dead code left between commits."
 
 If the whole-branch review surfaces issues: dispatch another subagent to fix them (same file-scope constraint as Step 6), re-run auto-gate, then proceed. No user approval needed unless a guard rail triggers.
 
@@ -384,7 +380,7 @@ After merge (both modes — auto does this without stopping, manual requires the
 5. Write a MemPalace `decision` record to the project wing: `[WHAT] feature <name> implemented, [CONTRACT] <path>, [FILES] <list>, [DATE] <today>`
 6. **Auto mode:** run `git diff --stat main...HEAD` to produce the blast-radius summary for the report (files touched vs plan)
 
-Print architect report with prepared prompt for Sonnet terminal:
+Print architect report:
 
 ```
 ✓ Architect report:
@@ -406,23 +402,12 @@ Updated:
 - MemPalace wing <name> — decision record added
 
 Do NOT add translations — wait for pre-release-check phase.
-
-━━━ Next (Sonnet terminal) ━━━━━━━━━━━━━━━━
-/vladyslav:write-test-docs
-
-Context:
-"Implemented <feature>. <count> endpoints added,
-<count> tests passing. Update test documentation."
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Or if all work is complete:
-━━━ Ready for deploy ━━━━━━━━━━━━━━━━━━━━━━
-All features implemented and tested.
-- Live QA: docs/testing/manual-qa.md
-- Deploy: docs/deployment.md
-- Final check: /vladyslav:pre-release-check
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
+
+Next steps:
+- `/vladyslav:write-test-docs` — generate test plan + QA checklist
+- `/vladyslav:write-user-stories` — update user-stories registry
+- `/vladyslav:pre-release-check` — pre-release verification
 
 ## Auto-mode approval map (quick reference)
 
