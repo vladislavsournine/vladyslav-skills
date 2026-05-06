@@ -30,9 +30,9 @@ Interactive checks before dispatching the subagent.
    - On abort → exit cleanly, no dispatch.
    - On stub → create a placeholder file (`# <Title>\n\n*to be filled*\n`), proceed.
 
-4. Read content of available input files. Record paths and content snippets.
+4. Read FULL content of available input files (do not truncate). Record paths and content. The subagent needs complete input to produce accurate test coverage.
 
-5. Compose dispatch context (project name + verified file paths + content snippets).
+5. Compose dispatch context (project name + verified file paths + content).
 
 ### Step 1: Dispatch to Sonnet subagent
 
@@ -46,7 +46,7 @@ Wait for return.
 
 ### Step 2: Present summary
 
-Parse the YAML block at the end of the subagent's response.
+Parse the YAML block in the subagent's response. Look for the last fenced ` ```yaml ` block. Treat as parse failure (status: unknown) if: (a) no ` ```yaml ` block is found, (b) the block does not contain a `status:` field, OR (c) the YAML is malformed (e.g., unbalanced indentation).
 
 **If parse fails** → print the full subagent output, run `git status --short`, tell user: "Subagent returned unstructured response. Files on disk: `<git status>`. Review manually."
 
@@ -77,7 +77,7 @@ Parse the YAML block at the end of the subagent's response.
     2. Skip — leave file untouched
     3. Abort
 ```
-Wait for user choice; on (1), re-invoke Step 1 with extended allowlist.
+Wait for user choice. On (1), re-dispatch: take the same subagent prompt template from Step 1, add the path from `scope_expansion_required[0].path` (and any additional entries) to the Output allowlist section of the prompt, re-invoke the Agent tool with this updated prompt and the same other parameters. Reuse pre-flight outputs already in memory — do NOT re-read input files. On (2), record the skipped path and proceed to next step. On (3), exit cleanly with no further action.
 
 `status: error` →
 ```
@@ -90,15 +90,15 @@ Best-effort: invoke `vladyslav:stash` skill with `source: "write-test-docs:error
 
 ## Subagent prompt template
 
-```
+````
 You are a Sonnet subagent dispatched by the `write-test-docs` skill in the `vladyslav-skills` plugin. You have no conversation history with the user — this prompt is your full briefing.
 
 ## Project context
 
 Working directory: <pwd>
 Project name: <from CLAUDE.md>
-Key facts from CLAUDE.md:
-<3-5 bullets the pre-flight extracts>
+Key facts from CLAUDE.md (extracted by pre-flight — must include: project type, primary tech stack, platform (web / iOS / Android / cross-platform), and any testing-relevant constraints. If the project is mobile, ensure the platform bullet is explicit so the subagent generates the device-specific QA section):
+<3-5 bullets>
 
 ## Verified inputs
 
@@ -171,7 +171,7 @@ files_written:
     action: created | modified | replaced
   - path: docs/testing/manual-qa.md
     action: created | modified | replaced
-files_skipped: []
+files_skipped: []  # populate with paths the subagent considered but did not write to
 warnings:
   - <non-blocking issue, if any>
 scope_expansion_required:
@@ -181,4 +181,4 @@ next_step_suggestion: /superpowers:test-driven-development
 summary: |
   <1-3 sentence human-readable description>
 ```
-```
+````
