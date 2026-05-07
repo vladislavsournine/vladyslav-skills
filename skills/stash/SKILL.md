@@ -11,7 +11,7 @@ Snapshot the current conversation's mental state to MemPalace as a `stash` drawe
 
 This is a continuity primitive — it captures the **point in the conversation**, not just the work done. If the user paused mid-question (e.g. you asked them to choose between A/B/C and they have not decided), the open question is preserved verbatim.
 
-**Type:** Engineer (Sonnet)
+**Type:** Engineer (light)
 
 **Semantics:** Latest-wins. MemPalace drawers are immutable; the newest stash drawer per wing IS the active one. Older stashes remain as history.
 
@@ -25,10 +25,6 @@ This is a continuity primitive — it captures the **point in the conversation**
 Do NOT use when the user simply says "let's stop" without intending to resume — confirm intent first.
 
 ## Process
-
-### Step 0: Verify model
-
-Check current model. If not Sonnet, stop and ask user to switch: `/model sonnet`. Do not proceed.
 
 ### Step 1: Detect canonical wing
 

@@ -9,7 +9,7 @@ description: Use to resume a previously stashed task — reads the latest stash 
 
 Restore a stashed conversation state into the current session. Reads the newest `stash` drawer for the current wing from MemPalace (Latest-wins), validates `pending_files` are still in the expected state on disk, and outputs a structured restoration so the user can continue exactly where they paused.
 
-**Type:** Engineer (Sonnet)
+**Type:** Engineer (light)
 
 **Semantics:** Latest-wins. No "active flag" — the drawer with the newest `created_at` (parsed from YAML content) is the active stash for the wing.
 
@@ -21,10 +21,6 @@ Restore a stashed conversation state into the current session. Reads the newest 
 Do NOT use to "browse" stashes — there is no list/pop UI by design (one active per wing via Latest-wins). Older stashes can be searched manually via `mempalace_search` if needed.
 
 ## Process
-
-### Step 0: Verify model
-
-Check current model. If not Sonnet, stop and ask user to switch: `/model sonnet`. Do not proceed.
 
 ### Step 1: Detect canonical wing
 

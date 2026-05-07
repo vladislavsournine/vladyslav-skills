@@ -27,28 +27,34 @@ claude
 
 The other skills (`init-project`, `attach-project`, `analyze-project`, `write-*`, `help`, `swiftui-pro`, `design-page`) work without MemPalace.
 
-## Two-Terminal Workflow
+## One-Terminal Workflow (v2.0)
 
-Keep two terminals open:
-- **Opus terminal** — research, design, diagnosis
-- **Sonnet terminal** — implementation, documentation
+Run any skill from a single Opus session. Skills delegate execution work to Sonnet subagents automatically — no manual `/model` switching required.
 
-Each skill verifies its model on start and switches if needed (`/model opus` or `/model sonnet`).
+| Skill type | Where it runs |
+|-----------|---------------|
+| **Architect** (8 skills) | Opus main session — interactive design + synthesis. Internal `Agent(...)` dispatches annotated explicitly with `model="sonnet"` (executor work) or `model="opus"` (synthesis/research). |
+| **Heavy Engineer** (6 skills) | Pre-flight Q&A in Opus main → body wrapped in Sonnet subagent dispatch (with file allowlist + structured YAML return). |
+| **Light Engineer** (`stash`, `unstash`) | Opus main inline (~30s utility operations). |
 
-**Architect skills (Opus)** end with a prepared prompt for the Sonnet terminal.
-**Engineer skills (Sonnet)** end with an implementation report + next step.
+> Migrating from v1.x? The old dual-terminal split (Opus + Sonnet in separate windows) is gone. Close the second terminal — one Opus session handles everything.
 
 ## Skills
 
-**Architect (Opus terminal):**
+**Architect:**
 
 | Skill | Purpose |
 |-------|---------|
 | `/vladyslav:analyze-project` | Analyze existing codebase |
 | `/vladyslav:add-feature` | Add feature (full cycle, 9 superpowers) |
 | `/vladyslav:fix-bug` | Fix bug (full cycle, 7 superpowers) |
+| `/vladyslav:discover` | Auto-fill product/start-project.md via AI research |
+| `/vladyslav:discover-apple-check` | Apple App Store compliance pre-check (iOS only) |
+| `/vladyslav:design-sync` | Extract design tokens from code into docs/design/system.md |
+| `/vladyslav:design-page` | Design app screens in Pencil via parallel subagents |
+| `/vladyslav:seed-mempalace` | Bootstrap MemPalace memory from git log + docs |
 
-**Engineer (Sonnet terminal):**
+**Heavy Engineer:**
 
 | Skill | Purpose |
 |-------|---------|
@@ -58,28 +64,35 @@ Each skill verifies its model on start and switches if needed (`/model opus` or 
 | `/vladyslav:write-test-docs` | Test plan + manual QA docs |
 | `/vladyslav:write-project-docs` | README, onboarding, deployment |
 | `/vladyslav:pre-release-check` | Pre-release verification |
+
+**Light Engineer:**
+
+| Skill | Purpose |
+|-------|---------|
+| `/vladyslav:stash` | Snapshot conversation state to MemPalace |
+| `/vladyslav:unstash` | Restore latest stash for the current wing |
 | `/vladyslav:help` | This reference |
 
 ## Workflows
 
 **New project:**
 ```
-init-project (Sonnet) → analyze-project (Opus) → add-feature (Opus) → write-test-docs (Sonnet) → pre-release-check (Sonnet)
+init-project → analyze-project → add-feature → write-test-docs → pre-release-check
 ```
 
 **Existing project:**
 ```
-attach-project (Sonnet) → analyze-project (Opus) → add-feature (Opus)
+attach-project → analyze-project → add-feature
 ```
 
 **Before release:**
 ```
-write-user-stories → write-test-docs → write-project-docs → pre-release-check (all Sonnet)
+write-user-stories → write-test-docs → write-project-docs → pre-release-check
 ```
 
 **Bug fix:**
 ```
-fix-bug (Opus) → write-test-docs (Sonnet) → pre-release-check (Sonnet)
+fix-bug → write-test-docs → pre-release-check
 ```
 
 ## Stack Support

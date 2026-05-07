@@ -9,13 +9,9 @@ description: Use after attaching to an existing project or when docs are out of 
 
 Analyze an existing codebase and generate/update architecture documentation so Claude can work with the project effectively.
 
-**Type:** Architect (Opus)
+**Type:** Architect
 
 ## Process
-
-### Step 0: Verify model
-
-Check current model. If not Opus, switch: `/model opus`
 
 ### Step 1: Read existing docs
 
@@ -86,20 +82,8 @@ Updated:
 
 Review generated docs for accuracy.
 
-━━━ Next (same Opus terminal) ━━━━━━━━━━━━━
-/vladyslav:add-feature
-
-Context:
-"Analyzed <project>. <key findings summary>.
-Architecture documented. Ready to add features."
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Or for documentation (Sonnet terminal):
-━━━ Next (Sonnet terminal) ━━━━━━━━━━━━━━━━
-/vladyslav:write-user-stories
-
-Context:
-"Analyzed <project>. Architecture docs updated.
-Generate user stories from implemented features."
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Next steps:
+- /vladyslav:add-feature — start adding features
+- /vladyslav:write-project-docs — generate human-readable docs
+- /vladyslav:write-user-stories — registry of implemented features
 ```

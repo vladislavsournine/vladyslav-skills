@@ -9,7 +9,7 @@ description: Use after init-project or when filling docs/product/start-project.m
 
 Fills sections 6, 8, 9, 10 (and 11 for iOS) of `docs/product/start-project.md` using AI-research and `c-level-skills:*` advisory skills. Runs sequentially so each section builds on the previous one — monetization references competitor pricing, valuation references unit economics, marketing references SOM constraints.
 
-**Type:** Architect (Opus)
+**Type:** Architect
 
 ## When to use
 
@@ -23,10 +23,6 @@ Fills sections 6, 8, 9, 10 (and 11 for iOS) of `docs/product/start-project.md` u
 - At least section 1 must be non-empty — empty StartProject is a hard stop
 
 ## Process
-
-### Step 0: Verify model
-
-Check current model. If not Opus, switch: `/model opus`.
 
 ### Step 1: Read context
 
@@ -321,12 +317,9 @@ Invoke the `vladyslav:discover-apple-check` skill via the Skill tool. It handles
   - docs/product/validation-plan.md (if yellow/red)
   - docs/product/apple-review.md (iOS only)
 
-━━━ Next steps ━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. Review docs/product/discovery-summary.md
-2. If GREEN: /superpowers:brainstorming to trim MVP scope
-3. If YELLOW or RED: work through docs/product/validation-plan.md before coding
-4. When ready: /vladyslav:add-feature
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Next steps:
+- /vladyslav:add-feature — start building once discovery verdict is GREEN
+- /vladyslav:write-user-stories — document the validated feature set
 ```
 
 ## Notes

@@ -1,4 +1,3 @@
-Before starting, check the current model. If it is not Opus, stop and tell the user: "Please run /model opus in your terminal and restart this command."
 ---
 description: "Use for iOS projects to pre-validate against Apple App Store Review Guidelines BEFORE development - invokes apple-appstore-reviewer, pulls lessons from swift-calories wing, and fills section 11 of docs/product/start-project.md with a consolidated rejection-risk checklist"
 disable-model-invocation: true

@@ -9,50 +9,134 @@ description: Use when product or QA needs a registry of implemented features - s
 
 Create or update `docs/product/user-stories.md` — a human-readable registry of implemented features for product owners and QA. Not for development planning — for verification of what's built.
 
-**Type:** Engineer (Sonnet)
+**Type:** Engineer
 
 ## Process
 
-### Step 0: Verify model
+### Step 0: Pre-flight (Opus main)
 
-Check current model. If not Sonnet, switch: `/model sonnet`
+Interactive checks before dispatching the subagent.
 
-### Step 1: Read context
+1. Read `CLAUDE.md` in `pwd`. If missing → STOP: "No CLAUDE.md found in current directory. Are you in the right project?". Otherwise extract project name.
 
-Read these files:
-- `docs/product/prd.md` — what was planned
-- `docs/architecture/api.md` — what endpoints exist
-- `docs/architecture/system.md` — system overview
-- `docs/product/user-stories.md` — existing stories (if any)
+2. Check input files:
+   - `CLAUDE.md` — required
+   - `docs/product/prd.md` — required
+   - `docs/architecture/api.md` — optional
+   - `docs/architecture/system.md` — optional
+   - existing `docs/product/user-stories.md` — optional (preserve any existing entries; the subagent updates rather than overwrites where reasonable)
 
-### Step 2: Analyze implemented features
+3. For each missing **required** file, ask user:
+   > "Required input `<path>` is missing. Options: (a) create stub now / (b) abort. Which?"
+   - On abort → exit cleanly, no dispatch.
+   - On stub → create a placeholder file (`# <Title>\n\n*to be filled*\n`), proceed.
 
-Scan the codebase to determine which features are actually implemented:
-- Check route handlers / screen implementations
-- Check if tests exist for features
-- Check if UI components are wired up
+4. Read FULL content of available input files (do not truncate). Record paths and content. The subagent needs complete input to produce accurate user stories.
 
-### Step 3: Write user stories
+5. Compose dispatch context (project name + verified file paths + content).
 
-For each feature, write in this format:
+### Step 1: Dispatch to Sonnet subagent
+
+Invoke the Agent tool with:
+- `subagent_type: "general-purpose"`
+- `model: "sonnet"`
+- `description: "Generate or update user stories with acceptance criteria and status"`
+- `prompt: <subagent prompt template below, filled with pre-flight outputs>`
+
+Wait for return.
+
+### Step 2: Present summary
+
+Parse the YAML block in the subagent's response. Look for the last fenced ` ```yaml ` block. Treat as parse failure (status: unknown) if: (a) no ` ```yaml ` block is found, (b) the block does not contain a `status:` field, OR (c) the YAML is malformed (e.g., unbalanced indentation).
+
+**If parse fails** → print the full subagent output, run `git status --short`, tell user: "Subagent returned unstructured response. Files on disk: `<git status>`. Review manually."
+
+**If parse succeeds**, render based on `status`:
+
+`status: success` →
+```
+✓ Engineer summary (write-user-stories)
+  Wrote: <files_written paths joined>
+  Warnings: <warnings, if any>
+  Files unstaged. Review before commit.
+  Next: <next_step_suggestion>
+```
+
+`status: partial` → same as success plus:
+```
+  Note: <files_skipped> were not generated. See warnings.
+```
+
+`status: scope_expansion_required` →
+```
+⚠ Engineer halted (write-user-stories)
+  Subagent wanted to modify <path> (outside allowlist).
+  Reason: <reason>
+
+  Options:
+    1. Approve — re-dispatch with extended allowlist
+    2. Skip — leave file untouched
+    3. Abort
+```
+Wait for user choice. On (1), re-dispatch: take the same subagent prompt template from Step 1, add the path from `scope_expansion_required[0].path` (and any additional entries) to the Output allowlist section of the prompt, re-invoke the Agent tool with this updated prompt and the same other parameters. Reuse pre-flight outputs already in memory — do NOT re-read input files. On (2), record the skipped path and proceed to next step. On (3), exit cleanly with no further action.
+
+`status: error` →
+```
+✗ Engineer failed (write-user-stories)
+  Error: <error message>
+```
+Best-effort: invoke `vladyslav:stash` skill with `source: "write-user-stories:error"`, `task: "Write user stories"`, `open_question: "Subagent failed: <error>"`. If stash itself fails, log warning, continue.
+
+---
+
+## Subagent prompt template
+
+````
+You are a Sonnet subagent dispatched by the `write-user-stories` skill in the `vladyslav-skills` plugin. You have no conversation history with the user — this prompt is your full briefing.
+
+## Project context
+
+Working directory: <pwd>
+Project name: <from CLAUDE.md>
+Key facts from CLAUDE.md (extracted by pre-flight — must include: project type, primary tech stack, platform (web / iOS / Android / cross-platform), and any QA-relevant constraints. If the project is mobile, ensure the platform bullet is explicit so the subagent generates platform-specific acceptance criteria):
+<3-5 bullets>
+
+## Verified inputs
+
+CLAUDE.md:
+<content from pre-flight>
+
+docs/product/prd.md:
+<content from pre-flight>
+
+docs/architecture/api.md (if available):
+<content from pre-flight>
+
+docs/architecture/system.md (if available):
+<content from pre-flight>
+
+docs/product/user-stories.md (if available — preserve any existing entries where reasonable):
+<content from pre-flight>
+
+## Your task
+
+Generate or update `docs/product/user-stories.md`:
+
+- Scan the codebase to determine which features are actually implemented (route handlers, screen implementations, tests, UI wiring).
+- Per feature, write a story in the format:
 
 ```markdown
 ## [Feature Area]
 
-### US-001: [Short title]
+### US-NNN: [Short title]
 **As** [role], **I can** [action], **so that** [benefit].
 
 **Acceptance criteria:**
 - [ ] [Specific verifiable check]
-- [ ] [Another check]
 
 **Status:** ✅ Done / 🚧 Partial / ❌ Not started
 **Implemented in:** [file paths or "not yet"]
 ```
-
-### Step 4: Write to file
-
-Save to `docs/product/user-stories.md`.
 
 Rules:
 - Human-readable language — no implementation jargon
@@ -60,20 +144,30 @@ Rules:
 - Status reflects actual code state, not plans
 - Sort: done first, then partial, then not started
 
-### Step 5: Finish
+## Output allowlist
 
-Print engineer report:
+You may ONLY create or modify these files:
+- `docs/product/user-stories.md`
 
+If you discover need to touch any other file — STOP, do NOT make the change, return `status: scope_expansion_required`.
+
+## Required return format
+
+End your response with EXACTLY one YAML block:
+
+```yaml
+status: success | partial | scope_expansion_required | error
+files_written:
+  - path: docs/product/user-stories.md
+    action: created | modified | replaced
+files_skipped: []  # populate with paths the subagent considered but did not write to
+warnings:
+  - <non-blocking issue, if any>
+scope_expansion_required:
+  - path: <if applicable>
+    reason: <if applicable>
+next_step_suggestion: /vladyslav:write-test-docs
+summary: |
+  <1-3 sentence human-readable description>
 ```
-✓ Engineer report:
-- User stories updated: N done, M partial, K not started
-- File: docs/product/user-stories.md
-
-━━━ Next (Sonnet terminal) ━━━━━━━━━━━━━━━━
-/vladyslav:write-test-docs
-
-Context:
-"User stories updated. N done, M partial, K not started.
-Generate test plan and QA checklist."
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-```
+````

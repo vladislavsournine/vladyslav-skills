@@ -19,13 +19,11 @@ Scans an existing UI codebase, extracts the **actual** design tokens being used 
 - Pure backend / CLI project — no UI, nothing to sync
 - Brand-new project with zero screens — the template from `init-project` is enough; run this after 2-3 screens exist
 
-**Type:** Architect (Opus)
+**Type:** Architect
 
 ## Process
 
-### Step 0: Verify model, scope, and working directory
-
-Check current model. If not Opus, switch: `/model opus`.
+### Step 0: Verify scope and working directory
 
 **Verify working directory and canonical wing name:**
 1. Check that `CLAUDE.md` exists in `pwd`. If not → STOP: "No CLAUDE.md found. Are you in the right project directory?"
@@ -279,13 +277,9 @@ Files written:
 
 Drift auto-fix: <applied in branch design/canonize-<date> | pending | skipped>
 
-━━━ Next ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. Review docs/design/system.md — check §1 palette, §3 icons, §5 components
-2. Fill in brand/product-specific values where template has placeholders
-3. If auto-fix branch was created: review the diff and merge if clean
-4. Going forward: every UI task now reads docs/design/system.md FIRST
-   (enforced by global rule in ~/.claude/CLAUDE.md §"Design System Discipline")
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Next steps:
+- /vladyslav:design-page — start designing screens using the canonized tokens
+- /vladyslav:add-feature — begin feature development with the design system in place
 ```
 
 ## Notes
