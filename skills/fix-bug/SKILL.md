@@ -9,15 +9,11 @@ description: Use when fixing a bug in a production project - orchestrates full c
 
 Full-cycle bug fix: diagnose → fix → test → review → merge → update docs. Orchestrates superpowers skills in the right order with project-specific reminders.
 
-**Type:** Architect (Opus)
+**Type:** Architect
 
 ## Process
 
-### Step 0: Verify model
-
-Check current model. If not Opus, switch: `/model opus`
-
-### Step 0.1: Verify working directory
+### Step 0: Verify working directory
 
 **This step is mandatory. Do not skip it.**
 
@@ -123,7 +119,7 @@ After merge:
 
 ### Step 9: Finish
 
-Print architect report with prepared prompt for Sonnet terminal:
+Print architect report:
 
 ```
 ✓ Architect report:
@@ -140,26 +136,7 @@ Updated:
 
 Do NOT add translations — wait for pre-release-check phase.
 
-━━━ Next (Sonnet terminal) ━━━━━━━━━━━━━━━━
-/vladyslav:write-test-docs
-
-Context:
-"Fixed bug: <description>. Root cause: <cause>.
-Regression test in <file>. Update test documentation."
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Or if ready to ship:
-/vladyslav:pre-release-check
-
-Context:
-"Bug fixed and tested. Run pre-release verification."
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-Or if all work is complete:
-━━━ Ready for deploy ━━━━━━━━━━━━━━━━━━━━━━
-All bugs fixed and tested.
-- Live QA: docs/testing/manual-qa.md
-- Deploy: docs/deployment.md
-- Final check: /vladyslav:pre-release-check
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Next steps:
+- /vladyslav:write-test-docs — update test documentation for the fix
+- /vladyslav:pre-release-check — run pre-release verification before shipping
 ```

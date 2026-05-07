@@ -17,15 +17,13 @@ Orchestrates parallel subagent design of multiple app screens in Pencil. Each su
 - You're still deciding the design direction → finalize system.md first
 - Only one small screen / single component → just design it directly without orchestration
 
-**Type:** Architect (Opus)
+**Type:** Architect
 
 ---
 
 ## Process
 
-### Step 0: Verify model and directory
-
-Check current model. If not Opus, switch: `/model opus`.
+### Step 0: Verify directory
 
 Verify working directory: `CLAUDE.md` must exist in `pwd`. Derive canonical wing name (lowercase, hyphens, platform prefix). If wrong → STOP.
 
@@ -101,6 +99,7 @@ For each screen in batch:
   Agent(
     description: "Design <screen-name> screen in Pencil",
     subagent_type: "general-purpose",
+    model: "opus",
     prompt: <see subagent prompt template below>
   )
 ```
@@ -193,14 +192,10 @@ Missing tokens: <list or "none">
 HIG violations flagged: <list or "none">
 Page decisions: docs/design/pages/
 
-━━━ Next ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. Review each screen in Pencil
-2. If missing tokens: add to docs/design/system.md §X, re-run affected screen:
-   /vladyslav:design-page --screen SettingsView
-3. If HIG violations: fix in Pencil manually or re-run with correction notes
-4. When Pencil screens are approved → proceed to Phase 1 (Foundation code)
-   with /vladyslav:add-feature using system.md as the UI contract
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Next steps:
+- `/vladyslav:design-page` — design more screens (if applicable)
+- `/vladyslav:add-feature` — implement features tied to designed screens
+- `/vladyslav:write-test-docs` — generate test plan including design QA
 ```
 
 ---
