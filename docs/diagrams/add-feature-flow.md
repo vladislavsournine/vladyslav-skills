@@ -1,6 +1,6 @@
 # add-feature lifecycle
 
-Manual і Auto modes в одному потоці. 5 approval points, 4 auto-stash checkpoints, 4 guard rails.
+Manual і Auto modes в одному потоці. 5 approval points, 4 guard rails. Стан зберігається автоматично через compact-save (PreCompact hook).
 
 ```mermaid
 flowchart TD
@@ -18,25 +18,20 @@ flowchart TD
 
     AP2 --> S45[Step 4.5<br/>Define contract<br/>3-10 lines:<br/>types, examples, errors]
     S45 --> AP3{{Approval #3<br/>contract}}:::approval
-    AP3 --> CK1[("Auto-stash<br/>contract-approved")]:::checkpoint
-
-    CK1 --> S5[Step 5 — Plan<br/>superpowers:writing-plans<br/>tests inline with impl]
+    AP3 --> S5[Step 5 — Plan<br/>superpowers:writing-plans<br/>tests inline with impl]
     S5 --> AP4{{Approval #4<br/>plan + file lists}}:::approval
-    AP4 --> CK2[("Auto-stash<br/>plan-approved")]:::checkpoint
-
-    CK2 --> S6[Step 6 — Execute]
+    AP4 --> S6[Step 6 — Execute]
     S6 --> Q2{Manual or Auto?}
 
     Q2 -- Manual --> M1["/superpowers:dispatching-parallel-agents<br/>or executing-plans"]
     Q2 -- Auto --> AL["Auto-loop<br/>2 subagents in parallel<br/>(tests + impl) per task<br/>scoped to plan's file list"]
 
     AL --> GR{Guard rails<br/>files outside plan &gt; 2?<br/>read-only file refactored?<br/>contract hash changed?<br/>SCOPE EXPANSION REQUIRED?}
-    GR -- triggered --> STOP["STOP + ask user<br/>+ Auto-stash:auto-gate-blocker"]:::stop
+    GR -- triggered --> STOP["STOP + ask user"]:::stop
     GR -- pass --> AG[Step 6.5 — Auto-gate per commit<br/>tests<br/>code review HIGH<br/>swiftui-pro for iOS<br/>owasp-security]
     AG -- fail --> STOP
     AG -- pass --> COMMIT[Commit batch<br/>only files from plan]
-    COMMIT --> CK3[("Auto-stash<br/>subagent-task-complete:N")]:::checkpoint
-    CK3 -- next batch --> AL
+    COMMIT -- next batch --> AL
     AL -- all batches done --> S7
     M1 --> S7
 
@@ -49,7 +44,6 @@ flowchart TD
     classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
     classDef done fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
     classDef approval fill:#fde7c2,stroke:#a87000,color:#5a3a00,font-weight:bold
-    classDef checkpoint fill:#cfe9ff,stroke:#0066aa,color:#0a3a66
     classDef stop fill:#ffd0d0,stroke:#aa0000,color:#660000,font-weight:bold
 ```
 
@@ -57,5 +51,4 @@ flowchart TD
 
 - 🟢 зелений — старт / фініш
 - 🟠 помаранчевий шестикутник — approval point (юзер каже yes/no)
-- 🔵 блакитний циліндр — auto-stash checkpoint (write у MemPalace)
 - 🔴 червоний — STOP / guard-rail trigger

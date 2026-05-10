@@ -1,6 +1,6 @@
 ---
 name: design-sync
-description: Use when an existing UI project has no docs/design/system.md yet OR when design has drifted (multiple colors for "primary", inconsistent spacing, duplicate icons) - scans the actual codebase, extracts canonical tokens, reports drift, writes docs/design/system.md, and seeds MemPalace with design decisions so future sessions automatically reuse the canon instead of inventing
+description: Use when an existing UI project has no docs/design/system.md or when design tokens have drifted. Scans the codebase, extracts canonical tokens, writes docs/design/system.md.
 ---
 
 # Design Sync

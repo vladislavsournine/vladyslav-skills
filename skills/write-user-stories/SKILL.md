@@ -1,6 +1,6 @@
 ---
 name: write-user-stories
-description: Use when product or QA needs a registry of implemented features - scans code and docs to generate human-readable user stories with acceptance criteria and status
+description: Use when product or QA needs implemented features as user stories. Generates from code and docs with acceptance criteria.
 ---
 
 # Write User Stories
@@ -47,53 +47,25 @@ Wait for return.
 
 ### Step 2: Present summary
 
-Parse the YAML block in the subagent's response. Look for the last fenced ` ```yaml ` block. Treat as parse failure (status: unknown) if: (a) no ` ```yaml ` block is found, (b) the block does not contain a `status:` field, OR (c) the YAML is malformed (e.g., unbalanced indentation).
+Pipe the subagent response through `<plugin>/scripts/parse-yaml-return.sh`. Then render the human-facing summary as specified in `<plugin>/skills/_shared/references/present-summary.md` (substitute `<skill-name>` → `write-user-stories`). That reference defines the four `status` branches (`success`, `partial`, `scope_expansion_required`, `error`) verbatim — follow it without paraphrasing.
 
-**If parse fails** → print the full subagent output, run `git status --short`, tell user: "Subagent returned unstructured response. Files on disk: `<git status>`. Review manually."
-
-**If parse succeeds**, render based on `status`:
-
-`status: success` →
-```
-✓ Engineer summary (write-user-stories)
-  Wrote: <files_written paths joined>
-  Warnings: <warnings, if any>
-  Files unstaged. Review before commit.
-  Next: <next_step_suggestion>
-```
-
-`status: partial` → same as success plus:
-```
-  Note: <files_skipped> were not generated. See warnings.
-```
-
-`status: scope_expansion_required` →
-```
-⚠ Engineer halted (write-user-stories)
-  Subagent wanted to modify <path> (outside allowlist).
-  Reason: <reason>
-
-  Options:
-    1. Approve — re-dispatch with extended allowlist
-    2. Skip — leave file untouched
-    3. Abort
-```
-Wait for user choice. On (1), re-dispatch: take the same subagent prompt template from Step 1, add the path from `scope_expansion_required[0].path` (and any additional entries) to the Output allowlist section of the prompt, re-invoke the Agent tool with this updated prompt and the same other parameters. Reuse pre-flight outputs already in memory — do NOT re-read input files. On (2), record the skipped path and proceed to next step. On (3), exit cleanly with no further action.
-
-`status: error` →
-```
-✗ Engineer failed (write-user-stories)
-  Error: <error message>
-```
-Best-effort: invoke `vladyslav:stash` skill with `source: "write-user-stories:error"`, `task: "Write user stories"`, `open_question: "Subagent failed: <error>"`. If stash itself fails, log warning, continue.
+On `status: scope_expansion_required` and user approval, re-dispatch with an extended allowlist (add `scope_expansion_required[0].path`); reuse pre-flight outputs, do NOT re-run AskUserQuestion.
 
 ---
 
 ## Subagent prompt template
 
-````
-You are a Sonnet subagent dispatched by the `write-user-stories` skill in the `vladyslav-skills` plugin. You have no conversation history with the user — this prompt is your full briefing.
+The full subagent prompt is composed by Opus main from these fragments, in order:
 
+1. **Preamble** — verbatim contents of `<plugin>/skills/_shared/references/subagent-preamble.md` (substitute `<X>` → `write-user-stories`).
+2. **Project context** + **Task steps** — defined inline below.
+3. **YAML return contract** — verbatim contents of `<plugin>/skills/_shared/references/yaml-return.md`.
+
+Concatenate the three into a single string and pass as `prompt:` to the Agent tool.
+
+The inline part of the prompt template (item 2):
+
+````
 ## Project context
 
 Working directory: <pwd>
@@ -149,25 +121,5 @@ Rules:
 You may ONLY create or modify these files:
 - `docs/product/user-stories.md`
 
-If you discover need to touch any other file — STOP, do NOT make the change, return `status: scope_expansion_required`.
-
-## Required return format
-
-End your response with EXACTLY one YAML block:
-
-```yaml
-status: success | partial | scope_expansion_required | error
-files_written:
-  - path: docs/product/user-stories.md
-    action: created | modified | replaced
-files_skipped: []  # populate with paths the subagent considered but did not write to
-warnings:
-  - <non-blocking issue, if any>
-scope_expansion_required:
-  - path: <if applicable>
-    reason: <if applicable>
-next_step_suggestion: /vladyslav:write-test-docs
-summary: |
-  <1-3 sentence human-readable description>
-```
+If you discover need to touch any other file — STOP, do NOT make the change, return `status: scope_expansion_required`. Set `next_step_suggestion: /vladyslav:write-test-docs` in the YAML return.
 ````
