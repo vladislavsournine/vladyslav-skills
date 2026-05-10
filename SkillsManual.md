@@ -276,7 +276,7 @@ mempalace_search wing=<project>      # попередні міграції, gotc
 | **File-scope guard rails в `add-feature` (auto mode)** | Після кожного batch'а | Перевіряю що агенти не зачепили файли поза планом. |
 | **Parallel agents в `add-feature`** | Коли план розбитий на незалежні задачі | Два subagent'и в worktree паралельно пишуть тести і код. |
 
-**Що НЕ автоматично і завжди потребує виклику** (`disable-model-invocation: true` у всіх `vladyslav:*` скілах):
+**Що завжди потребує явного виклику slash-командою** (модель не запускає сама — таке практично через структуру команд + чітко описане у `description` поле):
 
 - `write-project-docs`, `write-test-docs`, `write-user-stories` — документація
 - `owasp-security` (standalone повний аудит — автоматичний тільки в auto-gate)
@@ -285,7 +285,7 @@ mempalace_search wing=<project>      # попередні міграції, gotc
 - `analyze-project`, `seed-mempalace` — одноразові операції
 - `fix-bug`, `add-feature` — навмисно explicit, бо запускають повний цикл
 
-Причина: всі vladyslav-скіли мають `disable-model-invocation: true` щоб я не запускав їх випадково. Запуск — завжди твоя команда. Всередині скіла моя автономія вища (auto mode в `add-feature`).
+Раніше плагін використовував `disable-model-invocation: true` у frontmatter `commands/*.md` для блокування авто-виклику. У сучасних версіях Claude Code це поле блокувало і явні slash-команди (Skill tool refused), тому ми його прибрали в v2.3.1 — модель полагається на `description:` для вирішення коли НЕ викликати скіл, а сам користувач все одно може викликати через `/vladyslav:<name>`.
 
 ---
 

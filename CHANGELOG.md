@@ -1,5 +1,26 @@
 # Changelog
 
+## v2.3.1 — 2026-05-10
+
+### Fixed
+
+- **Removed `disable-model-invocation: true`** from all 16 `commands/*.md` frontmatter. The original intent (block automatic model-driven skill invocation while keeping explicit slash-commands available) was broken by current Claude Code semantics: the field also blocked the `Skill` tool from delivering the SKILL.md body to the model when a slash-command was used. Result was endless `Successfully loaded skill` echoes with no instructions reaching the model. Removing the field restores normal slash-command behaviour. Skills still self-describe in their `description:` field so the model knows when *not* to invoke automatically.
+- `marketplace.json` and `plugin.json` synced to v2.3.1.
+- `SkillsManual.md` updated to remove the obsolete policy paragraph.
+
+### Migration
+
+After pulling this version, run inside Claude Code:
+
+```
+/plugin marketplace update vladyslav-marketplace
+/plugin update vladyslav
+```
+
+…then restart your Claude session. Slash-commands like `/vladyslav:init-project` will now load the skill body normally.
+
+---
+
 ## v2.3.0 — 2026-05-10
 
 Strategic refactor pass: deduplicate boilerplate across heavy-engineer skills, lift deterministic operations into bash scripts, propagate the modular Hybrid layout introduced for `init-project` to the next three largest skills.
