@@ -1,6 +1,6 @@
 ---
 name: design-page
-description: Use after docs/design/system.md is approved to design individual app screens in Pencil — dispatches parallel subagents (one per screen), full-auto mode, each subagent reads the design system contract and draws directly in the .pen file. Stops only when a new token is needed or a Pencil error occurs.
+description: Use after docs/design/system.md is approved to design app screens in Pencil. Dispatches one subagent per screen, draws against the design system contract.
 ---
 
 # Design Page

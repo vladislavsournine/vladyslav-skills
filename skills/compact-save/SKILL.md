@@ -1,6 +1,6 @@
 ---
 name: compact-save
-description: Snapshot current task state to MemPalace before context compaction — called automatically via PreCompact hook or manually to preserve intra-session continuity
+description: Snapshot current task state to MemPalace before context compaction. Triggered by PreCompact hook or manually.
 type: Engineer (light)
 ---
 

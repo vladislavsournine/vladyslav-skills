@@ -1,6 +1,6 @@
 ---
 name: analyze-project
-description: Use after attaching to an existing project or when docs are out of sync with code - scans codebase to document architecture, endpoints, schema, and dependencies for Claude
+description: Use after attaching to an existing project to scan and document architecture, endpoints, schema, and dependencies.
 ---
 
 # Analyze Project

@@ -1,6 +1,6 @@
 ---
 name: pre-release-check
-description: Use before any production deployment - runs verification checks on tasks, tests, configs, docs, translations, and (iOS only) a submission-phase Apple App Store review that blocks the release on any BLOCKER/HIGH finding
+description: Use before any production deployment. Verifies tasks, tests, configs, docs, translations, and iOS Apple-review readiness.
 ---
 
 # Pre-Release Check
@@ -53,52 +53,28 @@ Wait for return.
 
 ### Step 2: Present summary
 
-Parse the YAML block in the subagent's response. Look for the last fenced ` ```yaml ` block. Treat as parse failure (status: unknown) if: (a) no ` ```yaml ` block is found, (b) the block does not contain a `status:` field, OR (c) the YAML is malformed (e.g., unbalanced indentation).
+Pipe the subagent response through `<plugin>/scripts/parse-yaml-return.sh`. Then render the human-facing summary as specified in `<plugin>/skills/_shared/references/present-summary.md` (substitute `<skill-name>` → `pre-release-check`). That reference defines the four `status` branches (`success`, `partial`, `scope_expansion_required`, `error`) verbatim — follow it without paraphrasing.
 
-**If parse fails** → print the full subagent output, run `git status --short`, tell user: "Subagent returned unstructured response. Files on disk: `<git status>`. Review manually."
+On `status: scope_expansion_required` and user approval, re-dispatch with an extended allowlist (add `scope_expansion_required[0].path`); reuse pre-flight outputs, do NOT re-run AskUserQuestion.
 
-**If parse succeeds**, render based on `status`:
-
-`status: success` →
-```
-✓ Engineer summary (pre-release-check)
-  Wrote: <files_written paths joined>
-  Warnings: <warnings, if any>
-  Files unstaged. Review before commit.
-  Next: <next_step_suggestion>
-```
-
-`status: partial` → same as success plus:
-```
-  Note: <files_skipped> were not generated. See warnings.
-```
-
-`status: scope_expansion_required` →
-```
-⚠ Engineer halted (pre-release-check)
-  Subagent wanted to modify <path> (outside allowlist).
-  Reason: <reason>
-
-  Options:
-    1. Approve — re-dispatch with extended allowlist
-    2. Skip — leave file untouched
-    3. Abort
-```
-Wait for user choice. On (1), re-dispatch: take the same subagent prompt template from Step 1, add the path from `scope_expansion_required[0].path` (and any additional entries) to the Output allowlist section of the prompt, re-invoke the Agent tool with this updated prompt and the same other parameters. Reuse pre-flight outputs already in memory — do NOT re-read input files. On (2), record the skipped path and proceed to next step. On (3), exit cleanly with no further action.
-
-`status: error` →
-```
-✗ Engineer failed (pre-release-check)
-  Error: <error message>
-```
 ---
 
 ## Subagent prompt template
 
-````
-You are a Sonnet subagent dispatched by the `pre-release-check` skill in the `vladyslav-skills` plugin. You have no conversation history with the user — this prompt is your full briefing. Do NOT call AskUserQuestion — all decisions have already been made in pre-flight.
+The full subagent prompt is composed by Opus main from these fragments, in order:
 
+1. **Preamble** — verbatim contents of `<plugin>/skills/_shared/references/subagent-preamble.md` (substitute `<X>` → `pre-release-check`).
+2. **Project context** + **Task steps** — defined inline below.
+3. **YAML return contract** — verbatim contents of `<plugin>/skills/_shared/references/yaml-return.md`.
+
+Concatenate the three into a single string and pass as `prompt:` to the Agent tool.
+
+The inline part of the prompt template (item 2):
+
+````
 Apply `superpowers:verification-before-completion` principles throughout: every check must produce actual output (test results, grep output, file contents). Do NOT claim PASS without running the command and seeing the result.
+
+Rules and reporting contract are in the preamble (above) and YAML return block (at the end).
 
 ## Project context
 
@@ -206,87 +182,9 @@ Report PASS if translation files found, WARN (severity: low) if not found (trans
 
 ### Check 6: Apple App Store review (iOS only)
 
-**Skip this check entirely if `platform` is NOT `ios`.**
+If `platform: ios`, read `<plugin>/skills/pre-release-check/references/ios-apple-check.md` and apply its checks in addition to the cross-platform checks above. The reference file is the canonical instruction set for this check — do NOT paraphrase.
 
-**Why this check exists:** `discover-apple-check` audits the IDEA before coding. This step audits the SHIPPED ARTIFACT — screenshots, metadata, final UI strings, privacy manifest, IAP wiring — against the same guidelines, plus anything new Apple has flagged in between.
-
-1. **Read prior audit.** Open `docs/product/apple-review.md` (written by `discover-apple-check`). If missing, warn: "No pre-development Apple review found. Submission-phase check will only catch issues visible in the shipped artifact — earlier architectural risks may already be baked in." Continue anyway.
-
-2. **Refresh rejection patterns.** Run cross-wing MemPalace searches to pick up anything new since the pre-dev check:
-   ```
-   mempalace_search wing=swift-calories "apple rejection"
-   mempalace_search wing=swift-calories "review feedback"
-   mempalace_search "apple rejection 2025"
-   mempalace_search "apple rejection 2026"
-   ```
-   Compile findings — anything not in `docs/product/apple-review.md` is new and must be checked.
-
-3. **Apply apple-appstore-reviewer checklist.** Read the skill at `~/.claude/skills/apple-appstore-reviewer/SKILL.md` (plain prompt-based skill — use Read tool, not Skill tool). Apply it against the shipped artifact with this input:
-
-   ```
-   You are reviewing a shipped iOS app BEFORE submission to App Store Connect.
-   This is the LAST gate before upload.
-
-   Prior audit (pre-development): <paste docs/product/apple-review.md summary>
-   New rejection patterns since prior audit: <paste MemPalace findings>
-
-   Audit the shipped artifact against Apple App Store Review Guidelines, with
-   emphasis on things that can ONLY be verified after implementation:
-
-   A. Guideline 2.1 — demo account: credentials in App Store Connect reviewer notes
-   B. Guideline 2.3 — screenshots match shipped UI (no placeholders, no mockups)
-   C. Guideline 5.1.1 — privacy: PrivacyInfo.xcprivacy exists, all tracked APIs declared,
-      third-party SDK privacy manifests present
-   D. Guideline 5.1.2 — Info.plist usage descriptions for every requested permission
-   E. Guideline 3.1.1 — IAP: no external payment links for digital goods, no
-      "subscribe on website" text
-   F. Guideline 4.0 — accessibility: VoiceOver labels, dynamic type, dark mode
-   G. AI-content disclosure (if any LLM features) — visible UI disclosure, not
-      just App Store description
-   H. Guideline 4.2 — minimum functionality: does the shipped app do more than
-      a web wrapper / simple list?
-   I. Guideline 5.1.5 — background modes and location justifications in Info.plist
-      match actual usage
-
-   For EACH finding, report:
-   - Severity: BLOCKER / HIGH / MEDIUM / LOW
-   - Where in the artifact: file path or App Store Connect field
-   - Exact fix (not "consider adding X" — give the text/code)
-
-   Also verify each item from the pre-dev audit's "decisions locked in" list is
-   actually in the shipped code.
-   ```
-
-4. **Process findings:**
-   - **BLOCKER or HIGH** → Apple check = FAIL (severity: blocker), regardless of other checks. Block the release.
-   - **MEDIUM** → Apple check = WARN (severity: medium), let user decide.
-   - **LOW** → list in summary as FYI.
-
-5. **Write findings** to `docs/release/apple-review-submission.md` (new file). Format:
-   ```markdown
-   # Apple App Store Submission Review — <date>
-
-   ## Blockers
-   - <severity> <guideline> — <what> → <exact fix>
-
-   ## Warnings
-   - ...
-
-   ## FYI
-   - ...
-
-   ## Pre-dev audit verification
-   - [x] <decision from apple-review.md> — verified in <file>
-   - [ ] <decision> — NOT implemented (BLOCKER)
-   ```
-
-6. **MemPalace writeback.** If you discovered NEW rejection patterns during this audit (patterns not already in `swift-calories` wing), write them via `mempalace_add_drawer`:
-   - **wing:** `swift-calories`
-   - **room:** `problem`
-   - **content:** `[WHAT] New Apple rejection pattern: <name>. [DETAILS] <trigger>. [DISCOVERED DURING] <project> submission review, <date>.`
-   - **added_by:** `pre-release-check`
-
-   Check duplicates first with `mempalace_check_duplicate`.
+For all non-iOS platforms (`web`, `backend`, `plugin`, `other`), skip Check 6 entirely and report `Apple review: N/A (not iOS)` in the summary.
 
 ---
 
@@ -334,36 +232,9 @@ If you discover need to touch any other file — STOP, do NOT make the change, r
 - Blocker list (if any)
 - Recommended next action
 
----
-
-## Required return format
-
-End your response with EXACTLY one YAML block:
-
-```yaml
-status: success | partial | scope_expansion_required | error
-files_written:
-  - path: docs/release/pre-release-report-<YYYY-MM-DD>.md
-    action: created
-overall_result: PASS | WARN | FAIL
-blockers:
-  - <blocker description, if any>
-warnings:
-  - <non-blocking issue, if any>
-files_skipped: []
-scope_expansion_required:
-  - path: <if applicable>
-    reason: <if applicable>
-next_step_suggestion: /vladyslav:write-project-docs
-summary: |
-  <1-3 sentence human-readable description of findings>
-```
-
-**`next_step_suggestion` rule:** if `overall_result` is PASS or WARN (no blockers) → `/vladyslav:write-project-docs`; if FAIL (blockers present) → empty string (user must fix blockers before proceeding).
+Set `next_step_suggestion` in the YAML return: if `overall_result` is PASS or WARN (no blockers) → `/vladyslav:write-project-docs`; if FAIL (blockers present) → empty string (user must fix blockers before proceeding).
 ````
 
-## Apple review integration — why it's a hard gate
+## Apple review integration
 
-Apple BLOCKER/HIGH findings make the whole check FAIL even if tests/config/docs all pass. Reasoning: shipping an iOS build that will be rejected is worse than holding a release — rejection means a review cycle lost (typically a week) and a worse signal to Apple about the project. Better to catch it at this step than after upload.
-
-If you find yourself wanting to override this — STOP. The right move is to fix the finding, not weaken the gate.
+For the iOS Apple review check (Check 6) and rationale for it being a hard gate, see `<plugin>/skills/pre-release-check/references/ios-apple-check.md`.

@@ -1,6 +1,6 @@
 ---
 name: attach-project
-description: Use when adding Claude Code structure to an existing project - auto-detects stack, creates missing docs and agents, never overwrites existing files
+description: Use when adding Claude Code structure to an existing project. Auto-detects stack, creates only missing files.
 ---
 
 # Attach Project
@@ -75,52 +75,25 @@ Wait for return.
 
 ### Step 2: Present summary
 
-Parse the YAML block in the subagent's response. Look for the last fenced ` ```yaml ` block. Treat as parse failure (status: unknown) if: (a) no ` ```yaml ` block is found, (b) the block does not contain a `status:` field, OR (c) the YAML is malformed (e.g., unbalanced indentation).
+Pipe the subagent response through `<plugin>/scripts/parse-yaml-return.sh`. Then render the human-facing summary as specified in `<plugin>/skills/_shared/references/present-summary.md` (substitute `<skill-name>` → `attach-project`). That reference defines the four `status` branches (`success`, `partial`, `scope_expansion_required`, `error`) verbatim — follow it without paraphrasing.
 
-**If parse fails** → print the full subagent output, run `git status --short`, tell user: "Subagent returned unstructured response. Files on disk: `<git status>`. Review manually."
+On `status: scope_expansion_required` and user approval, re-dispatch with an extended allowlist (add `scope_expansion_required[0].path`); reuse pre-flight outputs, do NOT re-run AskUserQuestion.
 
-**If parse succeeds**, render based on `status`:
-
-`status: success` →
-```
-✓ Engineer summary (attach-project)
-  Wrote: <files_written paths joined>
-  Skipped (already existed): <files_skipped paths joined>
-  Warnings: <warnings, if any>
-  Files unstaged. Review before commit.
-  Next: <next_step_suggestion>
-```
-
-`status: partial` → same as success plus:
-```
-  Note: <files_skipped> were not created. See warnings.
-```
-
-`status: scope_expansion_required` →
-```
-⚠ Engineer halted (attach-project)
-  Subagent wanted to modify <path> (outside allowlist).
-  Reason: <reason>
-
-  Options:
-    1. Approve — re-dispatch with extended allowlist
-    2. Skip — leave file untouched
-    3. Abort
-```
-Wait for user choice. On (1), re-dispatch: take the same subagent prompt template from Step 1, add the path from `scope_expansion_required[0].path` (and any additional entries) to the Output allowlist section of the prompt, re-invoke the Agent tool with this updated prompt and the same other parameters. Reuse pre-flight outputs already in memory — do NOT re-scan the filesystem. On (2), record the skipped path and proceed to next step. On (3), exit cleanly with no further action.
-
-`status: error` →
-```
-✗ Engineer failed (attach-project)
-  Error: <error message>
-```
 ---
 
 ## Subagent prompt template
 
-````
-You are a Sonnet subagent dispatched by the `attach-project` skill in the `vladyslav-skills` plugin. You have no conversation history with the user — this prompt is your full briefing.
+The full subagent prompt is composed by Opus main from these fragments, in order:
 
+1. **Preamble** — verbatim contents of `<plugin>/skills/_shared/references/subagent-preamble.md` (substitute `<X>` → `attach-project`).
+2. **Project context** + **Task steps** — defined inline below.
+3. **YAML return contract** — verbatim contents of `<plugin>/skills/_shared/references/yaml-return.md`.
+
+Concatenate the three into a single string and pass as `prompt:` to the Agent tool.
+
+The inline part of the prompt template (item 2):
+
+````
 ## Project context
 
 Working directory: <pwd>
@@ -132,12 +105,7 @@ Private mode: <yes/no>
 
 ## Your task
 
-Create missing Claude Code structure for this project. Apply the following rules without exception:
-
-1. **Skip every file that already exists.** Pre-flight has already computed the allowlist to include only non-existing files, but if you encounter an existing file while writing — stop and skip it. Never overwrite.
-2. **`.gitignore` is append-only.** Read the existing `.gitignore` content first. Identify which entries are already present. Add ONLY the missing entries for the detected stacks at the end. Never remove or rewrite existing lines.
-3. **`CLAUDE.md`** — create only if absent (pre-flight checks this; it will appear in allowlist only if missing).
-4. **`.claude/agents/`** — create only the individual agent files that do not already exist.
+Create missing Claude Code structure for this project. Rules and reporting contract are in the preamble (above) and YAML return block (at the end).
 
 ### Files to create (based on stacks)
 
@@ -190,26 +158,5 @@ You may ONLY create or modify the files listed in the allowlist below (computed 
 
 <allowlist from pre-flight — one path per line>
 
-Do NOT touch any file not in this list. If you determine that a file outside this list is needed — STOP, do NOT make the change, return `status: scope_expansion_required` with the path and reason.
-
-## Required return format
-
-End your response with EXACTLY one YAML block:
-
-```yaml
-status: success | partial | scope_expansion_required | error
-files_written:
-  - path: <path>
-    action: created | modified
-files_skipped:
-  - <paths that already existed and were skipped>
-warnings:
-  - <non-blocking issue, if any>
-scope_expansion_required:
-  - path: <if applicable>
-    reason: <if applicable>
-next_step_suggestion: /vladyslav:analyze-project
-summary: |
-  <1-3 sentence human-readable description>
-```
+Do NOT touch any file not in this list. If you determine that a file outside this list is needed — STOP, do NOT make the change, return `status: scope_expansion_required` with the path and reason. Set `next_step_suggestion: /vladyslav:analyze-project` in the YAML return.
 ````

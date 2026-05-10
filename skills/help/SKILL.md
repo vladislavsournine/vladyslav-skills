@@ -1,6 +1,6 @@
 ---
 name: help
-description: Use when starting work or unsure which skill to use - shows all available vladyslav skills, single-terminal workflow, and superpowers integration
+description: Use when unsure which skill to use. Lists all vladyslav skills, workflow, and integration.
 ---
 
 # Vladyslav Skills — Help

@@ -1,6 +1,6 @@
 ---
 name: discover-apple-check
-description: Use for iOS projects to pre-validate against Apple App Store Review Guidelines BEFORE committing to development - invokes the apple-appstore-reviewer skill, pulls lessons from swift-calories wing (the one app that passed), and fills section 11 of docs/product/start-project.md with a consolidated rejection-risk checklist
+description: Use for iOS projects to pre-validate against Apple App Store Review Guidelines before development. Fills the rejection-risk checklist in start-project.md.
 ---
 
 # Discover — Apple Check

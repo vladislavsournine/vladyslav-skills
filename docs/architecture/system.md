@@ -2,7 +2,7 @@
 
 ## Skill Layout
 
-Skills are Markdown-only — no code is shipped from this plugin. Each skill lives at `skills/<name>/` and follows one of two layouts:
+Skills are Markdown-only — no code is shipped from this plugin (apart from a small set of helper bash scripts in `scripts/`). Each skill lives at `skills/<name>/` and follows one of two layouts:
 
 **Flat layout** (default for short skills, ≤ ~250 lines):
 
@@ -11,17 +11,45 @@ skills/<name>/
   SKILL.md
 ```
 
-**Modular layout** (introduced in v2.2.0 for `init-project`; reused for any skill where the SKILL.md grows past ~400 lines or where stack/variant-specific instructions can be loaded on demand):
+**Modular layout** (introduced in v2.2.0 for `init-project`; in v2.3.0 also applied to `add-feature`, `pre-release-check`, and `discover`):
 
 ```
 skills/<name>/
   SKILL.md            # thin orchestrator + cross-cutting steps
   references/         # on-demand fragments composed into prompts
-    <variant>.md      # e.g. stack-python.md, stack-swift.md
+    <variant>.md      # e.g. stack-python.md, auto-mode.md, ios-apple-check.md
   assets/             # file templates the skill writes verbatim into projects
 ```
 
-`references/` files are composed into the subagent prompt by Opus main during pre-flight — only the variants relevant to the user's choices are read. `assets/` files are read at execution time by the subagent (or the skill itself) and copied/substituted into the target project. Templates that are shared across multiple skills stay at the repo-root `templates/` (currently only `templates/DesignSystem.md`, shared between `init-project` and `design-sync`).
+`references/` files are composed into the subagent prompt (or used as a load-on-demand sub-flow) by Opus main during pre-flight — only the variants relevant to the user's choices or the current branch of execution are read. `assets/` files are read at execution time by the subagent and copied/substituted into the target project. Templates shared across multiple skills stay at the repo-root `templates/` (currently only `templates/DesignSystem.md`, shared between `init-project` and `design-sync`).
+
+### Shared references (`skills/_shared/references/`)
+
+Five shared reference files live under `skills/_shared/references/` and are composed into multiple skills. Owners must keep them as the canonical source of truth — heavy-engineer skills should reference them, not inline copies.
+
+| Reference | Used by | Purpose |
+|---|---|---|
+| `subagent-preamble.md` | All 6 heavy-engineer skills | Sonnet subagent's role + the five mandatory rules (allowlist, no AskUserQuestion, plugin assets, idempotency, reporting) |
+| `yaml-return.md` | All 6 heavy-engineer skills | Structured YAML return contract: `status`, `files_written`, `files_skipped`, `warnings`, `scope_expansion_required`, `next_step_suggestion`, `summary` |
+| `present-summary.md` | All 6 heavy-engineer skills | Orchestrator-side rendering for the four `status` branches plus the re-dispatch flow |
+| `mempalace-record.md` | All 8 MemPalace-using skills | Required record shape: `[WHAT] [WHY] [FILES] [DATE]` plus room-type rules and wing canonicalisation |
+| `verify-pwd.md` | Architect skills with project context | Step 0.1 contract: `CLAUDE.md` presence check + canonical wing derivation, used before any user Q&A |
+
+## Helper Scripts (`scripts/`)
+
+Deterministic operations are extracted into bash scripts so skills don't have to instruct Claude through them. Each script is POSIX-portable (macOS + Linux), has a one-line synopsis at the top, and emits structured output (JSON or plain) that skills can pipe through `parse-yaml-return.sh` or read with simple grep.
+
+| Script | Used by | Purpose |
+|---|---|---|
+| `detect-stack.sh` | `attach-project`, `discover-apple-check`, `design-sync`, `pre-release-check`, `add-feature` | Probes pwd → JSON `{ios, swift, flutter, kotlin, android, python, go, node, web, backend, plugin, ui, docker}` |
+| `derive-wing.sh` | `add-feature`, `fix-bug`, `seed-mempalace`, `design-sync`, `design-page`, `compact-save` | Canonical MemPalace wing name (lowercase, platform-prefixed) — eliminates case-mismatch bugs |
+| `write-stub.sh` | All scaffolding skills | Idempotent placeholder Markdown writer: `# Title\n\n*to be filled*\n` |
+| `init-git-repo.sh` | `init-project`, `add-feature`, `fix-bug` | Idempotent `git init` + initial commit; safe to call on existing repos |
+| `grep-replace-me.sh` | `pre-release-check` | Quote-safe placeholder grep with consistent excludes |
+| `parse-yaml-return.sh` | All 6 heavy-engineer skills | Locates the last fenced ` ```yaml ` block in a subagent's response, validates `status:`, emits JSON |
+| `section-status.sh` | `discover` | Scans `start-project.md` for filled vs pending sections (placeholder detection) |
+| `changelog-from-git.sh` | `pre-release-check` | Drafts a Markdown CHANGELOG section from `git log` (human edits before commit) |
+| `check-plan-scope.sh` | `add-feature` Auto-mode guard rails | Verifies the diff stays within the approved plan (files, contract hash, read-only globs) |
 
 ## Lifecycle Hooks
 

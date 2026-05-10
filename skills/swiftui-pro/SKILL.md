@@ -1,6 +1,6 @@
 ---
 name: swiftui-pro
-description: Reviews SwiftUI code for best practices, modern APIs (iOS 26 / Swift 6.2), maintainability, and performance. Use when reading, writing, or reviewing SwiftUI projects. Based on Paul Hudson's SwiftUI Agent Skill.
+description: Use when reviewing SwiftUI code. Checks best practices, modern APIs, maintainability, and performance.
 license: MIT
 metadata:
   author: Paul Hudson (adapted for vladyslav-skills)

@@ -1,6 +1,6 @@
 ---
 name: fix-bug
-description: Use when fixing a bug in a production project - orchestrates full cycle from diagnosis through fix, regression test, code review, docs update, and branch merge
+description: Use when fixing a bug in a production project. Full cycle: diagnose, fix, regression test, review, docs.
 ---
 
 # Fix Bug

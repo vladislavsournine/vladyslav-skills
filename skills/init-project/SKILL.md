@@ -1,6 +1,6 @@
 ---
 name: init-project
-description: Use when creating a new project from scratch - interactive setup that creates directories, configs, docs, agents, and CLAUDE.md based on chosen stacks (python/go/flutter/swift/kotlin or custom "other" stacks)
+description: Use when creating a new project from scratch. Interactive Q&A on stack, then scaffolds directories, docs, agents, and CLAUDE.md.
 ---
 
 # Init Project
@@ -75,53 +75,25 @@ Wait for return.
 
 ### Step 3: Present summary
 
-Parse the YAML block in the subagent's response. Look for the last fenced ` ```yaml ` block. Treat as parse failure (status: unknown) if: (a) no ` ```yaml ` block is found, (b) the block does not contain a `status:` field, OR (c) the YAML is malformed.
+Pipe the subagent response through `<plugin>/scripts/parse-yaml-return.sh`. Then render the human-facing summary as specified in `<plugin>/skills/_shared/references/present-summary.md` (substitute `<skill-name>` → `init-project`). That reference defines the four `status` branches (`success`, `partial`, `scope_expansion_required`, `error`) verbatim — follow it without paraphrasing.
 
-**If parse fails** → print the full subagent output, run `git status --short`, tell user: "Subagent returned unstructured response. Files on disk: `<git status>`. Review manually."
-
-**If parse succeeds**, render based on `status`:
-
-`status: success` →
-```
-✓ Engineer summary (init-project)
-  Wrote: <files_written paths joined>
-  Skipped: <files_skipped, if any>
-  Warnings: <warnings, if any>
-  Files unstaged. Review before commit.
-  Next: <next_step_suggestion>
-```
-
-`status: partial` → same as success plus:
-```
-  Note: <files_skipped> were not created. See warnings.
-```
-
-`status: scope_expansion_required` →
-```
-⚠ Engineer halted (init-project)
-  Subagent wanted to modify <path> (outside allowlist).
-  Reason: <reason>
-
-  Options:
-    1. Approve — re-dispatch with extended allowlist
-    2. Skip — leave file untouched
-    3. Abort
-```
-Wait for user choice. On (1), re-dispatch: add the path from `scope_expansion_required[0].path` to the allowlist in the subagent prompt and re-invoke the Agent tool. Reuse pre-flight outputs already in memory — do NOT re-run AskUserQuestion. On (2), record the skipped path and proceed. On (3), exit cleanly.
-
-`status: error` →
-```
-✗ Engineer failed (init-project)
-  Error: <error message>
-```
+On `status: scope_expansion_required` and user approval, re-dispatch with an extended allowlist (add `scope_expansion_required[0].path`); reuse pre-flight outputs, do NOT re-run AskUserQuestion.
 
 ---
 
 ## Subagent prompt template
 
-````
-You are a Sonnet subagent dispatched by the `init-project` skill in the `vladyslav-skills` plugin. You have no conversation history with the user — this prompt is your full briefing. Do NOT call AskUserQuestion — all decisions have already been made in pre-flight.
+The full subagent prompt is composed by Opus main from these fragments, in order:
 
+1. **Preamble** — verbatim contents of `<plugin>/skills/_shared/references/subagent-preamble.md` (substitute `<X>` → `init-project`).
+2. **Project context** + **Task steps** — defined inline below.
+3. **YAML return contract** — verbatim contents of `<plugin>/skills/_shared/references/yaml-return.md`.
+
+Concatenate the three into a single string and pass as `prompt:` to the Agent tool.
+
+The inline part of the prompt template (steps 2):
+
+````
 ## Project context
 
 Working directory: <pwd>
@@ -136,12 +108,7 @@ Agents to install: <comma-separated list of agent names, or "none">
 
 ## Your task
 
-Create the full Claude Code project scaffold. Follow these rules without exception:
-
-1. **Allowlist enforcement:** Only create or modify files listed in the Output allowlist section below. If you determine a file outside the allowlist is needed — STOP, do NOT make the change, return `status: scope_expansion_required` with the path and reason.
-2. **No AskUserQuestion.** All decisions have been made.
-3. **Plugin asset reads:** When a step references `<plugin>/skills/init-project/assets/...`, the plugin directory is the one this skill was loaded from (under `~/.claude/plugins/.../vladyslav/` or the dev clone). If you cannot locate it, return `status: error` with the missing path.
-4. **Git init + initial commit** at the very end (Step 11).
+Create the full Claude Code project scaffold. Rules and reporting contract are in the preamble (above) and YAML return block (at the end).
 
 ---
 
@@ -398,11 +365,7 @@ Distribute features across phases based on description (MVP = core functionality
 
 ### Step 11: Git init and initial commit
 
-```bash
-git init
-git add -A
-git commit -m "chore: bootstrap <ProjectName>"
-```
+Run `<plugin>/scripts/init-git-repo.sh "<ProjectName>" .` — creates the repo if missing, makes one initial commit `chore: bootstrap <ProjectName>`. Idempotent: no-ops if a repo with commits already exists.
 
 ---
 
@@ -412,28 +375,5 @@ You may ONLY create or modify the files listed in the allowlist below (computed 
 
 <allowlist from pre-flight — one path per line>
 
-Do NOT touch any file not in this list. If you determine that a file outside this list is needed — STOP, do NOT make the change, return `status: scope_expansion_required` with the path and reason.
-
----
-
-## Required return format
-
-End your response with EXACTLY one YAML block:
-
-```yaml
-status: success | partial | scope_expansion_required | error
-files_written:
-  - path: <path>
-    action: created | modified
-files_skipped:
-  - <paths that were skipped, if any>
-warnings:
-  - <non-blocking issue, if any>
-scope_expansion_required:
-  - path: <if applicable>
-    reason: <if applicable>
-next_step_suggestion: /vladyslav:discover
-summary: |
-  <1-3 sentence human-readable description>
-```
+Do NOT touch any file not in this list. If you determine that a file outside this list is needed — STOP, do NOT make the change, return `status: scope_expansion_required` with the path and reason. Set `next_step_suggestion: /vladyslav:discover`.
 ````
