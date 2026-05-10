@@ -1,5 +1,48 @@
 {
   "env": {
     "PROJECT_DOCS_ROOT": "docs"
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/lint-skill-frontmatter.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PROJECT_DIR}/.claude/hooks/check-docs-sync.sh"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'COMPACT-SAVE REQUIRED: Before summarizing, invoke the vladyslav:compact-save skill inline. Call mempalace_add_drawer with room=\"compact-save\", recording: current task (1-2 sentences), recently modified files, last key decision, and next action. This must complete before compaction begins.'"
+          }
+        ]
+      }
+    ]
   }
 }

@@ -34,9 +34,46 @@ docs/            # Architecture, product, and planning docs
 - Skills declare `Type: Architect`, `Type: Engineer`, or `Type: Engineer (light)` in their header
 - **Architect skills** run interactively in Opus main session. When they dispatch a subagent via `Agent(...)`, they MUST specify `model` explicitly: `model="sonnet"` for executor work (write tests, write impl, run review/security checks); `model="opus"` for synthesis/research work (deep analysis, multi-source research, design decisions)
 - **Heavy Engineer skills** wrap their body in a Sonnet subagent dispatch with pre-flight Q&A in Opus main + a YAML return contract. Pre-flight verifies inputs and asks the user about ambiguity; the subagent runs deterministic work against a strict file allowlist
-- **Light Engineer skills** (`stash`, `unstash`) run inline in main thread (~30s utility operations; dispatch overhead would exceed the work)
+- **Light Engineer skills** (`compact-save`) run inline in main thread (~15s utility operations; dispatch overhead would exceed the work)
 - Engineer skill summaries end with a "Next: …" suggestion; Architect skills end with a "Next steps:" list. Both use one-terminal language — no decorator-handoff blocks, no model-switch instructions
 - Do not add translations until the finalization phase (pre-release-check)
+
+## Review Checklist (before committing a skill change)
+
+Run this before every commit that touches `skills/**`, `commands/**`, or `.claude/**`:
+
+- [ ] SKILL.md frontmatter has `name`, `description`, and a `Type:` line in the body
+- [ ] Skill name in frontmatter matches directory name (`skills/<name>/SKILL.md` → `name: <name>`)
+- [ ] If skill calls `mempalace_*` tools — README "Skills that require MemPalace" list is updated
+- [ ] If skill is new — corresponding `commands/<name>.md` exists and delegates to it
+- [ ] If behavior changed — `CHANGELOG.md` entry added under current/next version
+- [ ] `.claude-plugin/plugin.json` `version` bumped (semver: patch for fixes, minor for new skills, major for breaking renames)
+- [ ] No raw paths to `~/.claude/projects/*/tool-results/*` in any skill (MCP discipline)
+
+The `PostToolUse` hook in `.claude/settings.json` lints SKILL.md frontmatter automatically on Edit/Write — that catches the first two items, but the rest are manual.
+
+## Skill Testing
+
+There is no automated test suite — skills are Markdown, not code. Verification is manual:
+
+1. **Frontmatter lint** — runs automatically via `PostToolUse` hook on every `Edit`/`Write` to `skills/**/SKILL.md`. Fails the tool call if `name`/`description` are missing.
+2. **Smoke run** — after editing a skill, invoke it (`Skill` tool with the skill name) in a fresh session and confirm it loads without errors and produces the expected first action.
+3. **End-to-end** — for orchestrator skills (`add-feature`, `fix-bug`, `init-project`), run the full flow on a throwaway project under `/tmp/` and confirm the produced artifacts (docs, agents, commits) are correct.
+
+Do not declare a skill change "done" without at least step 2.
+
+## Hooks
+
+`.claude/settings.json` registers these lifecycle hooks. All hook scripts live in `.claude/hooks/` and must be executable bash (POSIX, macOS + Linux).
+
+| Hook | Script | Purpose |
+|------|--------|---------|
+| `SessionStart` | `session-start.sh` | Silent — emits a one-line hint about the current wing if MemPalace context is likely useful. Never blocks, never errors out loud. |
+| `PostToolUse` (matcher: `Edit\|Write\|MultiEdit`) | `lint-skill-frontmatter.sh` | After any edit to `skills/**/SKILL.md`, validates that frontmatter has `name`, `description`, and the body has a `Type:` line. Fails the tool call on violation. |
+| `Stop` | `check-docs-sync.sh` | Before Claude finishes a turn, scans `git status` for changes to plugin internals (`skills/`, `.claude/hooks/`, `.claude-plugin/`, `commands/`, `examples/`). If any are present and no `docs/`, `CHANGELOG.md`, `CLAUDE.md`, `README.md`, or `SkillsManual.md` was touched, blocks the stop with `exit 2` and surfaces a reminder so the model updates docs before stopping. Skipped when `stop_hook_active=true` (avoids loops). |
+| `PreCompact` | inline echo | Reminds the model to invoke `vladyslav:compact-save` before context summarization. |
+
+When adding a hook, keep it (a) idempotent, (b) under 200ms, (c) failing closed only when failure is meaningful — `SessionStart` always succeeds, lint and doc-sync hooks may block.
 
 ## Versioning
 
@@ -45,4 +82,4 @@ Version is defined in `.claude-plugin/plugin.json`. Bump on every meaningful cha
 ## Dependencies
 
 - [Superpowers plugin](https://github.com/obra/superpowers) — all 13 non-meta superpowers skills are referenced
-- **MemPalace MCP server** — required by 9 skills (`add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `seed-mempalace`, `pre-release-check`, `stash`, `unstash`). When editing or adding skills that call `mempalace_*` tools, declare the dependency in the skill's SKILL.md and update the README "Skills that require MemPalace" list.
+- **MemPalace MCP server** — required by 8 skills (`add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `seed-mempalace`, `pre-release-check`, `compact-save`). When editing or adding skills that call `mempalace_*` tools, declare the dependency in the skill's SKILL.md and update the README "Skills that require MemPalace" list.

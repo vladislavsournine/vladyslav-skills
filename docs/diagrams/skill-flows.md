@@ -19,7 +19,7 @@ flowchart LR
     F -- python/go --> G[Backend files\nDockerfile + compose]
     F -- none --> H
     G --> H[CLAUDE.md + agents\n+ doc stubs]
-    H --> I[Roadmap?\noptional — Step 9.5]
+    H --> I[Roadmap?\noptional — Step 10]
     I --> J[git init + commit]
     J --> K([Done → /analyze-project]):::done
 
@@ -275,32 +275,14 @@ flowchart LR
 
 ---
 
-### stash — Pause and save mental state to MemPalace
+### compact-save — Snapshot task state before context compaction
 
 ```mermaid
 flowchart LR
-    A([/stash]):::start --> B[Detect wing\nfrom pwd]
-    B --> C[Collect from conversation:\ntask · open question\ndone in session\npending files · deferred]
-    C --> D[Write MemPalace\nstash drawer\nlatest-wins semantics]
-    D --> E([Saved\n→ resume with /unstash]):::done
-
-    classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
-    classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
-```
-
----
-
-### unstash — Resume stashed task from MemPalace
-
-```mermaid
-flowchart LR
-    A([/unstash]):::start --> B[Detect wing]
-    B --> C[Find newest stash\nin MemPalace\nlatest-wins]
-    C --> D{Stash found?}
-    D -- no  --> E[Ask: search other wings?]
-    D -- yes --> F[Validate pending files\ngit status per path\nlive / committed / missing]
-    F --> G[Restore into conversation:\nopen question + done\n+ pending files + deferred]
-    G --> H([Resumed]):::done
+    A([PreCompact hook\nor /compact-save]):::start --> B[Detect wing\nfrom pwd]
+    B --> C[Collect from conversation:\ntask · files modified\nlast decision · next action]
+    C --> D[Write MemPalace\ncompact-save drawer\nlatest-wins semantics]
+    D --> E([Saved — auto-loaded\nafter compaction]):::done
 
     classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
     classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold

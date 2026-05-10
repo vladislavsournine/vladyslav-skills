@@ -1,6 +1,6 @@
 ---
 name: add-feature
-description: Use when adding a new feature to a production project - orchestrates full cycle from idea through brainstorming, planning, implementation, to documentation updates
+description: Use when adding a feature to a production project. Full cycle: brainstorm, plan, implement, docs.
 ---
 
 # Add Feature
@@ -115,19 +115,6 @@ Save the contract as a section inside the design doc from Step 4, or as a separa
 
 **Auto mode:** After approval, record the contract file path and its current git blob hash (via `git hash-object`) — this is the baseline for the "contract changed during execution" guard rail. If the hash changes during Step 6, it triggers a STOP.
 
-#### Auto-stash checkpoint: `contract-approved`
-
-After the user approves the contract, invoke the `vladyslav:stash` skill (best-effort — do NOT abort the parent flow on failure) with:
-
-- `source`: `"add-feature:auto:contract-approved"`
-- `task`: short one-liner of the feature being added
-- `open_question`: `"Contract approved — awaiting plan writing"`
-- `done_in_session`: last 3-5 significant events from this skill's internal step log
-- `pending_files`: `git status --short` at this point
-- `deferred`: items the user deferred so far in this run (if any)
-
-If `mempalace_add_drawer` fails → print a warning inline: *"Auto-stash failed: `<reason>`. Continuing — run `/stash` manually if you want a guaranteed snapshot."* and continue. Auto-stash is best-effort insurance; it MUST NOT break the primary workflow.
-
 ### Step 4.7: Roadmap gate
 
 **Applies to:** both modes. Runs after contract approval, before writing-plans.
@@ -197,20 +184,9 @@ Each task in the plan must reference which part of the contract it implements.
 
 > **Tests mandate (both modes):** Every task in the plan must include a "Write tests" sub-step *alongside* implementation — not deferred to after the feature is complete. Tests derive from the contract (Step 4.5). Remind the user of this rule before finalizing the plan.
 
-#### Auto-stash checkpoint: `plan-approved`
-
-After the user approves the plan, invoke the `vladyslav:stash` skill (best-effort — do NOT abort on failure) with:
-
-- `source`: `"add-feature:auto:plan-approved"`
-- `task`: short one-liner of the feature
-- `open_question`: `"Plan approved — awaiting execution start"`
-- `done_in_session`: recent checkpoint events (contract-approved, plan written, plan approved)
-- `pending_files`: `git status --short`
-- `deferred`: any deferred items
-
-If `mempalace_add_drawer` fails → print a warning inline and continue. Auto-stash is insurance, never a blocker.
-
 ### Step 6: Execute the plan
+
+> **Auto mode:** Steps 6, 6.5, 7, and 8 below have an Auto-mode counterpart. If the user chose Auto in Step 0.5, read `<plugin>/skills/add-feature/references/auto-mode.md` and follow its instructions for Steps 6, 6.5, 7, and 8 instead of the Manual blocks below. Step 9 (post-implementation) is mode-agnostic and stays inline. The Manual blocks below are the default reading path.
 
 **Manual mode:**
 
@@ -231,91 +207,9 @@ Ask the user which execution approach. **Parallel agents is recommended by defau
   "Step 6 complete. Now run /superpowers:executing-plans in a new terminal.
   When done, come back and say 'done' to continue."
 
-**Auto mode:**
-
-Execute the plan directly via parallel subagents. **Do NOT stop to ask between tasks** unless a guard rail triggers.
-
-For each batch of parallelizable tasks from the plan:
-
-1. **Launch two subagents in parallel via the Agent tool** (single message, two tool calls):
-   - Agent A — `subagent_type: "general-purpose"`, `isolation: "worktree"`, `model: "sonnet"`. Prompt includes: the contract, the brainstorm result, the relevant task from the plan, and this strict instruction:
-     > "You may only CREATE or MODIFY these files: `<plan's file list for this task>`. Files outside this list are read-only — do NOT touch them. If you discover you need to modify a file outside the list, STOP and report `SCOPE EXPANSION REQUIRED: <path> — <reason>` instead of making the change. Do NOT modify the contract file `<contract path>` under any circumstances — that file is frozen."
-   - Agent A writes **tests** for the contract piece.
-   - Agent B — `subagent_type: "general-purpose"`, `isolation: "worktree"`, `model: "sonnet"`. Agent B writes the **implementation** for the contract piece, against the same file list constraint.
-
-2. **Wait for both agents to return.**
-
-3. **Run guard rail checks on the combined changes:**
-   - `git status --short` and `git diff --stat` on the worktree
-   - Compute the set of files touched
-   - **Check #1 (file count):** compare touched files vs the plan's file list. If more than **2 files** are outside the plan → STOP + report.
-   - **Check #2 (existing-file refactor):** for each touched file that IS in the plan, check whether it was marked "read-only reference" in the plan. If yes → STOP + report.
-   - **Check #3 (contract hash):** recompute `git hash-object <contract path>` and compare to the baseline from Step 4.5. If different → STOP + report.
-   - **Check #4 (scope expansion keyword):** scan either agent's output for `SCOPE EXPANSION REQUIRED`. If present → STOP + report that agent's message verbatim to the user.
-
-4. **If all four checks pass → proceed to Step 6.5** (auto-gate). If Step 6.5 also passes → commit and move to the next batch.
-
-#### Auto-stash checkpoint: `subagent-task-complete:N`
-
-After each batch's commit succeeds (Step 6.5 passed + commit made), invoke the `vladyslav:stash` skill (best-effort — do NOT abort on failure) with:
-
-- `source`: `"add-feature:auto:subagent-task-complete:<N>"` (substitute the concrete task number)
-- `task`: short one-liner of the feature
-- `open_question`: `"Subagent task <N> complete — awaiting task <N+1>"`
-- `done_in_session`: last 3-5 significant events
-- `pending_files`: `git status --short` (usually empty right after commit)
-- `deferred`: any deferred items
-
-If `mempalace_add_drawer` fails → print a warning inline and continue. Never block the batch loop.
-
-5. **Repeat** until the plan is fully executed.
-
 **Rules that apply to every execution mode:**
 - **Tests and code in parallel** — both derive from the contract (Step 4.5). No "code first, tests after".
 - **Blast Radius Rule** (see `~/.claude/CLAUDE.md`) — smallest justified change, no "while I'm here" refactors, ask the user before expanding scope.
-
-### Step 6.5: Auto-gate (auto mode only)
-
-**Runs before every commit in auto mode. Blocks the commit on failure. No user approval needed for the gate itself — only if it fails.**
-
-Execute these three checks sequentially. If all pass → commit. If any fails → STOP, report, ask the user what to do.
-
-1. **Tests.** Detect the project's test command (`package.json scripts.test`, `pytest`, `go test ./...`, `xcodebuild test`, `Makefile test` target, or CLAUDE.md's documented test command). Run it against the current worktree. **Blocker if any test fails.**
-
-2. **Code review.** Dispatch a review agent via the Agent tool:
-   - `subagent_type: "pr-review-toolkit:code-reviewer"`, `model: "sonnet"` (preferred), or `subagent_type: "feature-dev:code-reviewer"`, `model: "sonnet"` as fallback
-   - Prompt: "Review the staged diff (`git diff --cached`) for bugs, logic errors, security issues, and project-convention violations. Report only HIGH-confidence issues. Flag silent failures and inadequate error handling specifically."
-   - **Blocker if the agent reports any HIGH-severity issue.**
-
-3. **SwiftUI review (iOS projects only).** If the project uses Swift/SwiftUI (detected by `.xcodeproj`, `Package.swift`, or `.swift` files in the staged diff), invoke the `vladyslav:swiftui-pro` skill via the Skill tool, scoped to the staged diff files. **Blocker if the skill reports any HIGH-severity issue** (deprecated API, accessibility violation, Swift concurrency data race).
-
-4. **Security.** Invoke the security checker:
-   - Preferred: Skill tool → `owasp-security` (scoped to the staged diff)
-   - Fallback: Agent tool → `subagent_type: "pr-review-toolkit:silent-failure-hunter"`, `model: "sonnet"`
-   - **Blocker if: injection risks, secrets in diff, authZ gaps on mutations, silent catch blocks without logging.**
-
-**If all checks pass:** proceed to commit. The pre-commit hook (`~/.claude/hooks/pre-commit-review.sh`) will still fire as an additional safety net — that's expected, not redundant. Compose a concise commit message referencing the contract piece, stage only the files from the plan (not `git add -A`), commit.
-
-**If any check fails:**
-- Print the failure details to the user
-- Stop the loop
-- Ask: "Auto-gate failure at <step>. <details>. How to proceed? (fix and retry / reopen plan / abort feature)"
-- Do NOT bypass the gate. Do NOT weaken the check ("the test is flaky, let's skip it"). The gate is a contract with the user.
-
-> **Tests checkpoint:** Before accepting "done" from Step 6, explicitly ask: "Did each task include tests written alongside the implementation (not deferred)?" If not, send the user back to write the missing tests before proceeding.
-
-#### Auto-stash checkpoint: `auto-gate-blocker`
-
-Before asking the user how to proceed, invoke the `vladyslav:stash` skill (best-effort — do NOT abort on failure) with:
-
-- `source`: `"add-feature:auto:auto-gate-blocker"`
-- `task`: short one-liner of the feature
-- `open_question`: `"Auto-gate blocked on: <reason>"` (substitute the concrete failure reason)
-- `done_in_session`: last 3-5 significant events
-- `pending_files`: `git status --short`
-- `deferred`: any deferred items
-
-If `mempalace_add_drawer` fails → print a warning inline and continue with the "how to proceed" question to the user. The stash is best-effort insurance so an interrupted session can resume the gate decision.
 
 **Manual mode — PR review after each chunk:**
 
@@ -329,7 +223,7 @@ If the reviewer returns feedback → fix issues in the same chunk before moving 
 
 Repeat this step after each chunk until all chunks are done.
 
-### Step 7: Final code review
+### Step 7: Final code review (Manual mode)
 
 After ALL chunks are complete:
 
@@ -343,25 +237,11 @@ If feedback is received:
 "Step 7 complete. Now run /superpowers:receiving-code-review in your terminal to process the feedback.
 When done, come back and say 'done' to continue."
 
-**Auto mode:**
-
-The per-commit auto-gate (Step 6.5) already runs the code review agent on each commit, so a final code review pass is usually redundant. Exception: run one **whole-branch review** at the end via Agent tool `subagent_type: "pr-review-toolkit:code-reviewer"`, `model: "sonnet"` with prompt "Review the entire branch diff (`git diff main...HEAD`) for cross-commit issues — inconsistencies, partial refactors, dead code left between commits."
-
-If the whole-branch review surfaces issues: dispatch another subagent to fix them (same file-scope constraint as Step 6), re-run auto-gate, then proceed. No user approval needed unless a guard rail triggers.
-
-### Step 8: Finish the branch
-
-**Manual mode:**
+### Step 8: Finish the branch (Manual mode)
 
 ⏸ Stop. Tell the user:
 "Step 8 complete. Now run /superpowers:finishing-a-development-branch in your terminal.
 When done, come back and say 'done' to continue."
-
-**Auto mode:**
-
-Merge the feature branch into `dev` (or the project's development branch — detect from `git branch -r` or CLAUDE.md) **automatically, without user approval**. Use a merge commit (not squash) by default so the per-commit history is preserved, unless the project's CLAUDE.md specifies otherwise.
-
-Do **NOT** merge into `main` automatically. Merge-to-main is **approval point #5** — after the report in Step 9, ask the user: "All checks passed, dev branch is updated. Merge to main now? (yes / not yet / never on auto)". On `yes`, merge to main. On `not yet`, leave it on dev and note in the report. On `never on auto`, record a preference memory and never ask again for this project.
 
 ### Step 9: Post-implementation
 
@@ -409,32 +289,6 @@ Next steps:
 - `/vladyslav:write-user-stories` — update user-stories registry
 - `/vladyslav:pre-release-check` — pre-release verification
 
-## Auto-mode approval map (quick reference)
+## Auto-mode reference
 
-**Approval required (user must say yes):**
-1. Feature description (Step 2)
-2. Brainstorm output (Step 4)
-3. Contract (Step 4.5)
-4. Plan (Step 5)
-5. Merge to `main` (Step 8 end)
-6. Any guard rail trigger (Step 6 checks #1-4, Step 6.5 failures)
-7. Final pre-release check (separate skill: `/vladyslav:pre-release-check`)
-8. Roadmap generation (Step 4.7) — when multi-phase gate fires and user confirms roadmap creation
-
-**Automatic (no approval — runs nonstop):**
-- Worktree / branch creation (Step 3)
-- Parallel agent dispatch for tests + code (Step 6)
-- Tests → code review → SwiftUI review (iOS only) → security checks before each commit (Step 6.5)
-- Commit messages, staging, committing
-- Merge to `dev` branch (Step 8)
-- Updates to `docs/product/user-stories.md`, `docs/architecture/api.md`, `docs/plans/tasks.md`
-- MemPalace `decision` record writes
-
-**Guard rails — silent auto-STOP + ask:**
-- More than 2 files touched outside the plan
-- Any existing file refactored that was marked "read-only reference"
-- Contract file hash changed during execution
-- `SCOPE EXPANSION REQUIRED` in any agent's output
-- Auto-gate blocker: test failure / HIGH-severity review issue / security finding
-
-**Design principle:** Auto mode is fast for **routine** features where the contract is clear. When something unexpected comes up, a guard rail should catch it and escalate — not silently absorb it. If a user finds themselves repeatedly approving guard rail triggers for the same kind of expansion, that's a signal the plan format should be richer, not that the guard rails should be loosened.
+For Auto-mode-specific instructions (Steps 6, 6.5, 7, 8) and the approval map, see `<plugin>/skills/add-feature/references/auto-mode.md`.

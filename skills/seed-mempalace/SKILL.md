@@ -1,6 +1,6 @@
 ---
 name: seed-mempalace
-description: Use once per project to bootstrap MemPalace memory with existing architectural decisions from git log and docs - one-time seeding so future sessions have context without re-scanning the codebase
+description: Use once per project to bootstrap MemPalace with architectural decisions from git log and docs.
 ---
 
 # Seed MemPalace

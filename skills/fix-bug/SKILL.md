@@ -1,6 +1,6 @@
 ---
 name: fix-bug
-description: Use when fixing a bug in a production project - orchestrates full cycle from diagnosis through fix, regression test, code review, docs update, and branch merge
+description: Use when fixing a bug in a production project. Full cycle: diagnose, fix, regression test, review, docs.
 ---
 
 # Fix Bug
@@ -70,31 +70,6 @@ Invoke `superpowers:test-driven-development` skill:
 4. Run test — verify it passes
 5. Run full test suite — verify nothing else broke
 6. Run `git diff --stat` — confirm the change footprint matches the declared scope
-
-The three auto-stash checkpoints below fire at milestones inside the numbered list above. Each call shares a common envelope (`task`, `done_in_session`, `pending_files`, `deferred` collected per `vladyslav:stash` Step 2) — only `source` and `open_question` differ.
-
-If `mempalace_add_drawer` fails for any of these → print a warning inline (*"Auto-stash failed: `<reason>`. Continuing — run `/stash` manually if you want a guaranteed snapshot."*) and continue. Auto-stash is insurance; it MUST NOT break the fix workflow.
-
-#### Auto-stash checkpoint: `reproduction-written`
-
-Fires right after item 2 of the numbered list (reproduction test written and verified failing).
-
-- `source`: `"fix-bug:auto:reproduction-written"`
-- `open_question`: `"Reproduction test committed — awaiting fix"`
-
-#### Auto-stash checkpoint: `fix-applied`
-
-Fires right after item 4 (fix applied, test now passes).
-
-- `source`: `"fix-bug:auto:fix-applied"`
-- `open_question`: `"Fix applied and test passing — awaiting regression verification"`
-
-#### Auto-stash checkpoint: `regression-passed`
-
-Fires right after item 5 (full test suite passes post-fix).
-
-- `source`: `"fix-bug:auto:regression-passed"`
-- `open_question`: `"Regression clean — ready to merge"`
 
 ### Step 6: Code review
 
