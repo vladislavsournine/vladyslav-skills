@@ -1,5 +1,32 @@
 # Changelog
 
+## v2.3.2 — 2026-05-10
+
+### Fixed
+
+- **Bypass Skill tool dispatch in all 17 commands.** During v2.3.1 smoke-tests, `/vladyslav:<name>` slash-commands were still showing `Successfully loaded skill` repeatedly with no SKILL.md body delivered to the model. Root cause: in current Claude Code (2.1.138), the `Skill` tool — which gets invoked when a command body says `Invoke the X skill` — returns a launch acknowledgement but does not actually deliver the skill body into the conversation. v2.3.1 fixed the pre-existing `disable-model-invocation` block, but did not change this dispatch path.
+- All 17 `commands/*.md` rewritten so their bodies tell the model to **read SKILL.md directly via `Glob` + `Read`**, never going through the `Skill` tool. The new pattern is:
+
+  ```
+  Locate and read the skill body for vladyslav:<name>. Use the Glob tool with
+  pattern '~/.claude/plugins/cache/vladyslav-marketplace/vladyslav/*/skills/<name>/SKILL.md'
+  to find it (the version directory varies). If Glob returns no match, fall back to
+  '/Volumes/DevSSD/Development/vladyslav-skills/skills/<name>/SKILL.md' (development clone).
+  Read the matched file with the Read tool, then follow its instructions exactly from
+  top to bottom. Do not call the Skill tool — load the file directly.
+  ```
+
+### Migration
+
+```
+/plugin marketplace update vladyslav-marketplace
+/plugin update vladyslav
+```
+
+…and restart your Claude session. `/vladyslav:<name>` slash-commands now load SKILL.md content reliably.
+
+---
+
 ## v2.3.1 — 2026-05-10
 
 ### Fixed
