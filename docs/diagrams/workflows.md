@@ -89,11 +89,11 @@ Pause and resume long-running work across sessions.
 ```mermaid
 flowchart LR
     A([Mid-task:\nneed to stop]):::start
-    A --> B["/stash\nCaptures: task · open question\ndone · pending files · deferred\n→ MemPalace"]
-    B --> C([Session ends])
+    A --> B["PreCompact hook triggers\n/compact-save automatically\n→ MemPalace compact-save drawer"]
+    B --> C([Compaction happens])
 
-    D([New session\nsame project]) --> E[Active stash notification\nautomatically shown\nat session start]
-    E --> F["/unstash\nValidates pending files\nrestores mental state"]
+    D([After compaction\nor new session]) --> E[Compact-Save Continuity rule\nchecks MemPalace for\nrecent compact-save]
+    E --> F[Restore context silently:\ntask · files · last decision · next]
     F --> G([Resume exactly\nwhere you stopped]):::done
 
     classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold

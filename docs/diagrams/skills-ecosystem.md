@@ -37,9 +37,8 @@ flowchart LR
         sh2[write-user-stories]
         sh3[write-test-docs]
         sh4[pre-release-check]
-        sh5[stash]
-        sh6[unstash]
-        sh1 ~~~ sh2 ~~~ sh3 ~~~ sh4 ~~~ sh5 ~~~ sh6
+        sh5[compact-save]
+        sh1 ~~~ sh2 ~~~ sh3 ~~~ sh4 ~~~ sh5
     end
 
     classDef cluster fill:#e8eef9,stroke:#3b5998,color:#1c2e5e

@@ -91,8 +91,6 @@ Wait for user choice. On (1), re-dispatch: take the same subagent prompt templat
 ✗ Engineer failed (pre-release-check)
   Error: <error message>
 ```
-Best-effort: invoke `vladyslav:stash` skill with `source: "pre-release-check:error"`, `task: "Pre-release check"`, `open_question: "Subagent failed: <error>"`. If stash itself fails, log warning, continue.
-
 ---
 
 ## Subagent prompt template

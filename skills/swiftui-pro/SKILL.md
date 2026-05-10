@@ -8,6 +8,8 @@ metadata:
   source: https://github.com/twostraws/SwiftUI-Agent-Skill
 ---
 
+**Type:** Architect
+
 Review Swift and SwiftUI code for correctness, modern API usage, and adherence to project conventions. Report only genuine problems — do not nitpick or invent issues.
 
 ## Review process

@@ -1,5 +1,31 @@
 # Changelog
 
+## v2.2.0 — 2026-05-09
+
+### Added
+
+- `.claude/hooks/session-start.sh` — silent SessionStart hook reminding which MemPalace wing this project uses.
+- `.claude/hooks/lint-skill-frontmatter.sh` — PostToolUse hook validating SKILL.md frontmatter (`name`, `description`, `Type:`) on every Edit/Write/MultiEdit. Pure bash + awk, no python/node dependency.
+- `.claude/hooks/check-docs-sync.sh` — Stop hook that blocks turn-stop with `exit 2` if plugin internals (`skills/`, `.claude/hooks/`, `.claude-plugin/`, `commands/`, `examples/`) were modified without a matching update to `docs/`, `CHANGELOG.md`, `CLAUDE.md`, `README.md`, or `SkillsManual.md`. Loop-safe via `stop_hook_active` flag. Forces documentation to stay in sync with code automatically.
+- `examples/mcp-config.example.json` — copy-paste MCP config block for the MemPalace dependency. Linked from the README Requirements section.
+- CLAUDE.md sections: `Review Checklist`, `Skill Testing`, `Hooks`. The checklist enumerates the rules that the new lint hook enforces automatically and the rules that remain manual.
+
+### Changed
+
+- **`init-project` skill restructured into the modular `SKILL.md` + `references/` + `assets/` layout (Hybrid refactor).**
+  - Stack-specific scaffolding instructions extracted into `skills/init-project/references/stack-{python,go,swift,flutter,kotlin,other}.md` and `references/backend-shared.md`. Each fragment is composed into the subagent prompt only when its stack was selected in pre-flight.
+  - Exclusive file templates moved from the repo-root `templates/` into `skills/init-project/assets/` (preserving the `swift/`, `backend/`, `infra/`, `docs/operations/` subtree). Only `templates/DesignSystem.md` stays at the root because it is shared with the `design-sync` skill.
+  - `SKILL.md` shrunk from 621 lines to 439 — pre-flight Q&A and cross-stack scaffolding (CLAUDE.md template, agents, doc stubs, git init) remain in place; everything stack-specific now loads on demand.
+  - Subagent dispatch pattern preserved: pre-flight in Opus main → Sonnet subagent writes the scaffold → YAML return contract. No user-facing behavioural change.
+  - Added new `Step 1: Compose stack fragments` to the Process section, documenting how Opus main reads the relevant `references/` files and substitutes them into the `<STACK_FRAGMENTS>` placeholder of the subagent prompt.
+
+### Fixed
+
+- `skills/help/SKILL.md` and `skills/swiftui-pro/SKILL.md` were missing the `Type:` line required by `CLAUDE.md` working rules. Added `Type: Engineer (light)` and `Type: Architect` respectively.
+- README requirements line previously claimed "9 skills" require MemPalace; the actual list is 8.
+
+---
+
 ## v2.0.0 — 2026-05-06
 
 ### BREAKING

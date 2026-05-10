@@ -5,13 +5,15 @@ description: Use when starting work or unsure which skill to use - shows all ava
 
 # Vladyslav Skills — Help
 
+**Type:** Engineer (light)
+
 ## One-Terminal Workflow (v2.0+)
 
 Run any skill from a single Opus session. Skills delegate execution work to Sonnet subagents automatically — no manual `/model` switching required.
 
 - **Architect skills** run interactively in Opus main session.
 - **Heavy Engineer skills** run pre-flight Q&A in Opus main, then dispatch a Sonnet subagent for the body (with file allowlist + structured YAML return).
-- **Light Engineer skills** (stash, unstash) run inline in main thread (~30s utility operations).
+- **Light Engineer skills** (compact-save) run inline in main thread (~15s utility operations).
 
 ## Available Skills (`/vladyslav:<name>`)
 
@@ -43,8 +45,7 @@ Run any skill from a single Opus session. Skills delegate execution work to Sonn
 
 | Skill | Purpose |
 |-------|---------|
-| `stash` | Snapshot conversation state to MemPalace |
-| `unstash` | Restore latest stash for the current wing |
+| `compact-save` | Snapshot task state to MemPalace (auto before compact) |
 | `help` | This reference |
 
 ## Recommended Workflows

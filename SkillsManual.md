@@ -8,11 +8,11 @@
 
 - **Claude Code** — встановлений
 - **Superpowers plugin** — потрібен для `add-feature`, `fix-bug`, `analyze-project`, `pre-release-check`, `write-test-docs`
-- **MemPalace MCP server** 🧠 — потрібен для 9 скілів нижче. Без нього вони впадуть на першому ж виклику `mempalace_*` тулзи.
+- **MemPalace MCP server** 🧠 — потрібен для 8 скілів нижче. Без нього вони впадуть на першому ж виклику `mempalace_*` тулзи.
 
 ### Скіли що вимагають MemPalace 🧠
 
-`add-feature` · `fix-bug` · `discover` · `discover-apple-check` · `design-sync` · `seed-mempalace` · `pre-release-check` · `stash` · `unstash`
+`add-feature` · `fix-bug` · `discover` · `discover-apple-check` · `design-sync` · `seed-mempalace` · `pre-release-check` · `compact-save`
 
 Інші скіли (`init-project`, `attach-project`, `analyze-project`, `write-user-stories`, `write-test-docs`, `write-project-docs`, `help`, `swiftui-pro`, `design-page`) працюють без MemPalace.
 
@@ -92,7 +92,7 @@
   - **Section 11 — Apple-check** (iOS only, авто-детект через `swift/` чи CLAUDE.md) → виноситься в окремий скіл `discover-apple-check`.
   - В кінці пише `docs/product/discovery-summary.md`.
 - **`/vladyslav:discover-apple-check`** 🧠 — iOS only — підтягує рішення зі swift-calories wing, викликає `apple-appstore-reviewer`, заповнює секцію 11 (rejection-risk checklist). Можна запускати окремо.
-- **Вхід:** має існувати `docs/product/start-project.md` (створюється автоматично в `/vladyslav:init-project` зі шаблона `templates/StartProject.md`).
+- **Вхід:** має існувати `docs/product/start-project.md` (створюється автоматично в `/vladyslav:init-project` зі шаблона `skills/init-project/assets/StartProject.md`).
 
 ### Документування проекту
 
@@ -126,15 +126,9 @@
 
 ### Session Continuity
 
-- **`/vladyslav:stash`** 🧠 — pause-and-resume primitive. Snapshots the current conversation's mental state (task summary, open question, decisions made, pending files, deferred items) into a MemPalace `stash` drawer for the active wing. Use when you need to close a session mid-flight or switch to a separate task without losing context. Latest-wins: the newest drawer IS the active stash; older drawers remain as history.
+- **`/vladyslav:compact-save`** 🧠 — знімок поточного стану задачі в MemPalace (`compact-save` drawer). Автоматично викликається через `PreCompact` hook перед компресією контексту — не потрібно нічого робити вручну. Зберігає: поточна задача, змінені файли, останнє рішення, наступний крок.
 
-- **`/vladyslav:unstash`** 🧠 — restores the latest stash for the current wing into the conversation. Validates `pending_files` against git state (live / committed-since-stash / missing) before showing them. Use at the start of a session to resume previously-stashed work.
-
-These pair with two global rules in `~/.claude/CLAUDE.md`:
-- **Scope Sentinel** — catches "let's also add X" mid-execution; classifies as (A) clarification (silent), (B) extension (asks before expanding plan), or (C) separate task (offers to stash + switch).
-- **Active Stash Notification** — at session start, if a stash exists for the current wing, prepends an informational line to the first response: `ℹ Latest stash: <task> (from <created_at>, source <source>). /unstash to resume.` — does not block.
-
-`vladyslav:add-feature` and `vladyslav:fix-bug` invoke `vladyslav:stash` automatically at defined checkpoints (contract approval, plan approval, each subagent task complete, etc.) so incomplete runs still leave a recoverable stash.
+Після компресії або на початку сесії глобальне правило **Compact-Save Continuity** (`~/.claude/CLAUDE.md`) автоматично знаходить останній compact-save для активного wing і відновлює контекст — без `/unstash`, без ручних кроків.
 
 ---
 
@@ -450,7 +444,7 @@ $ mkdir ~/chess-duel && cd ~/chess-duel && claude
 ```
 > /vladyslav:init-project
 ```
-Я питаю стек — ти: "Swift + SwiftUI, iOS 17+". Я створюю `docs/`, `.claude/agents/`, `CLAUDE.md`, Swift skeleton, і пишу порожній `docs/product/start-project.md` зі шаблона `templates/StartProject.md`. Report: "Заповни секції 1–4 і запусти `/vladyslav:discover`".
+Я питаю стек — ти: "Swift + SwiftUI, iOS 17+". Я створюю `docs/`, `.claude/agents/`, `CLAUDE.md`, Swift skeleton, і пишу порожній `docs/product/start-project.md` зі шаблона `skills/init-project/assets/StartProject.md`. Report: "Заповни секції 1–4 і запусти `/vladyslav:discover`".
 
 **Крок 2 — заповнюєш руками секції 1–4** в `docs/product/start-project.md`:
 - §1 Ідея: "iOS шахи з ШІ що пояснює кожен твій хід українською"

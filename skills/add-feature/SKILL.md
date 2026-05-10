@@ -115,19 +115,6 @@ Save the contract as a section inside the design doc from Step 4, or as a separa
 
 **Auto mode:** After approval, record the contract file path and its current git blob hash (via `git hash-object`) — this is the baseline for the "contract changed during execution" guard rail. If the hash changes during Step 6, it triggers a STOP.
 
-#### Auto-stash checkpoint: `contract-approved`
-
-After the user approves the contract, invoke the `vladyslav:stash` skill (best-effort — do NOT abort the parent flow on failure) with:
-
-- `source`: `"add-feature:auto:contract-approved"`
-- `task`: short one-liner of the feature being added
-- `open_question`: `"Contract approved — awaiting plan writing"`
-- `done_in_session`: last 3-5 significant events from this skill's internal step log
-- `pending_files`: `git status --short` at this point
-- `deferred`: items the user deferred so far in this run (if any)
-
-If `mempalace_add_drawer` fails → print a warning inline: *"Auto-stash failed: `<reason>`. Continuing — run `/stash` manually if you want a guaranteed snapshot."* and continue. Auto-stash is best-effort insurance; it MUST NOT break the primary workflow.
-
 ### Step 4.7: Roadmap gate
 
 **Applies to:** both modes. Runs after contract approval, before writing-plans.
@@ -197,19 +184,6 @@ Each task in the plan must reference which part of the contract it implements.
 
 > **Tests mandate (both modes):** Every task in the plan must include a "Write tests" sub-step *alongside* implementation — not deferred to after the feature is complete. Tests derive from the contract (Step 4.5). Remind the user of this rule before finalizing the plan.
 
-#### Auto-stash checkpoint: `plan-approved`
-
-After the user approves the plan, invoke the `vladyslav:stash` skill (best-effort — do NOT abort on failure) with:
-
-- `source`: `"add-feature:auto:plan-approved"`
-- `task`: short one-liner of the feature
-- `open_question`: `"Plan approved — awaiting execution start"`
-- `done_in_session`: recent checkpoint events (contract-approved, plan written, plan approved)
-- `pending_files`: `git status --short`
-- `deferred`: any deferred items
-
-If `mempalace_add_drawer` fails → print a warning inline and continue. Auto-stash is insurance, never a blocker.
-
 ### Step 6: Execute the plan
 
 **Manual mode:**
@@ -255,19 +229,6 @@ For each batch of parallelizable tasks from the plan:
 
 4. **If all four checks pass → proceed to Step 6.5** (auto-gate). If Step 6.5 also passes → commit and move to the next batch.
 
-#### Auto-stash checkpoint: `subagent-task-complete:N`
-
-After each batch's commit succeeds (Step 6.5 passed + commit made), invoke the `vladyslav:stash` skill (best-effort — do NOT abort on failure) with:
-
-- `source`: `"add-feature:auto:subagent-task-complete:<N>"` (substitute the concrete task number)
-- `task`: short one-liner of the feature
-- `open_question`: `"Subagent task <N> complete — awaiting task <N+1>"`
-- `done_in_session`: last 3-5 significant events
-- `pending_files`: `git status --short` (usually empty right after commit)
-- `deferred`: any deferred items
-
-If `mempalace_add_drawer` fails → print a warning inline and continue. Never block the batch loop.
-
 5. **Repeat** until the plan is fully executed.
 
 **Rules that apply to every execution mode:**
@@ -303,19 +264,6 @@ Execute these three checks sequentially. If all pass → commit. If any fails �
 - Do NOT bypass the gate. Do NOT weaken the check ("the test is flaky, let's skip it"). The gate is a contract with the user.
 
 > **Tests checkpoint:** Before accepting "done" from Step 6, explicitly ask: "Did each task include tests written alongside the implementation (not deferred)?" If not, send the user back to write the missing tests before proceeding.
-
-#### Auto-stash checkpoint: `auto-gate-blocker`
-
-Before asking the user how to proceed, invoke the `vladyslav:stash` skill (best-effort — do NOT abort on failure) with:
-
-- `source`: `"add-feature:auto:auto-gate-blocker"`
-- `task`: short one-liner of the feature
-- `open_question`: `"Auto-gate blocked on: <reason>"` (substitute the concrete failure reason)
-- `done_in_session`: last 3-5 significant events
-- `pending_files`: `git status --short`
-- `deferred`: any deferred items
-
-If `mempalace_add_drawer` fails → print a warning inline and continue with the "how to proceed" question to the user. The stash is best-effort insurance so an interrupted session can resume the gate decision.
 
 **Manual mode — PR review after each chunk:**
 

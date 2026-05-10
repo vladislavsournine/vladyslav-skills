@@ -84,8 +84,6 @@ Wait for user choice. On (1), re-dispatch: take the same subagent prompt templat
 ✗ Engineer failed (write-test-docs)
   Error: <error message>
 ```
-Best-effort: invoke `vladyslav:stash` skill with `source: "write-test-docs:error"`, `task: "Write test docs"`, `open_question: "Subagent failed: <error>"`. If stash itself fails, log warning, continue.
-
 ---
 
 ## Subagent prompt template
