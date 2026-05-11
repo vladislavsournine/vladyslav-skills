@@ -7,7 +7,7 @@ The plugin uses three Engineer/Architect patterns. Picking the right one for a n
 ### Architect
 - **Where it runs:** Interactive in Opus main session, top to bottom.
 - **When to use:** The skill makes semantic decisions on existing code, composes narratives, synthesises across multiple inputs, or coordinates parallel subagent dispatches.
-- **Examples:** `add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `design-page`, `analyze-project`, `swiftui-pro`, `seed-mempalace`.
+- **Examples:** `add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `design-page`, `ingest`, `swiftui-pro`. Deprecated (kept as redirect stubs through v4.0): `analyze-project`, `seed-mempalace` — both redirect to `ingest`.
 - **Internal dispatch:** Allowed via `Agent(..., model="sonnet")` for executor work (write tests / write impl / run code review / run security check) or `Agent(..., model="opus")` for synthesis/research work (deep analysis, multi-source research, design decisions). When used, the dispatch is explicit and per-step — not a wholesale subagent that owns the whole skill body.
 
 ### Engineer (light) — bash-driven
@@ -86,7 +86,8 @@ Thirteen POSIX-portable bash helpers (macOS + Linux, no python/node dependency).
 | `attach-project.sh` (v3.1.0) | `attach-project` | Auto-detect stack + skip-if-exists scaffolder for existing projects. |
 | `pre-release-checks.sh` (v3.1.0) | `pre-release-check` | Runs 5 cross-platform release checks (tasks, tests, config, docs, translations) → JSON. |
 | `extract-tokens.sh` (v3.2.0) | `design-sync` | Per-platform design-token extractor → JSON (colors / typography / icons / spacing, sorted by usage count). |
-| `scan-architecture.sh` (v3.2.0) | `analyze-project` | Stack + entry points + routes (FastAPI/Flask/Express/Go stdlib) + schemas + deps → JSON. |
+| `scan-architecture.sh` (v3.2.0) | `ingest` (and the deprecated `analyze-project` stub) | Stack + entry points + routes (FastAPI/Flask/Express/Go stdlib) + schemas + deps → JSON. |
+| `gather-seed-signals.sh` (v3.3.0) | `ingest` | Git signals (themes, decision commits, most-edited files) + package manifests + existing docs + ADR paths + CLAUDE.md presence → JSON. Companion to `scan-architecture.sh` for the `ingest` skill. |
 
 ## Lifecycle Hooks
 
