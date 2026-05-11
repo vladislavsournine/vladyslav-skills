@@ -39,7 +39,7 @@ flowchart TD
     S7 --> S8[Step 8 — Finish branch<br/>Manual: superpowers:finishing-a-development-branch<br/>Auto: merge to dev automatically]
     S8 --> AP5{{Approval #5<br/>merge to main now?}}:::approval
     AP5 --> S9[Step 9 — Post-implementation<br/>update user-stories, api, tasks<br/>MemPalace decision record]
-    S9 --> END([Architect report<br/>+ next Sonnet prompt]):::done
+    S9 --> END([Architect report<br/>+ next-step suggestion]):::done
 
     classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
     classDef done fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold

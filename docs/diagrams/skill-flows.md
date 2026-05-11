@@ -10,18 +10,12 @@ Simplified lifecycle diagrams for all 18 skills. Render natively on GitHub.
 
 ```mermaid
 flowchart LR
-    A([/init-project]):::start --> B[Ask: name / stack\ndomain / private?]
-    B --> C[Create dirs\n+ .gitignore]
-    C --> D{Swift?}
-    D -- yes --> E[xcodegen setup\nproject.yml + source files]
-    D -- no --> F{Backend?}
-    E --> F
-    F -- python/go --> G[Backend files\nDockerfile + compose]
-    F -- none --> H
-    G --> H[CLAUDE.md + agents\n+ doc stubs]
-    H --> I[Roadmap?\noptional — Step 10]
-    I --> J[git init + commit]
-    J --> K([Done → /analyze-project]):::done
+    A([/init-project]):::start --> B["Pre-flight Q&A<br/>(Opus main)"]
+    B --> C["Resolve plugin root<br/>(Glob + fallback)"]
+    C --> D[Run scripts/scaffold-project.sh<br/>~1 second]
+    D --> E[Parse JSON output]
+    E --> F[Render summary]
+    F --> G([Done → /vladyslav:discover]):::done
 
     classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
     classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
@@ -33,11 +27,12 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    A([/attach-project]):::start --> B[Verify project root]
-    B --> C[Auto-detect stacks\nfrom requirements.txt\ngo.mod / pubspec / xcodeproj…]
-    C --> D[Ask: extra stacks\ndomain / private?]
-    D --> E[Create missing structure\nskip existing files]
-    E --> F([Done → /analyze-project]):::done
+    A([/attach-project]):::start --> B["Pre-flight Q&A<br/>(Opus main)"]
+    B --> C[Auto-detect stacks<br/>via scripts/detect-stack.sh]
+    C --> D[Run scripts/attach-project.sh<br/>skip-if-exists scaffolder]
+    D --> E[Parse JSON output]
+    E --> F[Render summary]
+    F --> G([Done → /analyze-project]):::done
 
     classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
     classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
@@ -260,14 +255,15 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    A([/pre-release-check]):::start --> B[Read tasks / checklist\nmanual-qa / user-stories\nrollback plan]
-    B --> C[Run checks:\ntasks complete?\ntests pass?\nno REPLACE_ME?\ndocs up to date?\nchangelog written?]
-    C --> D["⚠️ Translations reminder\n— add them NOW"]
-    D --> E{iOS?}
-    E -- yes --> F["/discover-apple-check\nApp Store submission review"]
-    E -- no  --> G[Print release report\nPASS / FAIL / WARN per check]
-    F --> G
-    G --> H([Done]):::done
+    A([/pre-release-check]):::start --> B["Pre-flight Q&A<br/>(Opus main)"]
+    B --> C[Run scripts/pre-release-checks.sh<br/>tasks · tests · config · docs · translations]
+    C --> D[Parse JSON output]
+    D --> E["⚠️ Translations reminder<br/>— add them NOW"]
+    E --> F{iOS?}
+    F -- yes --> G["/discover-apple-check<br/>App Store submission review"]
+    F -- no  --> H[Render PASS/FAIL/WARN<br/>per check]
+    G --> H
+    H --> I([Done]):::done
 
     classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
     classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold

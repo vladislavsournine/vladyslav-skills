@@ -1,5 +1,40 @@
 # Changelog
 
+## v3.2.1 — 2026-05-11
+
+Pure-docs release synchronising documentation to the v3.0/3.1/3.2 reality. No code or skill behaviour changes.
+
+### Changed
+
+- **`docs/architecture/system.md`** — rewritten end-to-end. Added new `Skill Taxonomy` section documenting the three patterns (Architect / Engineer light bash-driven / Engineer light Opus inline) and the deprecated Heavy Engineer. Updated the `Helper Scripts` table from 9 entries to all 13 active scripts (added `scaffold-project.sh`, `attach-project.sh`, `pre-release-checks.sh`, `extract-tokens.sh`, `scan-architecture.sh`). Added `Slash-command dispatch (v2.3.2+)` section explaining the Glob+Read bypass. Marked the four currently-unused `_shared/references/` files as reserved-for-future-use.
+- **`README.md`** — replaced the v2.0 "One-Terminal Workflow" table with v3.x classification (Architect 9 / Engineer light bash 3 / Engineer light Opus 5). Added a deprecation note for Heavy Engineer. Updated the Skills table to group skills by pattern with their consuming script.
+- **`docs/diagrams/skill-flows.md`** — `init-project` and `attach-project` diagrams now show the v3.x Light Engineer flow (Pre-flight → resolve plugin root → run bash script → parse JSON → summary) instead of the old Heavy Engineer Sonnet dispatch.
+- **`docs/diagrams/add-feature-flow.md`** — last v2.x reference ("next Sonnet prompt") replaced with "next-step suggestion" since the two-terminal workflow is gone since v2.0.
+
+### Verified clean (no v2.x stale references)
+
+- `docs/diagrams/fix-bug-flow.md`
+- `docs/diagrams/skills-ecosystem.md`
+- `docs/diagrams/workflows.md`
+- `SkillsManual.md` (Heavy Engineer / Sonnet subagent terms not present)
+
+### Not changed
+
+- No `SKILL.md` files touched.
+- No `scripts/` files touched.
+- No new behaviour, no version of any helper changed.
+
+### Migration
+
+```
+/plugin marketplace update vladyslav-marketplace
+/plugin update vladyslav
+```
+
+…or skip entirely. v3.2.1 only changes documentation — runtime is identical to v3.2.0.
+
+---
+
 ## v3.2.0 — 2026-05-11
 
 Targeted architectural cleanup of the 11 remaining (non-v3.0/v3.1) skills, driven by a fresh architect review that identified hidden deterministic work in `design-sync` and `analyze-project` plus a 6-skill duplication of the `_shared/verify-pwd.md` block.
