@@ -5,97 +5,38 @@ description: Use when product or QA needs implemented features as user stories. 
 
 # Write User Stories
 
+**Type:** Engineer (light)
+
 ## Overview
 
-Create or update `docs/product/user-stories.md` — a human-readable registry of implemented features for product owners and QA. Not for development planning — for verification of what's built.
+Create or update `docs/product/user-stories.md` — a human-readable registry of implemented features for product owners and QA. Not for development planning — for verification of what is actually built.
 
-**Type:** Engineer
+This was a Heavy Engineer skill until v3.1.0. The dispatched Sonnet subagent's role was content generation (which legitimately needs a model), but the dispatch overhead, allowlist enforcement, and YAML-return parsing added cost without value. v3.1.0 runs the whole skill inline in Opus main — same outcome, simpler flow.
 
 ## Process
 
-### Step 0: Pre-flight (Opus main)
+### Step 0: Pre-flight
 
-Interactive checks before dispatching the subagent.
+1. Read `CLAUDE.md` from `pwd`. If missing → STOP: "No CLAUDE.md found — are you in the right project?" and extract the project name.
 
-1. Read `CLAUDE.md` in `pwd`. If missing → STOP: "No CLAUDE.md found in current directory. Are you in the right project?". Otherwise extract project name.
+2. Verify input files:
+   - **Required:** `docs/product/prd.md`
+   - **Optional:** `docs/architecture/api.md`, `docs/architecture/system.md`, existing `docs/product/user-stories.md` (preserve any user-edited content)
 
-2. Check input files:
-   - `CLAUDE.md` — required
-   - `docs/product/prd.md` — required
-   - `docs/architecture/api.md` — optional
-   - `docs/architecture/system.md` — optional
-   - existing `docs/product/user-stories.md` — optional (preserve any existing entries; the subagent updates rather than overwrites where reasonable)
+3. For missing required file, ask the user:
+   > "Required input `docs/product/prd.md` is missing. Options: (a) create stub now / (b) abort. Which?"
+   - On abort → exit cleanly.
+   - On stub → create `# Product Requirements\n\n*to be filled*\n` and continue.
 
-3. For each missing **required** file, ask user:
-   > "Required input `<path>` is missing. Options: (a) create stub now / (b) abort. Which?"
-   - On abort → exit cleanly, no dispatch.
-   - On stub → create a placeholder file (`# <Title>\n\n*to be filled*\n`), proceed.
+### Step 1: Read inputs
 
-4. Read FULL content of available input files (do not truncate). Record paths and content. The subagent needs complete input to produce accurate user stories.
+Read the FULL content of every available input file (do not truncate). Read the codebase too — at minimum scan for route handlers, screen implementations, tests, UI wiring — to determine which features are **actually implemented** versus described in the PRD.
 
-5. Compose dispatch context (project name + verified file paths + content).
+### Step 2: Generate user stories
 
-### Step 1: Dispatch to Sonnet subagent
+Write or update `docs/product/user-stories.md`. If the file already exists, preserve any user-edited stories where reasonable — merge rather than overwrite.
 
-Invoke the Agent tool with:
-- `subagent_type: "general-purpose"`
-- `model: "sonnet"`
-- `description: "Generate or update user stories with acceptance criteria and status"`
-- `prompt: <subagent prompt template below, filled with pre-flight outputs>`
-
-Wait for return.
-
-### Step 2: Present summary
-
-Pipe the subagent response through `<plugin>/scripts/parse-yaml-return.sh`. Then render the human-facing summary as specified in `<plugin>/skills/_shared/references/present-summary.md` (substitute `<skill-name>` → `write-user-stories`). That reference defines the four `status` branches (`success`, `partial`, `scope_expansion_required`, `error`) verbatim — follow it without paraphrasing.
-
-On `status: scope_expansion_required` and user approval, re-dispatch with an extended allowlist (add `scope_expansion_required[0].path`); reuse pre-flight outputs, do NOT re-run AskUserQuestion.
-
----
-
-## Subagent prompt template
-
-The full subagent prompt is composed by Opus main from these fragments, in order:
-
-1. **Preamble** — verbatim contents of `<plugin>/skills/_shared/references/subagent-preamble.md` (substitute `<X>` → `write-user-stories`).
-2. **Project context** + **Task steps** — defined inline below.
-3. **YAML return contract** — verbatim contents of `<plugin>/skills/_shared/references/yaml-return.md`.
-
-Concatenate the three into a single string and pass as `prompt:` to the Agent tool.
-
-The inline part of the prompt template (item 2):
-
-````
-## Project context
-
-Working directory: <pwd>
-Project name: <from CLAUDE.md>
-Key facts from CLAUDE.md (extracted by pre-flight — must include: project type, primary tech stack, platform (web / iOS / Android / cross-platform), and any QA-relevant constraints. If the project is mobile, ensure the platform bullet is explicit so the subagent generates platform-specific acceptance criteria):
-<3-5 bullets>
-
-## Verified inputs
-
-CLAUDE.md:
-<content from pre-flight>
-
-docs/product/prd.md:
-<content from pre-flight>
-
-docs/architecture/api.md (if available):
-<content from pre-flight>
-
-docs/architecture/system.md (if available):
-<content from pre-flight>
-
-docs/product/user-stories.md (if available — preserve any existing entries where reasonable):
-<content from pre-flight>
-
-## Your task
-
-Generate or update `docs/product/user-stories.md`:
-
-- Scan the codebase to determine which features are actually implemented (route handlers, screen implementations, tests, UI wiring).
-- Per feature, write a story in the format:
+Each story uses this format:
 
 ```markdown
 ## [Feature Area]
@@ -105,21 +46,40 @@ Generate or update `docs/product/user-stories.md`:
 
 **Acceptance criteria:**
 - [ ] [Specific verifiable check]
+- [ ] [Specific verifiable check]
 
 **Status:** ✅ Done / 🚧 Partial / ❌ Not started
 **Implemented in:** [file paths or "not yet"]
 ```
 
 Rules:
-- Human-readable language — no implementation jargon
-- Each story is independently verifiable by QA
-- Status reflects actual code state, not plans
-- Sort: done first, then partial, then not started
 
-## Output allowlist
+- **Human-readable language** — no implementation jargon, no internal class names. The product owner / QA tester is the reader.
+- **Each acceptance criterion is independently verifiable** by QA without reading the code.
+- **Status reflects actual code state, not plans.** ✅ means implementation exists AND tests cover it; 🚧 means partial; ❌ means not started.
+- **Sort:** ✅ Done first, then 🚧 Partial, then ❌ Not started.
+- **One section per feature area** (e.g. "Authentication", "Profile", "Payments"). Group related stories.
 
-You may ONLY create or modify these files:
-- `docs/product/user-stories.md`
+### Step 3: Summary
 
-If you discover need to touch any other file — STOP, do NOT make the change, return `status: scope_expansion_required`. Set `next_step_suggestion: /vladyslav:write-test-docs` in the YAML return.
-````
+Render:
+
+```
+✓ write-user-stories complete
+  File: docs/product/user-stories.md
+  Stories: <total count>  (✅ <done> · 🚧 <partial> · ❌ <not-started>)
+  Action: <created | updated>
+  Next: /vladyslav:write-test-docs  — derive test plan from these stories
+```
+
+---
+
+## Why this is a Light Engineer skill
+
+- **Generation needs LLM** — translating code reality into product-language stories is semantic work. That stays in-model.
+- **Dispatch overhead doesn't pay for itself** here. The generation step is one big write, not a multi-stage pipeline. A subagent dispatch adds ~30s of round-trip + structured-return parsing without giving anything back. v3.1.0 just does the write inline in Opus.
+- **No allowlist enforcement needed.** The skill writes exactly one file (`docs/product/user-stories.md`) — no risk of scope creep.
+
+## Output
+
+Only one file: `docs/product/user-stories.md`.

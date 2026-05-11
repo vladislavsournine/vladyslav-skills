@@ -1,5 +1,67 @@
 # Changelog
 
+## v3.1.0 — 2026-05-11
+
+Heavy → Light Engineer migration for four more skills, following the v3.0.0 `init-project` pattern.
+
+### Changed — `attach-project` (Heavy → Light Engineer)
+
+- **New script `scripts/attach-project.sh`** (~370 lines). Auto-detects stack via `scripts/detect-stack.sh`, then writes only missing files (skip-if-exists semantics): `CLAUDE.md`, `.claude/agents/{docs-agent,code-review-agent}.md`, `.claude/settings.json`, `docs/{architecture/system,product/prd,plans/tasks}.md` stubs, per-stack `.gitignore` appendices (Python / Go / Flutter / Swift / Kotlin / Node / Web / private-mode), per-stack placeholder directories. Idempotent. Does NOT init git (project already has version control) and does NOT scaffold backend code (that's `init-project`'s job).
+- **`skills/attach-project/SKILL.md`** rewritten as **Engineer (light)** — 162 → 122 lines. Pre-flight Q&A + Bash invocation + JSON-based summary.
+- Smoke verified: Python project (9 files, 0.5s) · idempotent re-run (0 files written, all skipped) · Swift project (auto-detected `ios`).
+
+### Changed — `pre-release-check` (Heavy → Light Engineer + thin LLM)
+
+- **New script `scripts/pre-release-checks.sh`** (~330 lines). Runs the 5 cross-platform checks deterministically: tasks completion (counts `[x]`/`[ ]` in tasks.md), tests (auto-detect runner — pytest / go test / xcodebuild test / npm test — and execute with 300s timeout), config sanity (REPLACE_ME / `*to be filled*` placeholders via `grep-replace-me.sh`), docs sync (stub detection + auto-changelog via `changelog-from-git.sh`), translations (platform-aware detection). Writes `docs/release/pre-release-report-<date>.md` and emits JSON with overall result.
+- **`skills/pre-release-check/SKILL.md`** rewritten as **Engineer (light)** — 240 → 112 lines. Cross-platform checks run as bash; only iOS Apple App Store review (Check 6) requires LLM and is dispatched to the `apple-appstore-reviewer` skill conditionally on `platform=ios`. The model only contributes a one-line "overall reason" synthesis at the bottom of the summary.
+- Smoke verified on this repo: 0.6s, JSON output correct, report written.
+
+### Changed — `write-*` family (Heavy → Light Engineer, Opus inline)
+
+- **`skills/write-user-stories/SKILL.md`** — 125 → 85 lines.
+- **`skills/write-test-docs/SKILL.md`** — 134 → 137 lines (output structure expanded, but boilerplate removed).
+- **`skills/write-project-docs/SKILL.md`** — 208 → 194 lines.
+- All three now run **inline in Opus main** — no Sonnet subagent dispatch, no YAML return contract, no allowlist enforcement boilerplate. Content generation legitimately needs LLM (translating code/PRD into product-language stories, test plans, READMEs), but the dispatch overhead added cost without value. Each skill now reads inputs → generates inline → writes one to three known output files → renders a summary.
+
+### Aggregate impact
+
+| Skill | v2.3.x lines | v3.1.0 lines | Speed (scaffold step) | Tokens (scaffold step) |
+|---|---|---|---|---|
+| `init-project` (v3.0.0) | 379 | 183 | ~1s | 0 |
+| `attach-project` | 162 | 122 | ~0.5s | 0 |
+| `pre-release-check` | 240 | 112 | ~0.6s (5 checks) | 0 |
+| `write-user-stories` | 125 | 85 | LLM-bound (inline) | full generation cost |
+| `write-test-docs` | 134 | 137 | LLM-bound (inline) | full generation cost |
+| `write-project-docs` | 208 | 194 | LLM-bound (inline) | full generation cost |
+
+For the three deterministic skills (`init-project`, `attach-project`, `pre-release-check`): **~8 minutes total runtime in v2.x → ~2 seconds total in v3.1.0** when used end-to-end on a new project. Token cost for those mechanical steps: ~50k → 0.
+
+For the three `write-*` skills: same generation work, ~50 lines of boilerplate eliminated per skill, dispatch overhead (~30s round-trip) removed.
+
+### New scripts
+
+- `scripts/attach-project.sh` — full attach-project scaffolder
+- `scripts/pre-release-checks.sh` — 5 deterministic release checks
+
+These join the v2.3.0 / v3.0.0 helpers (`detect-stack.sh`, `derive-wing.sh`, `init-git-repo.sh`, `write-stub.sh`, `grep-replace-me.sh`, `parse-yaml-return.sh`, `section-status.sh`, `changelog-from-git.sh`, `check-plan-scope.sh`, `scaffold-project.sh`) — total **11 bash helpers** in `scripts/`.
+
+### Skills NOT migrated in v3.1.0
+
+`add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `design-page`, `analyze-project`, `swiftui-pro`, `seed-mempalace`, `compact-save`, `help` — these either need genuine LLM reasoning throughout (semantic decisions on existing code, brainstorm composition, design judgement) or are already lean utility/reference skills.
+
+### Migration
+
+After merging to `main`:
+
+```
+/plugin marketplace update vladyslav-marketplace
+/plugin update vladyslav
+```
+
+…and restart your Claude session. All five migrated skills work identically from the user's perspective — same Q&A, same outputs. The difference is invisible except for the dramatic speedup.
+
+---
+
 ## v3.0.0 — 2026-05-11
 
 ### BREAKING — `init-project` is no longer a Heavy Engineer skill
