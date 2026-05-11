@@ -1,5 +1,74 @@
 # Changelog
 
+## v3.2.0 — 2026-05-11
+
+Targeted architectural cleanup of the 11 remaining (non-v3.0/v3.1) skills, driven by a fresh architect review that identified hidden deterministic work in `design-sync` and `analyze-project` plus a 6-skill duplication of the `_shared/verify-pwd.md` block.
+
+### Added
+
+- **`scripts/extract-tokens.sh`** (~370 lines) — per-platform design-token extractor for `design-sync`. Auto-detects platform via `detect-stack.sh`, then parses iOS `Assets.xcassets/.colorset/Contents.json` + Swift `Color(hex:)` / `Color(red:)` inline literals + SwiftUI `.font(.system(...))` + SF Symbols + `.padding(N)` (iOS); CSS variables + inline hex + `tailwind.config` (web); Android `colors.xml` (Kotlin). Emits JSON with colors / typography / icons / spacing arrays sorted by usage count. The LLM's job in `design-sync` becomes purely judgemental (drift vs canonical), not mechanical grep.
+- **`scripts/scan-architecture.sh`** (~280 lines) — architecture inventory scanner for `analyze-project`. Emits JSON of `{stacks, entry_points, routes, schema_files, deps, doc_files}`. Detects routes for FastAPI, Flask, Express, and Go stdlib 1.22+. Detects schemas for SQL migrations, Prisma, Drizzle, Alembic.
+
+Total `scripts/` helpers now: **13**.
+
+### Changed
+
+**Six skills now reference `_shared/references/verify-pwd.md`** instead of inlining the 11-22-line wing-derivation + path-validation block:
+- `add-feature` (Step 0.1) — 295 → 278 lines (kept skill-specific "extract project name from CLAUDE.md")
+- `fix-bug` (Step 0) — 118 → 104 lines
+- `discover` (Step 1) — 141 → 146 lines (verify-pwd ref + section-status.sh wiring +5 net)
+- `design-sync` (Step 0) — 292 → 247 lines (-45, also dedup of duplicated drift steps after extract-tokens wiring)
+- `design-page` (Step 0) — 211 → 210 lines
+- `seed-mempalace` (Step 1) — 164 → 154 lines (kept skill-specific multi-source project-name fallback)
+
+**`design-sync` extracted tokens via bash:** Steps 3-5 (was ~80 lines of per-platform grep instructions) → Step 3 (run `extract-tokens.sh`) + Step 4 (drift analysis applied to JSON output, ~12 lines). The semantic "what is canonical vs drift" judgement stays LLM, but discovery (the ~80% mechanical portion) is now 0-token deterministic.
+
+**`analyze-project` extracted architecture via bash:** Step 2 (architecture scan) now calls `scan-architecture.sh` and consumes JSON instead of inlined "read package.json, ls directories, grep for routes" instructions.
+
+**`discover` wired existing helpers:**
+- Step 3 "skip done" mode now calls `scripts/section-status.sh docs/product/start-project.md` for filled-vs-pending JSON instead of manual scan.
+- Step 3 iOS auto-detection now calls `scripts/detect-stack.sh` instead of manual `swift/ + *.xcodeproj` checks.
+- Step 9 verification re-uses `section-status.sh`.
+
+**`discover-apple-check` wired `detect-stack.sh`:** Step 1 iOS verification replaced manual 5-signal check with single script call.
+
+### Skill sizes (post-v3.2.0)
+
+| Skill | v3.1.x | v3.2.0 | Δ |
+|---|---|---|---|
+| add-feature | 295 | 278 | −17 |
+| fix-bug | 118 | 104 | −14 |
+| discover | 141 | 146 | +5 |
+| design-sync | 292 | 247 | **−45** |
+| design-page | 211 | 210 | −1 |
+| seed-mempalace | 164 | 154 | −10 |
+| analyze-project | 90 | 95 | +5 |
+| discover-apple-check | 181 | 177 | −4 |
+| **Net** | **1492** | **1411** | **−81** |
+
+### Skills NOT migrated in v3.2.0
+
+`swiftui-pro`, `compact-save`, `help` — already minimal and right-shaped. Verified leave-alone in the architect review.
+
+### Deferred to v3.3.0 (roadmap)
+
+- **`ingest` unification** — collapse `analyze-project` + `seed-mempalace` into a single skill that runs `scan-architecture.sh` + a future `gather-seed-signals.sh` once and emits both architecture docs AND MemPalace seed-records from one source-of-truth pass. Naturally falls out of v3.2.0's groundwork.
+- **`roadmap-ops.sh`** — lift `add-feature` Step 9's roadmap marking (`sed [ ] → [x]`) into a dedicated bash helper. Lower ROI; bundled into v3.3.0.
+- **Architect report shared template** (`_shared/references/architect-report.md`) — standardise the `✓ Architect report` shape across 8 Architect skills. Cosmetic, low priority.
+
+### Migration
+
+After merging develop → main:
+
+```
+/plugin marketplace update vladyslav-marketplace
+/plugin update vladyslav
+```
+
+…and restart your Claude session. All migrated skills work identically from the user's perspective — same Q&A, same outputs, the difference is invisible except `design-sync` and `analyze-project` are now much faster.
+
+---
+
 ## v3.1.0 — 2026-05-11
 
 Heavy → Light Engineer migration for four more skills, following the v3.0.0 `init-project` pattern.

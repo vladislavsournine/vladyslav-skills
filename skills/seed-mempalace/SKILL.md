@@ -26,20 +26,11 @@ Do NOT use this skill on a project that was already seeded unless you explicitly
 
 ### Step 1: Identify the wing
 
-1. Determine current project name from `pwd` or from `CLAUDE.md` / `.claude-plugin/plugin.json` / `package.json` / `pubspec.yaml`.
+Apply the verify-working-directory contract from `<plugin>/skills/_shared/references/verify-pwd.md`: confirms CLAUDE.md exists, derives the canonical MemPalace wing name, warns on stale-wing duplicates, and establishes the mandatory path-validation rule for the rest of this skill's MemPalace reads.
 
-2. **Derive the canonical wing name** (mandatory normalization):
-   - Start from `basename $(pwd)` (directory name only, not full path)
-   - Lowercase it entirely
-   - Replace spaces, underscores, dots with hyphens
-   - If it doesn't start with a platform prefix, prepend one: `swift-`, `python-`, `flutter-`, `kotlin-`, `web-`, `go-`
-   - Examples: `Sudoku` in `swift/` → `swift-sudoku` | `MyApp` → `python-myapp`
-   - **Never** write to a wing with capital letters or wrong casing — this creates duplicate wings (e.g. `swift-Sudoku` vs `swift-sudoku`) that accumulate stale records in parallel.
+Additional project-name sources if `CLAUDE.md` is sparse (the verify-pwd contract reads it first): `.claude-plugin/plugin.json`, `package.json`, `pubspec.yaml`, `Cargo.toml`.
 
-3. Run `mempalace_list_wings`. Scan for any wing that looks like a wrong-case version of the canonical name. If found → warn the user:
-   > "Found existing wing `<wrong-case>` that appears to be a stale duplicate of canonical `<correct-case>`. Records in the stale wing may reference paths that no longer exist. Using canonical wing for all writes."
-
-4. If no matching wing exists → confirm canonical name with the user before creating.
+If no matching wing exists → confirm canonical name with the user before creating.
 
 ### Step 2: Check existing records
 

@@ -15,25 +15,9 @@ Full-cycle feature addition: idea → design → plan → implement → docs. Or
 
 ### Step 0.1: Verify working directory
 
-**This step is mandatory. Do not skip it.**
+Apply the verify-working-directory contract from `<plugin>/skills/_shared/references/verify-pwd.md`: confirms CLAUDE.md exists, derives the canonical MemPalace wing name, warns on stale-wing duplicates, and establishes the mandatory path-validation rule for the rest of this skill's MemPalace reads.
 
-1. Check that `CLAUDE.md` exists in `pwd`. If not → **STOP**:
-   > "No CLAUDE.md found in current directory. Are you in the right project? Expected a project root with CLAUDE.md. Current path: `<pwd>`"
-
-2. Read the project name from `CLAUDE.md` (first heading or `# <ProjectName>` line).
-
-3. Derive the canonical wing name:
-   - Take `basename $(pwd)` → lowercase → replace spaces/underscores with hyphens
-   - Prepend platform prefix if not already present (`swift-`, `python-`, `flutter-`, `kotlin-`, `web-`)
-   - Example: `Sudoku` in `swift/` → `swift-sudoku` (NOT `swift-Sudoku`)
-
-4. Run `mempalace_list_wings`. If a wing exists under a **different casing** (e.g. `swift-Sudoku` vs `swift-sudoku`) → warn the user:
-   > "Warning: MemPalace has wing `swift-Sudoku` which looks like a stale duplicate. Using canonical `swift-sudoku` for all writes this session. The stale wing may contain records from a different directory."
-
-5. **Path validation rule (mandatory for all MemPalace reads this session):**
-   After any `mempalace_search`, scan each result for absolute file paths (`/Volumes/`, `/Users/`, `/home/`). For each path found:
-   - If the path **exists on disk** → result is live, proceed normally
-   - If the path **does NOT exist** → treat the drawer as `[STALE: path not found]`, do NOT act on it, flag it to the user before continuing
+Additionally, read the project name from `CLAUDE.md` (first heading or `# <ProjectName>` line).
 
 ### Step 0.5: Choose mode
 
