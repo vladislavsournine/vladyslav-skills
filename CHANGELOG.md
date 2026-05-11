@@ -1,5 +1,45 @@
 # Changelog
 
+## v3.0.0 — 2026-05-11
+
+### BREAKING — `init-project` is no longer a Heavy Engineer skill
+
+The scaffolding step in `init-project` (mkdir + cp + sed + git init) was being executed by a dispatched Sonnet subagent in v2.x. That was **architecturally wrong**: none of those operations need LLM thinking. A real-world v2.3.2 smoke run cost **~43k tokens and 8 minutes 34 seconds** to do work that pure bash finishes in **~1 second with 0 tokens**.
+
+In v3.0.0 the subagent dispatch is removed entirely.
+
+### Changed
+
+- **New script `scripts/scaffold-project.sh`** (~580 lines of POSIX bash, no python/node dependency). Accepts every pre-flight parameter via CLI flags and writes the complete scaffold deterministically — base directories, base `.gitignore` with stack-specific appendices, backend files (Python or Go), frontend files (Swift via `xcodegen`, Flutter/Kotlin placeholders, "other" stacks), CLAUDE.md, agent definitions, doc stubs, optional nginx config when a domain is set, optional private-mode gitignore extras. Emits JSON `{status, files_written, files_skipped, warnings, error?}` to stdout. Idempotent: re-running on an existing project skips pre-existing files and reports them in `files_skipped`.
+
+- **`skills/init-project/SKILL.md` rewritten as Engineer (light)** — 379 → 183 lines. Steps are now:
+  1. Pre-flight Q&A (Opus main) — unchanged in user experience, identical questions.
+  2. Resolve plugin root (via Glob in cache or development clone).
+  3. Run `scripts/scaffold-project.sh` with collected parameters (via Bash tool).
+  4. Parse the JSON output and render a one-screen summary.
+
+- **No more Sonnet subagent for init-project.** The Heavy Engineer dispatch pattern (preamble, YAML return contract, allowlist enforcement) is retained for skills where it genuinely earns its cost (`add-feature`, `pre-release-check`, `discover` — these need semantic decisions on existing code). For `init-project` the cost was 100% waste.
+
+- **`skills/init-project/references/stack-*.md` retained** as human-readable historical reference. They are no longer composed into a subagent prompt — the same logic now lives directly in `scaffold-project.sh`. They will be removed in v3.1.0 unless they prove useful as documentation.
+
+### Performance
+
+| | v2.x | v3.0.0 | Δ |
+|---|---|---|---|
+| Time | ~8m 34s | ~1 sec | **−99.8%** |
+| Tokens | ~43,000 | 0 (bash) | **−100%** for the scaffold step |
+| LLM model needed | Opus + Sonnet | Opus only (for Q&A) | — |
+
+Pre-flight Q&A in Opus main still costs ~2-3k tokens (unchanged).
+
+### Migration
+
+For users on v2.x — no action required. After `/plugin update vladyslav` and a fresh `cla` session, `/vladyslav:init-project` Just Works: same Q&A as before, just instant scaffold instead of an 8-minute pause.
+
+For other heavy-engineer skills (`attach-project`, `write-*`, `pre-release-check`) — the same Heavy → Light migration is on the v3.1.0 roadmap. `attach-project` is the next highest-priority candidate (also ~95% deterministic). `write-*` skills genuinely need LLM for generation but the file-writing wrapper can be lifted out. `pre-release-check` has deterministic checks (test runner, grep, git log) and a small interpretive layer; only the latter needs the model.
+
+---
+
 ## v2.3.2 — 2026-05-10
 
 ### Fixed
