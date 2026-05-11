@@ -25,7 +25,7 @@ Orchestrates parallel subagent design of multiple app screens in Pencil. Each su
 
 ### Step 0: Verify directory
 
-Verify working directory: `CLAUDE.md` must exist in `pwd`. Derive canonical wing name (lowercase, hyphens, platform prefix). If wrong → STOP.
+Apply the verify-working-directory contract from `<plugin>/skills/_shared/references/verify-pwd.md`: confirms CLAUDE.md exists, derives the canonical MemPalace wing name, warns on stale-wing duplicates, and establishes the mandatory path-validation rule for the rest of this skill's MemPalace reads.
 
 ### Step 1: Load master design contract
 

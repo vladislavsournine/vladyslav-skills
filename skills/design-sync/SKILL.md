@@ -25,10 +25,7 @@ Scans an existing UI codebase, extracts the **actual** design tokens being used 
 
 ### Step 0: Verify scope and working directory
 
-**Verify working directory and canonical wing name:**
-1. Check that `CLAUDE.md` exists in `pwd`. If not → STOP: "No CLAUDE.md found. Are you in the right project directory?"
-2. Derive canonical wing name: `basename $(pwd)` → lowercase → hyphens → platform prefix (e.g. `swift-sudoku`, not `swift-Sudoku`).
-3. Run `mempalace_list_wings`. If a wrong-case duplicate exists → warn the user before proceeding. Always write to the lowercase canonical wing.
+Apply the verify-working-directory contract from `<plugin>/skills/_shared/references/verify-pwd.md`: confirms CLAUDE.md exists, derives the canonical MemPalace wing name, warns on stale-wing duplicates, and establishes the mandatory path-validation rule for the rest of this skill's MemPalace reads.
 
 Verify this is a UI project. Check for at least one:
 - `swift/` directory with `.swift` files OR `*.xcodeproj` / `Package.swift` with UI targets
@@ -64,7 +61,7 @@ Input: current screen list from docs/product/start-project.md
 Output: list of HIG violations to flag in the drift log §8
 ```
 
-Add any HIG findings as drift items in §8 with severity `hig-violation`. These are not blocking — design-sync continues. But they must be documented so future sessions know they exist.
+Add any HIG findings as drift items in §8 with severity `hig-violation` (handled in Step 4). These are not blocking — design-sync continues. But they must be documented so future sessions know they exist.
 
 ### Step 2: MemPalace — prior design decisions (hypothesis, NOT truth)
 
@@ -96,67 +93,26 @@ Wait for confirmation before including any MemPalace finding in the design decis
 
 **Why this rule exists:** On 2026-04-10, design-sync silently applied a stale Indigo direction from MemPalace, overriding the user's actual Modern Pink direction. The result: a full design system document in the wrong color direction that had to be manually corrected. One wrong memory silently corrupted an hour of work.
 
-**Only after user confirmation**, compile the validated list into "known design decisions". If any conflict with what's in the code, that's a sync problem — flag for Step 6.
+**Only after user confirmation**, compile the validated list into "known design decisions". If any conflict with what's in the code, that's a sync problem — flag for Step 4.
 
-### Step 3: Extract color tokens
+### Step 3: Extract canonical tokens via bash
 
-**iOS (Swift / SwiftUI):**
-1. Read `Assets.xcassets` — for every `.colorset`, extract the color name and the hex from `Contents.json` (both `any` and `dark` appearance if present)
-2. Grep Swift source for `Color(...)`, `UIColor(...)`, `.foregroundColor(...)`, `.background(...)`, `.tint(...)`
-3. Separate into:
-   - **Named tokens** — `Color("accent/primary")`, `Color.primary` (already canonical)
-   - **Raw literals** — `Color(red: 0.3, green: 0.6, blue: 0.9)`, `Color(hex: "#4A90E2")`, `Color(.systemRed)` (DRIFT candidates)
-4. For raw literals: count frequency, group near-identical colors (ΔE < 5 in LAB space — if you can't compute LAB, use hex distance as rough proxy)
+Run `<plugin>/scripts/extract-tokens.sh --pwd . --platform auto` (or pass `--platform ios|web|flutter|kotlin` if auto-detection is wrong). The script returns JSON:
 
-**Web (Tailwind / CSS):**
-1. Read `tailwind.config.*` — extract `theme.colors` and `theme.extend.colors`
-2. Read any `*.css` / `*.scss` for CSS variables (`--color-*`)
-3. Grep source for `className="...bg-[#...] text-[#...]..."` (arbitrary values — DRIFT) and raw hex in JSX style props
+```json
+{
+  "platform": "ios|web|flutter|kotlin",
+  "colors": [{"value": "#RRGGBB", "count": N, "names": [...], "files": [...]}, ...],
+  "typography": [{"family": "...", "size": N, "weight": "...", "count": N, "files": [...]}, ...],
+  "icons": [{"name": "...", "count": N, "files": [...]}, ...],
+  "spacing": [{"value": N, "count": N, "files": [...]}, ...],
+  "warnings": [...]
+}
+```
 
-**Flutter:**
-1. Read `ThemeData` definitions in `main.dart` / `theme.dart` / similar
-2. Grep for `Color(0xFF...)`, `Colors.xxx` not wrapped in theme extension
+Each array is sorted by `count` descending — most-used token first. That's how canonical-vs-drift becomes visible.
 
-**Kotlin (Android):**
-1. Read `res/values/colors.xml` and `res/values-night/colors.xml`
-2. Grep for hex literals in Compose / XML layouts
-
-For each platform, produce a list of:
-- **Canonical tokens** (names + values, as they exist in the asset catalog / theme file)
-- **Raw usages** (file:line, hex, count) — candidates for token extraction
-- **Drift candidates** (multiple near-identical colors with different names/definitions)
-
-### Step 4: Extract typography
-
-**iOS:** grep for `.font(...)` — separate into `.font(.body)` / `.font(.headline)` (canonical, uses Dynamic Type) vs `.font(.system(size: N, weight: W))` (raw, DRIFT).
-
-**Web:** extract `fontFamily`, `fontSize`, `fontWeight`, `lineHeight` from tailwind config + any `text-[...]` arbitrary classes.
-
-**Flutter:** extract `TextStyle` definitions, find inline `TextStyle(fontSize: ...)` usages.
-
-**Kotlin:** extract `Typography` in Material 3 theme, find raw `TextStyle(...)` in Compose.
-
-Compile into a table: token (or "unnamed"), size, weight, line height, usage count.
-
-### Step 5: Extract icons, spacing, components
-
-**Icons:**
-- iOS: grep for `Image(systemName: "...")` — count unique names, flag if the same concept has two names (e.g., `gear` and `gearshape` both used for settings)
-- Web: `<Icon name="..." />` or specific icon component imports
-- Flutter: `Icons.xxx` usage
-- Android: `@drawable/ic_*` references
-
-**Spacing:**
-- iOS: grep for `.padding(N)` and `.padding(.horizontal/.vertical, N)` — list frequencies of each N
-- Web: `p-N`, `m-N`, `gap-N` from Tailwind + arbitrary values
-- Flutter: `EdgeInsets.all(N)`, `SizedBox(height: N)`
-- Android: `@dimen/...` refs + raw `dp` values
-
-**Components:**
-- Grep for `struct XxxView: View` / `function XxxComponent(...)` / `class Xxx extends StatelessWidget` / etc.
-- List the top-level component declarations — these are candidates for canonization in section 5 of the design system doc
-
-### Step 6: Drift analysis
+### Step 4: Drift analysis
 
 Compile a drift report with these categories:
 
@@ -194,7 +150,7 @@ Components (top 10 by usage):
   PrimaryButton, Card, ListRow, HeaderView, ...
 ```
 
-### Step 7: User canonization
+### Step 5: User canonization
 
 Present the drift report and ask the user to make decisions:
 
@@ -206,7 +162,7 @@ Present the drift report and ask the user to make decisions:
 
 Use the AskUserQuestion tool for each decision point (batch them if possible). Do NOT make these calls silently — these are product decisions that belong to the user.
 
-### Step 8: Write docs/design/system.md
+### Step 6: Write docs/design/system.md
 
 Based on Step 1 choice (update vs rebuild):
 
@@ -223,7 +179,7 @@ Based on Step 1 choice (update vs rebuild):
 3. Do NOT silently delete anything the user wrote manually
 4. Add drift log entries for new issues
 
-### Step 9: Seed MemPalace with design decisions
+### Step 7: Seed MemPalace with design decisions
 
 Write these decision records to the project wing via `mempalace_add_drawer` (check duplicates first with `mempalace_check_duplicate`):
 
@@ -238,7 +194,7 @@ Write these decision records to the project wing via `mempalace_add_drawer` (che
 
 Why separate records: when a future session asks "what colors do we use?", `mempalace_search wing=<project> "palette"` hits one record, not five. More searchable.
 
-### Step 10: Optional auto-fix
+### Step 8: Optional auto-fix
 
 Ask the user:
 > "Drift report has <N> auto-fixable issues (off-grid spacing, raw hex that maps to a canonical token, duplicate icons). Want me to apply them now in a worktree?
@@ -253,7 +209,7 @@ If yes:
 4. Show diff, ask for approval
 5. Do NOT merge automatically — leave on the branch for user review
 
-### Step 11: Architect report
+### Step 9: Architect report
 
 ```
 ✓ Architect report — Design Sync
