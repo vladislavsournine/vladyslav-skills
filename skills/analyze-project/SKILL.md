@@ -17,16 +17,22 @@ Analyze an existing codebase and generate/update architecture documentation so C
 
 Read CLAUDE.md and any existing docs in `docs/architecture/`. Note what's already documented.
 
-### Step 2: Scan project structure
+### Step 2: Gather architecture inventory via bash
 
-If project has 2+ independent components (e.g. backend + mobile app), use `superpowers:dispatching-parallel-agents` to analyze them in parallel.
+Run `<plugin>/scripts/scan-architecture.sh --pwd .`. Returns JSON:
 
-Use Glob and Grep to understand the codebase:
+```json
+{
+  "stacks": {<from detect-stack.sh>},
+  "entry_points": [<paths>],
+  "routes": {"framework": "fastapi|flask|express|gin|go-stdlib|none", "handlers": [{"method": "...", "path": "...", "file": "..."}]},
+  "schema_files": [<paths to SQL migrations / Prisma schemas / etc.>],
+  "deps": {<manifest path>: <summary string>},
+  "doc_files": [<paths under docs/>]
+}
+```
 
-1. **Directory tree** — `ls` key directories, understand the layout
-2. **Dependencies** — read package files (requirements.txt, go.mod, pubspec.yaml, Podfile, build.gradle)
-3. **Entry points** — find main files, app entry points
-4. **Configuration** — .env files, config files, docker-compose
+This replaces the manual "read package.json, ls directories, grep for routes" pass. The script is deterministic and fast (~0.1s).
 
 ### Step 3: Analyze architecture
 

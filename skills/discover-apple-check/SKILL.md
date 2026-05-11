@@ -17,14 +17,11 @@ Standalone or part of `/vladyslav:discover`. Fills section 11 of `docs/product/s
 
 ## Process
 
-### Step 1: Verify this is an iOS project
+### Step 1: Verify iOS project
 
-Check for at least one signal that this is an iOS project:
-- `swift/` directory in project root
-- `*.xcodeproj` or `Package.swift` exists
-- `CLAUDE.md` mentions Swift / iOS / SwiftUI / macOS
+Run `<plugin>/scripts/detect-stack.sh .` and parse JSON. If `.ios` is false → STOP: "This skill is iOS-only. Detected stacks: <list>." (List from the JSON keys that are `true`.)
 
-If none present → stop and tell the user: "This project doesn't appear to be iOS. `discover-apple-check` only applies to iOS apps. If you intend to add an iOS target, fill in the iOS stack first via `/vladyslav:attach-project` or equivalent."
+If `.ios` is true → record the project name from `CLAUDE.md` and proceed to Step 2.
 
 ### Step 2: Read context
 

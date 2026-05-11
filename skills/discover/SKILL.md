@@ -37,7 +37,9 @@ Read:
 
 ### Step 2: MemPalace — batch search
 
-Determine the project wing from `pwd` / `CLAUDE.md`. Run all searches upfront:
+Apply the verify-working-directory contract from `<plugin>/skills/_shared/references/verify-pwd.md`: confirms CLAUDE.md exists, derives the canonical MemPalace wing name, warns on stale-wing duplicates, and establishes the mandatory path-validation rule for the rest of this skill's MemPalace reads.
+
+Run all searches upfront:
 
 ```
 mempalace_search wing=<wing> "competitors"
@@ -52,13 +54,15 @@ Surface hits — prior research for any dimension shouldn't be re-done.
 
 ### Step 3: Detect scope
 
+Use `<plugin>/scripts/section-status.sh docs/product/start-project.md` to get `{filled: [...], pending: [...]}` as JSON. The "skip done" mode auto-skips any section listed in `filled`.
+
 Ask the user which sections to fill:
 
 - **All** (default) — runs Steps 4 → 5 → 6 → 7 in order
 - **Custom** — user picks specific steps
 - **Skip done** — auto-detect which sections are already filled (non-empty, no `<...>` markers) and skip those
 
-**iOS auto-detection:** if the project has a `swift/` directory OR `CLAUDE.md` mentions Swift/iOS/SwiftUI → also run Step 8 (apple-check) after Step 7.
+**iOS auto-detection:** run `<plugin>/scripts/detect-stack.sh .` and check `.ios == true` in the JSON output. If true → schedule Step 8 (Apple Check) after Step 7.
 
 ---
 
@@ -98,7 +102,9 @@ Invoke the `vladyslav:discover-apple-check` skill via the Skill tool. It handles
 
 ### Step 9: Final synthesis
 
-1. Re-read `docs/product/start-project.md` — confirm all targeted sections are filled
+1. Re-run `<plugin>/scripts/section-status.sh docs/product/start-project.md` to confirm all targeted sections are now filled. Any path returning to `pending` is a regression to investigate.
+
+   Re-read `docs/product/start-project.md` — confirm all targeted sections are filled
 2. Identify contradictions (e.g. monetization assumes $20/mo but SOM from valuation can't support that price). Flag each contradiction to the user: reopen the relevant step or accept as "known tension"
 3. Write `docs/product/discovery-summary.md` — 1-page executive view:
    - Idea + core thesis

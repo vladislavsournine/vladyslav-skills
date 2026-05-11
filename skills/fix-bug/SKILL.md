@@ -15,20 +15,7 @@ Full-cycle bug fix: diagnose → fix → test → review → merge → update do
 
 ### Step 0: Verify working directory
 
-**This step is mandatory. Do not skip it.**
-
-1. Check that `CLAUDE.md` exists in `pwd`. If not → **STOP**:
-   > "No CLAUDE.md found in current directory. Are you in the right project? Current path: `<pwd>`"
-
-2. Derive the canonical wing name:
-   - `basename $(pwd)` → lowercase → replace spaces/underscores with hyphens
-   - Prepend platform prefix if not present (`swift-`, `python-`, `flutter-`, etc.)
-   - Example: `Sudoku` in `swift/` → `swift-sudoku` (NOT `swift-Sudoku`)
-
-3. Run `mempalace_list_wings`. If a wrong-case duplicate wing exists → warn the user (same project under two names = stale records risk).
-
-4. **Path validation rule (mandatory for all MemPalace reads this session):**
-   After any `mempalace_search`, for each result containing absolute file paths: verify the path exists on disk. If not → mark `[STALE: path not found]` and do not act on it.
+Apply the verify-working-directory contract from `<plugin>/skills/_shared/references/verify-pwd.md`: confirms CLAUDE.md exists, derives the canonical MemPalace wing name, warns on stale-wing duplicates, and establishes the mandatory path-validation rule for the rest of this skill's MemPalace reads.
 
 ### Step 1: Read project context
 
