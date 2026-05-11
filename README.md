@@ -27,15 +27,17 @@ claude
 
 The other skills (`init-project`, `attach-project`, `analyze-project`, `write-*`, `help`, `swiftui-pro`, `design-page`) work without MemPalace.
 
-## One-Terminal Workflow (v2.0)
+## One-Terminal Workflow (v3.x)
 
-Run any skill from a single Opus session. Skills delegate execution work to Sonnet subagents automatically — no manual `/model` switching required.
+Run any skill from a single Opus session. No manual `/model` switching required.
 
 | Skill type | Where it runs |
 |-----------|---------------|
-| **Architect** (8 skills) | Opus main session — interactive design + synthesis. Internal `Agent(...)` dispatches annotated explicitly with `model="sonnet"` (executor work) or `model="opus"` (synthesis/research). |
-| **Heavy Engineer** (6 skills) | Pre-flight Q&A in Opus main → body wrapped in Sonnet subagent dispatch (with file allowlist + structured YAML return). |
-| **Light Engineer** (`compact-save`) | Opus main inline (~15s utility operations). |
+| **Architect** (9 skills) | Opus main session — interactive design + synthesis. Internal `Agent(...)` dispatches annotated explicitly with `model="sonnet"` (executor work) or `model="opus"` (synthesis/research). |
+| **Engineer (light) — bash-driven** (`init-project`, `attach-project`, `pre-release-check`) | Pre-flight Q&A in Opus main → a single deterministic bash helper does the work (~1 second) → summary rendered. |
+| **Engineer (light) — Opus inline** (`write-user-stories`, `write-test-docs`, `write-project-docs`, `compact-save`, `help`) | Pre-flight Q&A + LLM-driven generation, all in Opus main, no Sonnet subagent dispatch. |
+
+> **Heavy Engineer (deprecated):** v2.x wrapped Engineer skills in a Sonnet subagent dispatch with a YAML return contract. As of v3.1.0 no skill uses this pattern — the migrated skills run as Light Engineers and the shared references that documented the contract are kept for future use. See `docs/architecture/system.md`.
 
 > Migrating from v1.x? The old dual-terminal split (Opus + Sonnet in separate windows) is gone. Close the second terminal — one Opus session handles everything.
 
@@ -54,21 +56,21 @@ Run any skill from a single Opus session. Skills delegate execution work to Sonn
 | `/vladyslav:design-page` | Design app screens in Pencil via parallel subagents |
 | `/vladyslav:seed-mempalace` | Bootstrap MemPalace memory from git log + docs |
 
-**Heavy Engineer:**
+**Engineer (light) — bash-driven:**
 
 | Skill | Purpose |
 |-------|---------|
-| `/vladyslav:init-project` | Create new project |
-| `/vladyslav:attach-project` | Add structure to existing project |
+| `/vladyslav:init-project` | Create new project (calls `scripts/scaffold-project.sh`) |
+| `/vladyslav:attach-project` | Add structure to existing project (calls `scripts/attach-project.sh`) |
+| `/vladyslav:pre-release-check` | Pre-release verification (calls `scripts/pre-release-checks.sh`) |
+
+**Engineer (light) — Opus inline:**
+
+| Skill | Purpose |
+|-------|---------|
 | `/vladyslav:write-user-stories` | Update user stories |
 | `/vladyslav:write-test-docs` | Test plan + manual QA docs |
 | `/vladyslav:write-project-docs` | README, onboarding, deployment |
-| `/vladyslav:pre-release-check` | Pre-release verification |
-
-**Light Engineer:**
-
-| Skill | Purpose |
-|-------|---------|
 | `/vladyslav:compact-save` | Snapshot task state to MemPalace (auto before compact) |
 | `/vladyslav:help` | This reference |
 
