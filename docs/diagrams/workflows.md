@@ -12,8 +12,8 @@ From zero to first deployed feature.
 flowchart LR
     A([Start:\nnew idea]):::start
     A --> B["/init-project\nBootstrap dirs / files\nstack setup / agents"]
-    B --> C["/analyze-project\nDocument architecture\nendpoints / schema"]
-    C --> D["/discover\nCompetitors / monetization\nvaluation / marketing"]
+    B --> C["/discover\nCompetitors / monetization\nvaluation / marketing"]
+    C --> D["/ingest\nDocument architecture\nseeds MemPalace"]
     D --> E["/add-feature\nDesign → contract\n→ plan → implement"]
     E --> F["/write-test-docs\nTest plan\n+ manual QA"]
     F --> G["/write-project-docs\nREADME\n+ onboarding + deploy"]
@@ -34,10 +34,9 @@ Attach Claude Code to a project that already exists.
 flowchart LR
     A([Start:\nexisting codebase]):::start
     A --> B["/attach-project\nAuto-detect stacks\nadd missing structure"]
-    B --> C["/seed-mempalace\nSeed memory from\nexisting code + history"]
-    C --> D["/analyze-project\nDocument architecture\nendpoints / schema"]
-    D --> E["/add-feature\nDesign → contract\n→ plan → implement"]
-    E --> F([Continue feature\nloop]):::done
+    B --> C["/ingest\nDocument architecture\n+ seed MemPalace"]
+    C --> D["/add-feature\nDesign → contract\n→ plan → implement"]
+    D --> E([Continue feature\nloop]):::done
 
     classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
     classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold

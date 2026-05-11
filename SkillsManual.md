@@ -7,14 +7,14 @@
 ## Передумови
 
 - **Claude Code** — встановлений
-- **Superpowers plugin** — потрібен для `add-feature`, `fix-bug`, `analyze-project`, `pre-release-check`, `write-test-docs`
+- **Superpowers plugin** — потрібен для `add-feature`, `fix-bug`, `ingest`, `pre-release-check`, `write-test-docs`
 - **MemPalace MCP server** 🧠 — потрібен для 8 скілів нижче. Без нього вони впадуть на першому ж виклику `mempalace_*` тулзи.
 
 ### Скіли що вимагають MemPalace 🧠
 
-`add-feature` · `fix-bug` · `discover` · `discover-apple-check` · `design-sync` · `seed-mempalace` · `pre-release-check` · `compact-save`
+`add-feature` · `fix-bug` · `discover` · `discover-apple-check` · `design-sync` · `ingest` · `pre-release-check` · `compact-save`
 
-Інші скіли (`init-project`, `attach-project`, `analyze-project`, `write-user-stories`, `write-test-docs`, `write-project-docs`, `help`, `swiftui-pro`, `design-page`) працюють без MemPalace.
+Інші скіли (`init-project`, `attach-project`, `write-user-stories`, `write-test-docs`, `write-project-docs`, `help`, `swiftui-pro`, `design-page`) працюють без MemPalace.
 
 ---
 
@@ -28,8 +28,7 @@
 ### Приєднання Claude до існуючого проекту
 
 - **`/vladyslav:attach-project`** — додає Claude-структуру до існуючого коду **не ламаючи** файли. Auto-detect стеків.
-- **`/vladyslav:analyze-project`** — сканує код, заповнює `docs/architecture/system.md`, `api.md`, `db-schema.sql`, оновлює `CLAUDE.md`.
-- **`/vladyslav:seed-mempalace`** 🧠 — ОДНОРАЗОВО записує ключові архітектурні рішення в MemPalace wing проекту. Після цього майбутні сесії не сканують репу наново.
+- **`/vladyslav:ingest`** 🧠 — єдиний прохід: сканує код, заповнює `docs/architecture/system.md`, `api.md`, `db-schema.sql`, і записує ключові архітектурні рішення в MemPalace wing проекту. Після цього майбутні сесії не сканують репу наново.
 
 ### Додавання фічі
 
@@ -97,7 +96,7 @@
 ### Документування проекту
 
 - **`/vladyslav:write-project-docs`** — README, onboarding guide, deployment docs з коду + PRD.
-- **`/vladyslav:analyze-project`** — оновлює архітектурні доки (`docs/architecture/*`).
+- **`/vladyslav:ingest`** 🧠 — оновлює архітектурні доки (`docs/architecture/*`) і MemPalace wing одночасно.
 - **`/vladyslav:write-user-stories`** — генерує `docs/product/user-stories.md` з фактично реалізованих фіч.
 
 ### Тестування
@@ -143,6 +142,8 @@ cd ~/NewProject
 /vladyslav:discover                        # сам заповнює секції 6-11 (competitors, monetization,
                                            # valuation, marketing, apple-check якщо iOS)
                                            # verdict GREEN → продовжуємо, RED → реопен ідеї
+/vladyslav:ingest                          # (опційно) сканує код + seeds MemPalace
+                                           # корисно після кількох фіч для оновлення architecture docs
 /vladyslav:add-feature                     # повний цикл першої фічі (auto mode рекомендовано)
 # ... наступні фічі через /vladyslav:add-feature ...
 /vladyslav:write-test-docs                 # test plan + QA checklist
@@ -166,15 +167,14 @@ MemPalace wing створиться автоматично — після кож
 ```
 cd ~/ExistingRepo
 /vladyslav:attach-project            # Claude-структура без перезапису файлів
-/vladyslav:analyze-project           # сканує код → docs/architecture/*
-/vladyslav:seed-mempalace            # ключові рішення в MemPalace wing
+/vladyslav:ingest                    # сканує код → docs/architecture/* + ключові рішення в MemPalace wing
 /vladyslav:write-user-stories        # stories з реалізованих фіч
 /vladyslav:write-project-docs        # README + deployment docs
 ```
 
 **Ефект:** кожна наступна сесія починається з `mempalace_search wing=<project>` замість сканування коду. Нові фічі (`/vladyslav:add-feature`) автоматично використовують контекст і глобальні правила.
 
-**Якщо проект ще без product discovery** — після `seed-mempalace` запусти `/vladyslav:discover` з існуючим `start-project.md` (або створи його руками) щоб заповнити competitors/monetization/valuation/marketing.
+**Якщо проект ще без product discovery** — після `ingest` запусти `/vladyslav:discover` з існуючим `start-project.md` (або створи його руками) щоб заповнити competitors/monetization/valuation/marketing.
 
 ### Сценарій C: Критичний баг
 
@@ -282,7 +282,7 @@ mempalace_search wing=<project>      # попередні міграції, gotc
 - `owasp-security` (standalone повний аудит — автоматичний тільки в auto-gate)
 - `pre-release-check` — фінальна верифікація
 - `discover*` сімейство — product research
-- `analyze-project`, `seed-mempalace` — одноразові операції
+- `ingest` — одноразова операція (або після великих рефакторів)
 - `fix-bug`, `add-feature` — навмисно explicit, бо запускають повний цикл
 
 Раніше плагін використовував `disable-model-invocation: true` у frontmatter `commands/*.md` для блокування авто-виклику. У сучасних версіях Claude Code це поле блокувало і явні slash-команди (Skill tool refused), тому ми його прибрали в v2.3.1 — модель полагається на `description:` для вирішення коли НЕ викликати скіл, а сам користувач все одно може викликати через `/vladyslav:<name>`.
@@ -352,9 +352,8 @@ mempalace_search wing=<project>      # попередні міграції, gotc
 |---|---|---|
 | `init-project` | Engineer | Новий проект з нуля (+ пише `start-project.md` зі шаблона) |
 | `attach-project` | Engineer | Приєднання Claude до існуючого коду |
-| `analyze-project` | Architect | Скан коду, заповнення architecture docs |
-| `seed-mempalace` | Architect | Одноразовий bootstrap MemPalace wing |
-| `design-sync` | Architect | Сканує UI-код, канонізує токени, пише `docs/design/system.md` + MemPalace. iOS: автоматичний HIG аудит через `apple-hig-expert` |
+| `ingest` | Architect 🧠 | Єдиний прохід: architecture docs + MemPalace seed. Замінює `analyze-project` + `seed-mempalace`. |
+| `design-sync` | Architect 🧠 | Сканує UI-код, канонізує токени, пише `docs/design/system.md` + MemPalace. iOS: автоматичний HIG аудит через `apple-hig-expert` |
 | `design-page` | Architect | Паралельні субагенти для кожного екрану в Pencil. Full-auto. Читає `docs/design/system.md` як контракт, пише `docs/design/pages/<screen>.md` |
 | `discover` | Architect | Повний цикл product discovery — competitors §6, monetization §8, valuation §9, marketing §10. Scope-вибір: All / Custom / Skip done |
 | `discover-apple-check` | Architect | iOS App Store rejection-risk check → §11. Можна запускати окремо або всередині `discover` |
@@ -367,8 +366,9 @@ mempalace_search wing=<project>      # попередні міграції, gotc
 | `swiftui-pro` | Engineer | Ревю SwiftUI/Swift коду: deprecated API, accessibility, HIG, Swift concurrency (iOS 26 / Swift 6.2). Автоматично викликається в `add-feature` Step 6.5 для iOS проектів. |
 | `help` | — | Список скілів і хелп |
 
-**Architect (Opus)** — для дизайну, планування, архітектурних рішень.
-**Engineer (Sonnet)** — для імплементації, генерації бойлерплейту, репетативних задач.
+**Architect** (8 скілів: `ingest`, `add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `design-page`, `swiftui-pro`) — інтерактивно в Opus main. Внутрішні Agent dispatches позначені `model="sonnet"` (executor) або `model="opus"` (synthesis).
+**Engineer (light) — bash-driven** (`init-project`, `attach-project`, `pre-release-check`) — pre-flight Q&A в Opus, потім bash-скрипт, потім summary.
+**Engineer (light) — Opus inline** (`write-user-stories`, `write-test-docs`, `write-project-docs`, `compact-save`, `help`) — LLM-генерація без dispatch.
 
 ---
 
@@ -503,37 +503,31 @@ $ mkdir ~/chess-duel && cd ~/chess-duel && claude
 $ cd ~/python-tax && claude
 ```
 
-**Крок 1 — attach без руйнування коду (Engineer Sonnet).**
+**Крок 1 — attach без руйнування коду.**
 ```
 > /vladyslav:attach-project
 ```
-Я детекчу стек (Python/Django 5 + Postgres). Пишу `CLAUDE.md`, створюю `docs/` з порожніми файлами, `.claude/agents/`. НЕ торкаюся коду. Report: "Далі — `/vladyslav:analyze-project`".
+Я детекчу стек (Python/Django 5 + Postgres). Пишу `CLAUDE.md`, створюю `docs/` з порожніми файлами, `.claude/agents/`. НЕ торкаюся коду. Report: "Далі — `/vladyslav:ingest`".
 
-**Крок 2 — аналіз коду (Architect Opus).** `/model opus`
+**Крок 2 — ingest: аналіз коду + seed MemPalace (ОДИН РАЗ).**
 ```
-> /vladyslav:analyze-project
+> /vladyslav:ingest
 ```
-Я сканую репо, заповнюю `docs/architecture/system.md` (модулі, потоки), `docs/architecture/api.md` (endpoints), `docs/architecture/db-schema.sql` (скелет схеми з моделей). Оновлюю `CLAUDE.md` з конвенціями які я побачив (naming, layering, test patterns).
+Два bash-скрипти збирають JSON (`scan-architecture.sh` + `gather-seed-signals.sh`). Opus синтезує: заповнює `docs/architecture/system.md` (модулі, потоки), `docs/architecture/api.md` (endpoints), `docs/architecture/db-schema.sql`. Паралельно витягує ~10–20 ключових рішень в `wing=python-tax` як `decision` records. **Після цього майбутні сесії не скануть репу наново** — вони будуть робити `mempalace_search wing=python-tax` і отримувати ці рішення миттєво.
 
-**Крок 3 — seed MemPalace (ОДИН РАЗ).**
-```
-> /vladyslav:seed-mempalace
-```
-Я читаю всі `docs/architecture/*`, витягую ключові рішення (~20–40 штук), записую в `wing=python-tax` як `decision` records. **Після цього майбутні сесії не скануть репу наново** — вони будуть робити `mempalace_search wing=python-tax` і отримувати ці рішення миттєво.
-
-**Крок 4 — user stories з реалізованого (Engineer Sonnet).** `/model sonnet`
+**Крок 3 — user stories з реалізованого.**
 ```
 > /vladyslav:write-user-stories
 ```
 Я читаю код + роутинг + тести, пишу `docs/product/user-stories.md` зі статусами (Done / Partial / Not started).
 
-**Крок 5 — якщо треба discovery заднім числом:**
+**Крок 4 — якщо треба discovery заднім числом:**
 ```
 > /vladyslav:discover
 ```
 Я помічу що в `start-project.md` секції 1–4 порожні (бо init не запускали), питаю: "Заповниш вручну чи скіпаємо discovery?" Ти вирішуєш.
 
-**Крок 6 — нова фіча (як у Прикладі 1).**
+**Крок 5 — нова фіча (як у Прикладі 1).**
 ```
 > /vladyslav:add-feature
 ```
@@ -586,4 +580,4 @@ $ cd ~/python-tax && claude
 
 ---
 
-*Останнє оновлення: 2026-04-10 (design-sync + Design System Discipline)*
+*Останнє оновлення: 2026-05-11 (v4.0.0 — ingest replaces analyze-project + seed-mempalace; 16 active skills)*
