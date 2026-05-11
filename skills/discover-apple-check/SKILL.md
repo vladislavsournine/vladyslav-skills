@@ -58,7 +58,7 @@ If `swift-calories` has zero apple-review records, warn the user:
 > "The swift-calories wing has no apple-review records seeded yet. This sub-skill will still run, but the output will only contain generic Apple guideline advice — not the curated rejection patterns from the one app that actually passed review.
 >
 > Options:
-> 1. Pause here, run `/vladyslav:seed-mempalace` in the swift-calories project, come back — **recommended**
+> 1. Pause here, run `/vladyslav:ingest` in the swift-calories project to populate the wing, come back — **recommended**
 > 2. Continue with generic advice only (weaker, but functional)
 > 3. Abort"
 

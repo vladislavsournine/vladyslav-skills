@@ -7,7 +7,7 @@ The plugin uses three Engineer/Architect patterns. Picking the right one for a n
 ### Architect
 - **Where it runs:** Interactive in Opus main session, top to bottom.
 - **When to use:** The skill makes semantic decisions on existing code, composes narratives, synthesises across multiple inputs, or coordinates parallel subagent dispatches.
-- **Examples:** `add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `design-page`, `ingest`, `swiftui-pro`. Deprecated (kept as redirect stubs through v4.0): `analyze-project`, `seed-mempalace` — both redirect to `ingest`.
+- **Examples:** `add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `design-page`, `ingest`, `swiftui-pro`.
 - **Internal dispatch:** Allowed via `Agent(..., model="sonnet")` for executor work (write tests / write impl / run code review / run security check) or `Agent(..., model="opus")` for synthesis/research work (deep analysis, multi-source research, design decisions). When used, the dispatch is explicit and per-step — not a wholesale subagent that owns the whole skill body.
 
 ### Engineer (light) — bash-driven
@@ -65,11 +65,11 @@ Five cross-skill references. Some are currently inactive after v3.0/3.1/3.2 Ligh
 | `yaml-return.md` | (no current consumer) | Structured YAML return contract. Reserved. |
 | `present-summary.md` | (no current consumer) | Orchestrator-side rendering for four `status` branches plus re-dispatch flow. Reserved. |
 | `mempalace-record.md` | All 8 MemPalace-using skills | Required record shape: `[WHAT] [WHY] [FILES] [DATE]` plus room-type rules and wing canonicalisation. |
-| `verify-pwd.md` | 6 Architect skills (`add-feature`, `fix-bug`, `discover`, `design-sync`, `design-page`, `seed-mempalace`) | Step 0.1 contract: `CLAUDE.md` presence check + canonical wing derivation. Skills reference this instead of inlining the 11-22-line block. |
+| `verify-pwd.md` | 6 Architect skills (`add-feature`, `fix-bug`, `discover`, `design-sync`, `design-page`, `ingest`) | Step 0.1 contract: `CLAUDE.md` presence check + canonical wing derivation. Skills reference this instead of inlining the 11-22-line block. |
 
 ## Helper Scripts (`scripts/`)
 
-Thirteen POSIX-portable bash helpers (macOS + Linux, no python/node dependency). Each has a one-line synopsis at the top of its file. Skills consume their JSON output rather than re-implementing the same `find` / `grep` / `awk` in instructions.
+Fifteen POSIX-portable bash helpers (macOS + Linux, no python/node dependency). Each has a one-line synopsis at the top of its file. Skills consume their JSON output rather than re-implementing the same `find` / `grep` / `awk` in instructions.
 
 | Script | Used by | Purpose |
 |---|---|---|
@@ -86,7 +86,7 @@ Thirteen POSIX-portable bash helpers (macOS + Linux, no python/node dependency).
 | `attach-project.sh` (v3.1.0) | `attach-project` | Auto-detect stack + skip-if-exists scaffolder for existing projects. |
 | `pre-release-checks.sh` (v3.1.0) | `pre-release-check` | Runs 5 cross-platform release checks (tasks, tests, config, docs, translations) → JSON. |
 | `extract-tokens.sh` (v3.2.0) | `design-sync` | Per-platform design-token extractor → JSON (colors / typography / icons / spacing, sorted by usage count). |
-| `scan-architecture.sh` (v3.2.0) | `ingest` (and the deprecated `analyze-project` stub) | Stack + entry points + routes (FastAPI/Flask/Express/Go stdlib) + schemas + deps → JSON. |
+| `scan-architecture.sh` (v3.2.0) | `ingest` | Stack + entry points + routes (FastAPI/Flask/Express/Go stdlib) + schemas + deps → JSON. |
 | `gather-seed-signals.sh` (v3.3.0) | `ingest` | Git signals (themes, decision commits, most-edited files) + package manifests + existing docs + ADR paths + CLAUDE.md presence → JSON. Companion to `scan-architecture.sh` for the `ingest` skill. |
 
 ## Lifecycle Hooks

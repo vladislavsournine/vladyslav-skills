@@ -90,7 +90,7 @@ Parse the JSON. Render to the user:
   Files written: <files_written count> — <list>
   Files preserved (already existed): <files_skipped count> — <list, if any>
   Warnings: <warnings, if any>
-  Next: /vladyslav:analyze-project  — scan codebase and populate docs/
+  Next: /vladyslav:ingest  — scan codebase, populate docs/, and seed MemPalace
 ```
 
 **`status: error`**:

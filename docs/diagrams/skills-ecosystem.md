@@ -1,6 +1,6 @@
 # Skills ecosystem
 
-18 skills, grouped by lifecycle stage. Render natively on GitHub.
+16 skills, grouped by lifecycle stage. Render natively on GitHub.
 
 ```mermaid
 flowchart LR
@@ -8,7 +8,7 @@ flowchart LR
         direction TB
         s1[init-project]
         s2[attach-project]
-        s3[analyze-project]
+        s3[ingest]
         s4[help]
         s1 ~~~ s2 ~~~ s3 ~~~ s4
     end
@@ -17,10 +17,9 @@ flowchart LR
         direction TB
         d1[discover]
         d2[discover-apple-check]
-        d3[seed-mempalace]
-        d4[design-sync]
-        d5[design-page]
-        d1 ~~~ d2 ~~~ d3 ~~~ d4 ~~~ d5
+        d3[design-sync]
+        d4[design-page]
+        d1 ~~~ d2 ~~~ d3 ~~~ d4
     end
 
     subgraph BUILD [Build]

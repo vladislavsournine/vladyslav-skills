@@ -30,8 +30,8 @@ This was a Heavy Engineer skill until v3.1.0. v3.1.0 runs inline in Opus — sam
    - **Optional:** `docs/architecture/api.md`, existing `README.md` (preserve any custom sections found there), deployment configs found in the tree
 
 3. For each missing **required** file, ask the user:
-   > "Required input `<path>` is missing. Options: (a) run `/vladyslav:analyze-project` first to populate it / (b) create stub now / (c) abort"
-   - On (a) → exit cleanly. Suggest the user run analyze-project then come back.
+   > "Required input `<path>` is missing. Options: (a) run `/vladyslav:ingest` first to populate it / (b) create stub now / (c) abort"
+   - On (a) → exit cleanly. Suggest the user run ingest then come back.
    - On (b) → create stub and continue (output will be skeletal).
    - On (c) → exit cleanly.
 

@@ -7,13 +7,13 @@ description: Use when unsure which skill to use. Lists all vladyslav skills, wor
 
 **Type:** Engineer (light)
 
-## One-Terminal Workflow (v2.0+)
+## One-Terminal Workflow (v3.x)
 
-Run any skill from a single Opus session. Skills delegate execution work to Sonnet subagents automatically — no manual `/model` switching required.
+Run any skill from a single Opus session. No manual `/model` switching required.
 
-- **Architect skills** run interactively in Opus main session.
-- **Heavy Engineer skills** run pre-flight Q&A in Opus main, then dispatch a Sonnet subagent for the body (with file allowlist + structured YAML return).
-- **Light Engineer skills** (compact-save) run inline in main thread (~15s utility operations).
+- **Architect skills** run interactively in Opus main session. Internal `Agent(...)` dispatches annotated with `model="sonnet"` (executor work) or `model="opus"` (synthesis/research).
+- **Engineer (light) — bash-driven** skills run pre-flight Q&A in Opus main, then a bash script does the work, then a summary is rendered.
+- **Engineer (light) — Opus inline** skills (`write-user-stories`, `write-test-docs`, `write-project-docs`, `compact-save`, `help`) run pre-flight Q&A + LLM-driven generation entirely in Opus main, with no subagent dispatch.
 
 ## Available Skills (`/vladyslav:<name>`)
 
@@ -21,30 +21,30 @@ Run any skill from a single Opus session. Skills delegate execution work to Sonn
 
 | Skill | Purpose |
 |-------|---------|
-| `analyze-project` | Analyze existing codebase |
+| `ingest` | Existing-project intake: architecture docs + MemPalace seed in one scan pass |
 | `add-feature` | Add feature (full cycle, 9 superpowers) |
 | `fix-bug` | Fix bug (full cycle, 7 superpowers) |
 | `discover` | Auto-fill product/start-project.md via AI research |
 | `discover-apple-check` | Apple App Store compliance pre-check (iOS only) |
 | `design-sync` | Extract design tokens from code into docs/design/system.md |
 | `design-page` | Design app screens in Pencil via parallel subagents |
-| `seed-mempalace` | Bootstrap MemPalace memory from git log + docs |
+| `swiftui-pro` | SwiftUI/Swift code review (iOS 26 / Swift 6.2) |
 
-**Heavy Engineer:**
+**Engineer (light) — bash-driven:**
 
 | Skill | Purpose |
 |-------|---------|
-| `init-project` | Create new project |
-| `attach-project` | Add structure to existing project |
+| `init-project` | Create new project (calls `scripts/scaffold-project.sh`) |
+| `attach-project` | Add structure to existing project (calls `scripts/attach-project.sh`) |
+| `pre-release-check` | Pre-release verification (calls `scripts/pre-release-checks.sh`) |
+
+**Engineer (light) — Opus inline:**
+
+| Skill | Purpose |
+|-------|---------|
 | `write-user-stories` | Update user stories |
 | `write-test-docs` | Test plan + manual QA docs |
 | `write-project-docs` | README, onboarding, deployment |
-| `pre-release-check` | Pre-release verification |
-
-**Light Engineer:**
-
-| Skill | Purpose |
-|-------|---------|
 | `compact-save` | Snapshot task state to MemPalace (auto before compact) |
 | `help` | This reference |
 
@@ -52,12 +52,12 @@ Run any skill from a single Opus session. Skills delegate execution work to Sonn
 
 **New project:**
 ```
-init-project → analyze-project → add-feature → write-test-docs → pre-release-check
+init-project → discover → add-feature → write-test-docs → pre-release-check
 ```
 
 **Existing project:**
 ```
-attach-project → analyze-project → add-feature
+attach-project → ingest → add-feature
 ```
 
 **Before release:**
@@ -80,7 +80,7 @@ All 13 non-meta superpowers skills are integrated:
 | `writing-plans` | add-feature | Planning phase |
 | `executing-plans` | add-feature | Execution (parallel session) |
 | `subagent-driven-development` | add-feature | Execution (this session) |
-| `dispatching-parallel-agents` | add-feature, analyze-project | Parallel components |
+| `dispatching-parallel-agents` | add-feature, ingest | Parallel components |
 | `using-git-worktrees` | add-feature, fix-bug | Isolated branch |
 | `test-driven-development` | add-feature, fix-bug, write-test-docs | Tests + implementation |
 | `systematic-debugging` | fix-bug | Diagnose root cause |
