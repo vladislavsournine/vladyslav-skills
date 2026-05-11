@@ -1,95 +1,32 @@
 ---
 name: analyze-project
-description: Use after attaching to an existing project to scan and document architecture, endpoints, schema, and dependencies.
+description: Deprecated in v3.3.0. Use /vladyslav:ingest instead (it runs analyze + seed-mempalace in one pass).
 ---
 
-# Analyze Project
+# Analyze Project — Deprecated
 
-## Overview
+**Type:** Engineer (light)
 
-Analyze an existing codebase and generate/update architecture documentation so Claude can work with the project effectively.
+## Status
 
-**Type:** Architect
+**Deprecated in v3.3.0** (2026-05-11). Use [`/vladyslav:ingest`](../ingest/SKILL.md) instead.
 
-## Process
+`ingest` does everything this skill did (scan codebase → write `docs/architecture/system.md` / `api.md` / `db-schema.sql`) PLUS seeds MemPalace in the same pass. Running both `analyze-project` and `seed-mempalace` separately is twice the discovery cost for outputs that should agree but historically didn't.
 
-### Step 1: Read existing docs
+This skill will be removed in v4.0.
 
-Read CLAUDE.md and any existing docs in `docs/architecture/`. Note what's already documented.
+## What to do
 
-### Step 2: Gather architecture inventory via bash
-
-Run `<plugin>/scripts/scan-architecture.sh --pwd .`. Returns JSON:
-
-```json
-{
-  "stacks": {<from detect-stack.sh>},
-  "entry_points": [<paths>],
-  "routes": {"framework": "fastapi|flask|express|gin|go-stdlib|none", "handlers": [{"method": "...", "path": "...", "file": "..."}]},
-  "schema_files": [<paths to SQL migrations / Prisma schemas / etc.>],
-  "deps": {<manifest path>: <summary string>},
-  "doc_files": [<paths under docs/>]
-}
-```
-
-This replaces the manual "read package.json, ls directories, grep for routes" pass. The script is deterministic and fast (~0.1s).
-
-### Step 3: Analyze architecture
-
-For each detected component, analyze:
-
-**Backend (if exists):**
-- Framework and version
-- Route/endpoint definitions — find all routes, methods, paths
-- Database models/schema — find model definitions, migrations
-- Auth mechanism — how auth works (JWT, sessions, OAuth)
-- Background jobs/queues — any async processing
-- External API calls — third-party integrations
-- Middleware chain
-
-**Mobile apps (if exist):**
-- Framework version
-- Screen/view structure
-- State management approach
-- API client setup
-- Navigation structure
-- Local storage
-
-**Infrastructure:**
-- Docker setup
-- CI/CD config
-- Deployment target
-
-### Step 4: Update docs
-
-Write findings to:
-
-1. `docs/architecture/system.md` — full system overview with real components
-2. `docs/architecture/api.md` — all discovered endpoints with methods and paths (if backend)
-3. `docs/architecture/db-schema.sql` — current schema from models/migrations (if backend)
-4. Update `CLAUDE.md` — accurate repository structure section
-
-### Step 5: Finish
-
-Print architect report:
+If a user types `/vladyslav:analyze-project`, redirect them:
 
 ```
-✓ Architect report:
-- Stacks: <detected>
-- Endpoints: <count> (see docs/architecture/api.md)
-- DB: <schema summary>
-- Auth: <mechanism>
-- External APIs: <list>
+ℹ /vladyslav:analyze-project is deprecated in v3.3.0.
+  Use /vladyslav:ingest instead — same architecture docs, plus MemPalace
+  records from a single source-of-truth scan pass.
 
-Updated:
-- docs/architecture/system.md
-- docs/architecture/api.md
-- CLAUDE.md
-
-Review generated docs for accuracy.
-
-Next steps:
-- /vladyslav:add-feature — start adding features
-- /vladyslav:write-project-docs — generate human-readable docs
-- /vladyslav:write-user-stories — registry of implemented features
+  Want me to run /vladyslav:ingest now? (y/n)
 ```
+
+If the user says yes → invoke `/vladyslav:ingest` via the standard Glob+Read pattern on its `SKILL.md` and follow it.
+
+If the user says no → exit cleanly. Do NOT fall back to the old analyze-project behaviour (which was Heavy Engineer in v2.x and migrated to a `scan-architecture.sh`-driven flow in v3.2.0). The maintained code path is `ingest`.

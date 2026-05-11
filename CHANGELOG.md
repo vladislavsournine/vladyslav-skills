@@ -1,5 +1,55 @@
 # Changelog
 
+## v3.3.0 — 2026-05-11
+
+`ingest` unification — collapse `analyze-project` + `seed-mempalace` into a single Architect skill that runs both bash scans once and produces architecture docs AND MemPalace seed records from the same source-of-truth pass.
+
+### Added
+
+- **`scripts/gather-seed-signals.sh`** (~200 lines) — companion to `scan-architecture.sh`. Collects git signals (head commit, branch, first commit date, last 30 commit subjects, decision-prefixed commits, top-10 most-edited files), package manifest summaries, existing `docs/**.md` paths, ADR file paths, and `CLAUDE.md` presence/size. Emits JSON. Paired with `scan-architecture.sh` these two scripts produce everything an LLM needs to write architecture docs AND seed MemPalace.
+- **`skills/ingest/SKILL.md`** (~210 lines, Architect type) — single-pass intake for existing projects:
+  1. Verify pwd + wing (via `_shared/verify-pwd.md`)
+  2. Run `scan-architecture.sh` → ARCH JSON
+  3. Run `gather-seed-signals.sh` → SIGNALS JSON
+  4. Check existing MemPalace state (empty / stale / curated) and ask user policy
+  5. Write `docs/architecture/{system,api,db-schema.sql}.md` (preserving user-edited sections)
+  6. Extract 10–20 MemPalace records (decisions / problems / milestones)
+  7. Verify searchability + update `CLAUDE.md` `## Memory` pointer
+  8. Architect report
+- **`commands/ingest.md`** — v2.3.2+ Glob+Read dispatch pattern.
+
+Total `scripts/` helpers now: **14**.
+Total skills: **18** (added `ingest`).
+
+### Deprecated
+
+- **`skills/analyze-project/SKILL.md`** — 95 → 32 lines. Now a deprecation stub that prompts the user to run `/vladyslav:ingest` instead. Removal scheduled for v4.0.
+- **`skills/seed-mempalace/SKILL.md`** — 154 → 32 lines. Same deprecation pattern. Removal scheduled for v4.0.
+
+Both deprecation stubs still register their slash commands so existing references to `/vladyslav:analyze-project` and `/vladyslav:seed-mempalace` don't break — they redirect with a one-line prompt.
+
+### Strategic rationale
+
+The two old skills both started with a discovery pass over the same inputs (git log, package manifests, existing docs, file tree). Running them in sequence meant two separate scans and two LLM passes — and the outputs sometimes told slightly different stories about the same codebase. v3.2.0's `scan-architecture.sh` already extracted the architecture-discovery half into bash. v3.3.0 adds the symmetric `gather-seed-signals.sh` and uses both to drive a single Architect skill, so the two outputs are forced to agree.
+
+Performance: discovery is now ~0.5s for `scan-architecture.sh` + ~0.5s for `gather-seed-signals.sh` = ~1s of bash, vs. two separate Sonnet-dispatched runs of file globbing in v2.x.
+
+### Migration
+
+After merging develop → main:
+
+```
+/plugin marketplace update vladyslav-marketplace
+/plugin update vladyslav
+```
+
+…and restart your Claude session.
+
+- New project intake: `/vladyslav:ingest` instead of `/vladyslav:analyze-project` + `/vladyslav:seed-mempalace`.
+- Old commands still work but redirect. Existing automation that calls them will keep working until v4.0.
+
+---
+
 ## v3.2.1 — 2026-05-11
 
 Pure-docs release synchronising documentation to the v3.0/3.1/3.2 reality. No code or skill behaviour changes.
