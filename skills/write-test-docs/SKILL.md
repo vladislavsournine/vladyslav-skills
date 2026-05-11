@@ -5,130 +5,133 @@ description: Use when test docs are missing or outdated. Generates test plan and
 
 # Write Test Docs
 
+**Type:** Engineer (light)
+
 ## Overview
 
-Generate test plan and manual QA checklist from PRD, user stories, and architecture docs.
+Generate `docs/testing/test-plan.md` and `docs/testing/manual-qa.md` — the automated test plan and the manual QA checklist that QA runs before each release.
 
-**Type:** Engineer
+This was a Heavy Engineer skill until v3.1.0. The Sonnet dispatch + YAML-return contract paid no rent for what is essentially "read inputs, write two markdown files". v3.1.0 runs inline in Opus.
 
 ## Process
 
-### Step 0: Pre-flight (Opus main)
+### Step 0: Pre-flight
 
-Interactive checks before dispatching the subagent.
+1. Read `CLAUDE.md` from `pwd`. If missing → STOP: "No CLAUDE.md found — are you in the right project?" and extract the project name and stack.
 
-1. Read `CLAUDE.md` in `pwd`. If missing → STOP: "No CLAUDE.md found in current directory. Are you in the right project?". Otherwise extract project name.
+2. Verify input files:
+   - **Required:** `docs/product/prd.md`, `docs/product/user-stories.md`
+   - **Optional:** `docs/architecture/api.md`, existing `docs/testing/test-plan.md`, existing `docs/testing/manual-qa.md` (preserve user-edited sections)
 
-2. Check input files:
-   - `docs/product/prd.md` — required
-   - `docs/product/user-stories.md` — required
-   - `docs/architecture/system.md` — optional
-   - `docs/architecture/api.md` — optional
+3. For each missing **required** file, ask the user:
+   > "Required input `<path>` is missing. Options: (a) run `/vladyslav:write-user-stories` first / (b) create stub and continue / (c) abort"
+   - On (a) → exit and let user run that skill first. Do not write anything.
+   - On (b) → create the stub and continue (the resulting test plan will be skeletal).
+   - On (c) → exit cleanly.
 
-3. For each missing **required** file, ask user:
-   > "Required input `<path>` is missing. Options: (a) create stub now / (b) abort. Which?"
-   - On abort → exit cleanly, no dispatch.
-   - On stub → create a placeholder file (`# <Title>\n\n*to be filled*\n`), proceed.
+### Step 1: Read inputs
 
-4. Read FULL content of available input files (do not truncate). Record paths and content. The subagent needs complete input to produce accurate test coverage.
+Read the FULL content of every available input file. Optionally also peek at the test runner config (`pytest.ini` / `pyproject.toml` / `package.json` test script / xcodeproj scheme) to align the plan with the actual stack.
 
-5. Compose dispatch context (project name + verified file paths + content).
+### Step 2: Generate the test plan
 
-### Step 1: Dispatch to Sonnet subagent
+Write `docs/testing/test-plan.md`. If it exists, preserve user-edited sections and merge.
 
-Invoke the Agent tool with:
-- `subagent_type: "general-purpose"`
-- `model: "sonnet"`
-- `description: "Generate test plan + QA checklist"`
-- `prompt: <subagent prompt template below, filled with pre-flight outputs>`
-
-Wait for return.
-
-### Step 2: Present summary
-
-Pipe the subagent response through `<plugin>/scripts/parse-yaml-return.sh`. Then render the human-facing summary as specified in `<plugin>/skills/_shared/references/present-summary.md` (substitute `<skill-name>` → `write-test-docs`). That reference defines the four `status` branches (`success`, `partial`, `scope_expansion_required`, `error`) verbatim — follow it without paraphrasing.
-
-On `status: scope_expansion_required` and user approval, re-dispatch with an extended allowlist (add `scope_expansion_required[0].path`); reuse pre-flight outputs, do NOT re-run AskUserQuestion.
-
----
-
-## Subagent prompt template
-
-The full subagent prompt is composed by Opus main from these fragments, in order:
-
-1. **Preamble** — verbatim contents of `<plugin>/skills/_shared/references/subagent-preamble.md` (substitute `<X>` → `write-test-docs`).
-2. **Project context** + **Task steps** — defined inline below.
-3. **YAML return contract** — verbatim contents of `<plugin>/skills/_shared/references/yaml-return.md`.
-
-Concatenate the three into a single string and pass as `prompt:` to the Agent tool.
-
-The inline part of the prompt template (item 2):
-
-````
-## Project context
-
-Working directory: <pwd>
-Project name: <from CLAUDE.md>
-Key facts from CLAUDE.md (extracted by pre-flight — must include: project type, primary tech stack, platform (web / iOS / Android / cross-platform), and any testing-relevant constraints. If the project is mobile, ensure the platform bullet is explicit so the subagent generates the device-specific QA section):
-<3-5 bullets>
-
-## Verified inputs
-
-docs/product/prd.md:
-<content from pre-flight>
-
-docs/product/user-stories.md:
-<content from pre-flight>
-
-docs/architecture/system.md (if available):
-<content from pre-flight>
-
-docs/architecture/api.md (if available):
-<content from pre-flight>
-
-## Your task
-
-Generate two files:
-
-1. `docs/testing/test-plan.md` with sections:
-   - Unit Tests (per component, with coverage targets %)
-   - Integration Tests (scenario list)
-   - Edge Cases (extracted from PRD)
-
-2. `docs/testing/manual-qa.md`:
-   - One section per user flow
-   - Each section: happy path + error cases + empty state + loading state
-   - Device-specific section if mobile project
-
-Use these markdown templates as reference shapes:
+Structure:
 
 ```markdown
 # Test Plan
-## Unit Tests
-- [Component]: [what to test] — target: [X]% coverage
-## Integration Tests
-- [Scenario]: [description]
-## Edge Cases (from PRD)
-- [Edge case]: [how to test]
+
+## Coverage targets
+
+| Layer | Target | Current | Owner |
+|-------|--------|---------|-------|
+| Unit | 70% | TBD | <stack-specific runner> |
+| Integration | core flows covered | TBD | — |
+| E2E | smoke path only | TBD | — |
+
+## Test categories
+
+### Unit
+- [feature area] — [what to cover]
+
+### Integration
+- [feature area] — [what to cover]
+
+### E2E (smoke)
+- [critical user path 1]
+- [critical user path 2]
+
+## Stack notes
+
+- Test runner: `<command>` (e.g. `pytest`, `go test ./...`, `xcodebuild test`)
+- CI hook: <how tests run in CI, or "not yet wired">
+- Fixtures location: <path>
 ```
+
+Derive each category's contents from the user-stories file. Every ✅ Done story gets at least one entry in either Unit or Integration. Every 🚧 Partial story gets a `[ ]` task.
+
+### Step 3: Generate manual QA checklist
+
+Write `docs/testing/manual-qa.md`. Same preserve-on-update behaviour.
+
+Structure:
 
 ```markdown
 # Manual QA Checklist
-## [User Flow Name]
-- [ ] Happy path: [steps]
-- [ ] Error: [what happens when X fails]
-- [ ] Empty state: [what shows when no data]
-- [ ] Loading state: [what shows during load]
-## Device-Specific (if mobile)
-- [ ] iOS [version]: [checks]
-- [ ] Offline mode: [behavior]
+
+> Run before every release. Each item is a happy-path or edge-case verification that a human performs in the running app.
+
+## Pre-flight
+
+- [ ] Latest build is installed on the test device / running locally
+- [ ] Test data is seeded
+- [ ] Logs are visible (Console.app / docker logs / browser devtools)
+
+## [Feature Area 1]
+
+### Happy path
+- [ ] [Specific user action] → [expected observable result]
+
+### Edge cases
+- [ ] [Edge case action] → [expected result]
+- [ ] Empty state — [what to verify]
+
+## [Feature Area 2]
+...
+
+## Cross-cutting
+
+- [ ] Dark mode renders correctly on every screen (iOS / web)
+- [ ] Dynamic type / browser zoom up to 200% does not break layout
+- [ ] VoiceOver / screen reader reaches every interactive element
+- [ ] All user-facing strings have translations (if multi-language)
+- [ ] No console errors during the happy path
 ```
 
-## Output allowlist
+Cross-cutting checks adapt to the stack (iOS: Dark Mode + VoiceOver; web: zoom + screen reader; backend-only: skip cross-cutting).
 
-You may ONLY create or modify these files:
+### Step 4: Summary
+
+Render:
+
+```
+✓ write-test-docs complete
+  Files: docs/testing/test-plan.md, docs/testing/manual-qa.md
+  Action: <created | updated> (per file)
+  Coverage targets: <"set" | "kept stub — please fill manually">
+  Next: /vladyslav:pre-release-check  — verify the release before deployment
+```
+
+---
+
+## Why this is a Light Engineer skill
+
+- **Generation is LLM work**, but it's one synthesis pass per file — not a multi-stage pipeline. Dispatch overhead is pure tax.
+- **Two output files, both predictable paths.** No allowlist enforcement needed.
+- **Preservation logic** (don't overwrite user-edited sections) is the only nuance — and it's a single semantic step Opus can handle without ceremony.
+
+## Output
+
 - `docs/testing/test-plan.md`
 - `docs/testing/manual-qa.md`
-
-If you discover need to touch any other file — STOP, do NOT make the change, return `status: scope_expansion_required`. Set `next_step_suggestion: /superpowers:test-driven-development` in the YAML return.
-````
