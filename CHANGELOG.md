@@ -1,5 +1,73 @@
 # Changelog
 
+## v4.0.0 — 2026-05-11
+
+**BREAKING.** Removes the deprecated `analyze-project` and `seed-mempalace` skills (introduced as stubs in v3.3.0 when `ingest` superseded them). All cross-references across SKILL.md, docs, diagrams, README, and SkillsManual cleaned up. SkillsManual deep-refreshed to v3.x/v4.0 reality.
+
+### Removed (BREAKING)
+
+- `skills/analyze-project/` — entire directory deleted
+- `skills/seed-mempalace/` — entire directory deleted
+- `commands/analyze-project.md` — deleted
+- `commands/seed-mempalace.md` — deleted
+
+Users on automation calling these slash commands will see "command not found" after `/plugin update`. Migrate to `/vladyslav:ingest` — it produces both outputs (architecture docs + MemPalace records) from a single source-of-truth scan.
+
+### Changed (cross-reference cleanup)
+
+14 files updated to remove or replace stale references:
+
+- `README.md` — "Deprecated" table removed; MemPalace skill list updated; Architect table dropped both, added `swiftui-pro` and `ingest`; Existing-project workflow now `attach-project → ingest → add-feature`; New-project workflow now `init-project → discover → add-feature → ...`; Superpowers integration table updated.
+- `CLAUDE.md` — MemPalace-requiring skills list: `seed-mempalace` → `ingest`.
+- `docs/architecture/system.md` — Architect examples cleaned of deprecation note; `scan-architecture.sh` row updated; `verify-pwd.md` consumers list updated; script count 13→15.
+- `docs/diagrams/skill-flows.md` — skill count 18→16; `analyze-project` and `seed-mempalace` flowchart blocks deleted; new `ingest` flowchart added; `attach-project` done-node updated to `→ /ingest`.
+- `docs/diagrams/skills-ecosystem.md` — count 18→16; replaced two old nodes with `ingest`.
+- `docs/diagrams/workflows.md` — New Project flow uses `/ingest`; Existing Project flow collapsed from `seed-mempalace + analyze-project` two-step to single `ingest` step.
+- `skills/attach-project/SKILL.md` — `Next:` line: `analyze-project` → `ingest`.
+- `skills/discover-apple-check/SKILL.md` — option 1 in the no-records warning updated.
+- `skills/help/SKILL.md` — full catalogue rewrite to v3.x taxonomy.
+- `skills/ingest/SKILL.md` — Overview no longer says "Replaces (deprecates)"; "When to use" cleaned; old "Migration from analyze-project / seed-mempalace" section replaced with "Re-running ingest on a previously-seeded project" (the merge/re-seed flow handled in Step 3).
+- `skills/write-project-docs/SKILL.md` — required-input fallback prompt: `analyze-project` → `ingest`.
+- `skills/_shared/references/mempalace-record.md` — "Used by" list updated.
+- `skills/_shared/references/verify-pwd.md` — consumer list updated; `attach-project` skip reason improved.
+- `examples/mcp-config.example.json` — comment string updated.
+
+### SkillsManual.md — deep refresh
+
+Targeted updates to ~10 sections of the manual:
+
+- Prerequisites + MemPalace list — replaced `seed-mempalace` with `ingest`; removed `analyze-project` from "works without MemPalace" list.
+- "Приєднання Claude" section — two old entries replaced with single `ingest` entry.
+- "Документування проекту" — references updated.
+- Scenario A (new project) and Scenario B (existing project) — workflows updated; steps renumbered as `analyze-project` + `seed-mempalace` collapsed.
+- Example 2 (python-tax) — steps 1-3 rewritten to use `ingest`.
+- "Always requires explicit call" list — updated.
+- Full skill list table — `analyze-project` + `seed-mempalace` rows removed; `ingest` row added (Architect 🧠).
+- Taxonomy summary — counts updated: Architect 8 skills, Engineer bash-driven 3, Engineer Opus inline 5.
+- Footer — `v4.0.0` note added.
+
+Still TODO (low priority, deferred to v4.0.1):
+- Example 1 (chess-duel) in SkillsManual still uses `/model opus|sonnet` manual switching (v1.x artifact). Rewriting it requires non-trivial narrative changes, kept for later.
+- A dedicated "Helper Scripts" subsection in SkillsManual was NOT added (the canonical reference for scripts lives in `docs/architecture/system.md`).
+
+### Final state
+
+- **16 active skills** (was 18 in v3.3.0 with two deprecated stubs)
+- **15 helper scripts** in `scripts/`
+- **0 lint failures** across all 16 SKILL.md files
+- All v2.x dispatch boilerplate eliminated; all Heavy Engineer skills migrated to Light Engineer (bash or Opus inline)
+
+### Migration
+
+```
+/plugin marketplace update vladyslav-marketplace
+/plugin update vladyslav
+```
+
+…and restart Claude. If your automation called `/vladyslav:analyze-project` or `/vladyslav:seed-mempalace`, replace with `/vladyslav:ingest`.
+
+---
+
 ## v3.3.0 — 2026-05-11
 
 `ingest` unification — collapse `analyze-project` + `seed-mempalace` into a single Architect skill that runs both bash scans once and produces architecture docs AND MemPalace seed records from the same source-of-truth pass.

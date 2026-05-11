@@ -1,6 +1,6 @@
 # Skill Flows
 
-Simplified lifecycle diagrams for all 18 skills. Render natively on GitHub.
+Simplified lifecycle diagrams for all 16 skills. Render natively on GitHub.
 
 ---
 
@@ -32,7 +32,7 @@ flowchart LR
     C --> D[Run scripts/attach-project.sh<br/>skip-if-exists scaffolder]
     D --> E[Parse JSON output]
     E --> F[Render summary]
-    F --> G([Done → /analyze-project]):::done
+    F --> G([Done → /ingest]):::done
 
     classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
     classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
@@ -40,18 +40,18 @@ flowchart LR
 
 ---
 
-### analyze-project — Document codebase architecture
+### ingest — Single-pass project intake (architecture docs + MemPalace)
 
 ```mermaid
 flowchart LR
-    A([/analyze-project]):::start --> B[Read existing\narchitecture docs]
-    B --> C{2+ independent\ncomponents?}
-    C -- yes --> D[Parallel agents\nper component]
-    C -- no  --> E[Scan: dirs / deps\nentry points / config]
-    D --> E
-    E --> F[Analyze: endpoints\nschema / auth / state\nDocker / CI]
-    F --> G[Write\ndocs/architecture/]
-    G --> H([Done → /add-feature]):::done
+    A([/ingest]):::start --> B["Verify pwd<br/>(verify-pwd.md)"]
+    B --> C["scripts/scan-architecture.sh<br/>→ ARCH JSON"]
+    C --> D["scripts/gather-seed-signals.sh<br/>→ SIGNALS JSON"]
+    D --> E[Check existing<br/>MemPalace state]
+    E --> F[Write architecture docs<br/>system.md / api.md / db-schema.sql]
+    F --> G[Extract 10-20<br/>MemPalace records]
+    G --> H[Update CLAUDE.md<br/>Memory pointer]
+    H --> I([Done → /add-feature]):::done
 
     classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
     classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
@@ -108,21 +108,6 @@ flowchart LR
     A([/design-page]):::start --> B[Read docs/design/system.md\n+ screen requirements]
     B --> C[Generate screen code\nusing design tokens only\nno raw hex / hardcoded values]
     C --> D[Write files + commit]
-    D --> E([Done]):::done
-
-    classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
-    classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
-```
-
----
-
-### seed-mempalace — Seed memory from existing project
-
-```mermaid
-flowchart LR
-    A([/seed-mempalace]):::start --> B[Read project:\narchitecture + git log\n+ existing docs]
-    B --> C[Extract: key decisions\nbug fixes · patterns\ndeployment facts]
-    C --> D[Write MemPalace\ndecision / problem\nmilestone drawers]
     D --> E([Done]):::done
 
     classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold

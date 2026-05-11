@@ -9,15 +9,13 @@ description: Use on an existing project to scan code once and produce both archi
 
 ## Overview
 
-Single-pass project intake. Combines what `analyze-project` and `seed-mempalace` used to do separately. Two bash scripts produce the discovery JSON; Opus main does the narrative synthesis (architecture docs) and the decision extraction (MemPalace records). Both outputs derive from the same source-of-truth scan, so they cannot disagree.
-
-Replaces (deprecates) `analyze-project` + `seed-mempalace`. Those still work but redirect to this skill.
+Single-pass project intake. Two bash scripts produce the discovery JSON; Opus main does the narrative synthesis (architecture docs) and the decision extraction (MemPalace records). Both outputs derive from the same source-of-truth scan, so they cannot disagree.
 
 ## When to use
 
-- First time you work on an existing project with Claude (run instead of `analyze-project`).
-- After a major refactor when both the docs and the MemPalace need refresh.
-- When the previous `analyze-project` output is stale and you want to re-seed MemPalace at the same time.
+- First time you work on an existing project with Claude.
+- After a major refactor when both the architecture docs and the MemPalace need refresh.
+- When architecture docs are stale and you want to re-seed MemPalace at the same time.
 
 ## When NOT to use
 
@@ -203,8 +201,8 @@ Next steps:
 - MemPalace records in the project's wing
 - (Optional) one new entry in `swift-calories` wing — only if a new Apple-pattern decision is discovered (rare; mostly `discover-apple-check`'s job)
 
-## Migration from analyze-project / seed-mempalace
+## Re-running ingest on a previously-seeded project
 
-If you previously ran `analyze-project`, the output overlaps. `ingest` will preserve user-edited sections and merge new findings. If you previously ran `seed-mempalace`, the wing is already populated; Step 3 will detect this and ask whether to add only new records or re-seed from scratch.
+If the project already has architecture docs (e.g. from a previous `ingest` run), Step 4 merges rather than overwrites — user-edited sections are preserved and only new findings are added.
 
-The old skills now redirect here. They will be fully removed in v4.0.
+If the MemPalace wing is already populated, Step 3 detects this and asks whether to add only newly-discovered records or re-seed from scratch. Re-seeding is safe: `mempalace_check_duplicate` prevents exact duplicates, and Step 6 verifies searchability after the write.

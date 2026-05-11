@@ -18,14 +18,14 @@ claude
 ## Requirements
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview)
-- [Superpowers plugin](https://github.com/obra/superpowers) — used by `add-feature`, `fix-bug`, `analyze-project`, `pre-release-check`, `write-test-docs`
+- [Superpowers plugin](https://github.com/obra/superpowers) — used by `add-feature`, `fix-bug`, `ingest`, `pre-release-check`, `write-test-docs`
 - **MemPalace MCP server** (required for 8 skills marked 🧠 below) — long-term cross-session memory. Configure as an MCP server in your Claude Code setup; without it, the skills below will fail when trying to read/write memory. See [`examples/mcp-config.example.json`](examples/mcp-config.example.json) for a copy-paste config block.
 
 ### Skills that require MemPalace 🧠
 
-`add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `seed-mempalace`, `pre-release-check`, `compact-save`
+`add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `ingest`, `pre-release-check`, `compact-save`
 
-The other skills (`init-project`, `attach-project`, `analyze-project`, `write-*`, `help`, `swiftui-pro`, `design-page`) work without MemPalace.
+The other skills (`init-project`, `attach-project`, `write-*`, `help`, `swiftui-pro`, `design-page`) work without MemPalace.
 
 ## One-Terminal Workflow (v3.x)
 
@@ -33,7 +33,7 @@ Run any skill from a single Opus session. No manual `/model` switching required.
 
 | Skill type | Where it runs |
 |-----------|---------------|
-| **Architect** (9 skills) | Opus main session — interactive design + synthesis. Internal `Agent(...)` dispatches annotated explicitly with `model="sonnet"` (executor work) or `model="opus"` (synthesis/research). |
+| **Architect** (8 skills) | Opus main session — interactive design + synthesis. Internal `Agent(...)` dispatches annotated explicitly with `model="sonnet"` (executor work) or `model="opus"` (synthesis/research). |
 | **Engineer (light) — bash-driven** (`init-project`, `attach-project`, `pre-release-check`) | Pre-flight Q&A in Opus main → a single deterministic bash helper does the work (~1 second) → summary rendered. |
 | **Engineer (light) — Opus inline** (`write-user-stories`, `write-test-docs`, `write-project-docs`, `compact-save`, `help`) | Pre-flight Q&A + LLM-driven generation, all in Opus main, no Sonnet subagent dispatch. |
 
@@ -47,20 +47,14 @@ Run any skill from a single Opus session. No manual `/model` switching required.
 
 | Skill | Purpose |
 |-------|---------|
-| `/vladyslav:ingest` | **New in v3.3.0.** Existing-project intake: writes architecture docs AND seeds MemPalace in one scan pass. Replaces `analyze-project` + `seed-mempalace`. |
+| `/vladyslav:ingest` | Existing-project intake: writes architecture docs AND seeds MemPalace in one scan pass. |
 | `/vladyslav:add-feature` | Add feature (full cycle, 9 superpowers) |
 | `/vladyslav:fix-bug` | Fix bug (full cycle, 7 superpowers) |
 | `/vladyslav:discover` | Auto-fill product/start-project.md via AI research |
 | `/vladyslav:discover-apple-check` | Apple App Store compliance pre-check (iOS only) |
 | `/vladyslav:design-sync` | Extract design tokens from code into docs/design/system.md |
 | `/vladyslav:design-page` | Design app screens in Pencil via parallel subagents |
-
-**Deprecated (use `/vladyslav:ingest` instead, scheduled for removal in v4.0):**
-
-| Skill | Replacement |
-|-------|-------------|
-| `/vladyslav:analyze-project` | `/vladyslav:ingest` (writes the same architecture docs) |
-| `/vladyslav:seed-mempalace` | `/vladyslav:ingest` (seeds MemPalace in the same pass) |
+| `/vladyslav:swiftui-pro` | SwiftUI/Swift code review for iOS 26 / Swift 6.2 best practices |
 
 **Engineer (light) — bash-driven:**
 
@@ -84,7 +78,7 @@ Run any skill from a single Opus session. No manual `/model` switching required.
 
 **New project:**
 ```
-init-project → analyze-project → add-feature → write-test-docs → pre-release-check
+init-project → discover → add-feature → write-test-docs → pre-release-check
 ```
 
 **Existing project:**
@@ -119,7 +113,7 @@ All 13 non-meta superpowers skills are integrated:
 | `writing-plans` | `add-feature` | Planning phase |
 | `executing-plans` | `add-feature` | Execution (parallel session) |
 | `subagent-driven-development` | `add-feature` | Execution (this session) |
-| `dispatching-parallel-agents` | `add-feature`, `analyze-project` | Parallel components |
+| `dispatching-parallel-agents` | `add-feature`, `ingest` | Parallel components |
 | `using-git-worktrees` | `add-feature`, `fix-bug` | Isolated branch |
 | `test-driven-development` | `add-feature`, `fix-bug`, `write-test-docs` | Tests + implementation |
 | `systematic-debugging` | `fix-bug` | Diagnose root cause |

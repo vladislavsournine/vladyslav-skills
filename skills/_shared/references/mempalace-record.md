@@ -1,6 +1,6 @@
 # MemPalace decision-record template
 
-Used by all skills that write to MemPalace (`add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `seed-mempalace`, `pre-release-check`, `compact-save`).
+Used by all skills that write to MemPalace (`add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `ingest`, `pre-release-check`, `compact-save`).
 
 Every drawer should be addable in one search query later — write for **searchability**, not narrative.
 
