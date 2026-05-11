@@ -5,204 +5,190 @@ description: Use when human-readable docs are needed. Generates README, onboardi
 
 # Write Project Docs
 
+**Type:** Engineer (light)
+
 ## Overview
 
-Generate documentation for humans: README, onboarding guide, deployment guide. No AI context — these are for team members, new developers, and stakeholders.
+Generate three human-readable documents for team members, new developers, and stakeholders:
 
-**Type:** Engineer
+- `README.md` (project root)
+- `docs/onboarding.md`
+- `docs/deployment.md`
+
+These are NOT AI-context documents — they are for humans. No mentions of Claude, CLAUDE.md, skills, or plugin internals.
+
+This was a Heavy Engineer skill until v3.1.0. v3.1.0 runs inline in Opus — same outcome, no dispatch overhead.
 
 ## Process
 
-### Step 0: Pre-flight (Opus main)
+### Step 0: Pre-flight
 
-Interactive checks before dispatching the subagent.
+1. Read `CLAUDE.md` from `pwd`. If missing → STOP: "No CLAUDE.md found — are you in the right project?" and extract the project name + primary stack + platform (web / iOS / Android / cross-platform / CLI / plugin / etc.).
 
-1. Read `CLAUDE.md` in `pwd`. If missing → STOP: "No CLAUDE.md found in current directory. Are you in the right project?". Otherwise extract project name.
+2. Verify input files:
+   - **Required:** `CLAUDE.md`, `docs/architecture/system.md`
+   - **Optional:** `docs/architecture/api.md`, existing `README.md` (preserve any custom sections found there), deployment configs found in the tree
 
-2. Check input files:
-   - `CLAUDE.md` — required
-   - `docs/architecture/system.md` — required
-   - `docs/architecture/api.md` — optional
-   - existing `README.md` — optional (preserve any custom sections)
-   - deployment configs: scan the directory tree for `Dockerfile`, `docker-compose.yml`, `.github/workflows/*.yml`, `vercel.json` — optional, note any found
+3. For each missing **required** file, ask the user:
+   > "Required input `<path>` is missing. Options: (a) run `/vladyslav:analyze-project` first to populate it / (b) create stub now / (c) abort"
+   - On (a) → exit cleanly. Suggest the user run analyze-project then come back.
+   - On (b) → create stub and continue (output will be skeletal).
+   - On (c) → exit cleanly.
 
-3. For each missing **required** file, ask user:
-   > "Required input `<path>` is missing. Options: (a) create stub now / (b) abort. Which?"
-   - On abort → exit cleanly, no dispatch.
-   - On stub → create a placeholder file (`# <Title>\n\n*to be filled*\n`), proceed.
+4. **Scan for deployment configs.** Look at the project tree for `Dockerfile`, `docker-compose.yml`, `.github/workflows/*.yml`, `vercel.json`, `fly.toml`, `railway.toml`. Note any found — they shape the deployment guide.
 
-4. Read FULL content of available input files (do not truncate). Record paths and content. The subagent needs complete input to produce accurate documentation.
+### Step 1: Read inputs
 
-5. Compose dispatch context (project name + verified file paths + content).
+Read the FULL content of every available input file (do not truncate). The output must be accurate to the actual code state.
 
-### Step 1: Dispatch to Sonnet subagent
+### Step 2: Generate README.md
 
-Invoke the Agent tool with:
-- `subagent_type: "general-purpose"`
-- `model: "sonnet"`
-- `description: "Generate README, onboarding guide, and deployment guide"`
-- `prompt: <subagent prompt template below, filled with pre-flight outputs>`
+Write `README.md` at the project root. If it exists, preserve any custom sections; merge the rest.
 
-Wait for return.
-
-### Step 2: Present summary
-
-Pipe the subagent response through `<plugin>/scripts/parse-yaml-return.sh`. Then render the human-facing summary as specified in `<plugin>/skills/_shared/references/present-summary.md` (substitute `<skill-name>` → `write-project-docs`). That reference defines the four `status` branches (`success`, `partial`, `scope_expansion_required`, `error`) verbatim — follow it without paraphrasing.
-
-On `status: scope_expansion_required` and user approval, re-dispatch with an extended allowlist (add `scope_expansion_required[0].path`); reuse pre-flight outputs, do NOT re-run AskUserQuestion.
-
----
-
-## Subagent prompt template
-
-The full subagent prompt is composed by Opus main from these fragments, in order:
-
-1. **Preamble** — verbatim contents of `<plugin>/skills/_shared/references/subagent-preamble.md` (substitute `<X>` → `write-project-docs`).
-2. **Project context** + **Task steps** — defined inline below.
-3. **YAML return contract** — verbatim contents of `<plugin>/skills/_shared/references/yaml-return.md`.
-
-Concatenate the three into a single string and pass as `prompt:` to the Agent tool.
-
-The inline part of the prompt template (item 2):
-
-````
-## Project context
-
-Working directory: <pwd>
-Project name: <from CLAUDE.md>
-Key facts from CLAUDE.md (extracted by pre-flight — must include: project type, primary tech stack, platform (web / iOS / Android / cross-platform / CLI / plugin / etc.), and any deployment-relevant constraints. If the project has a backend, ensure the API/service bullet is explicit so the subagent generates the API overview section):
-<3-5 bullets>
-
-## Verified inputs
-
-CLAUDE.md:
-<content from pre-flight>
-
-docs/architecture/system.md:
-<content from pre-flight>
-
-docs/architecture/api.md (if available):
-<content from pre-flight>
-
-README.md (if available — preserve any custom sections found here):
-<content from pre-flight>
-
-Deployment configs found (list paths; include content of each):
-<content from pre-flight>
-
-## Your task
-
-Generate three files. Do NOT include any references to AI, Claude, CLAUDE.md, skills, or plugin internals in any output — these are human-readable documents for team members, new developers, and stakeholders.
-
-1. `README.md` with sections:
-   - Project description (clear one-paragraph summary)
-   - How to run locally (exact commands)
-   - Project structure (directory tree, key dirs/files)
-   - API overview (if backend project — endpoints, auth method)
-   - Deployment summary (one paragraph pointing to docs/deployment.md)
-
-2. `docs/onboarding.md` with sections:
-   - Prerequisites (tools to install, versions)
-   - Setup steps (clone, env vars, install deps, run)
-   - Architecture overview (high-level, derived from system.md)
-   - Key files to know
-   - Development workflow (branching, PRs, code review)
-   - How to run tests
-   - Who to ask for help (placeholder if unknown)
-
-3. `docs/deployment.md` with sections:
-   - Environment requirements (runtime versions, infra)
-   - Step-by-step deployment process
-   - Environment variables reference (name, purpose, example value)
-   - Rollback procedure
-   - Monitoring/logging
-
-Use these markdown templates as reference shapes:
+Structure:
 
 ```markdown
 # <Project Name>
 
-<One-paragraph description>
+<One-paragraph description — what the project does, who it's for>
 
 ## Run locally
+
 \`\`\`bash
-# install deps
-# start dev server
+# install dependencies
+# start dev server / build app
 \`\`\`
 
 ## Project structure
+
 \`\`\`
-src/       # source code
-docs/      # documentation
+<key directory>/    # purpose
+<key directory>/    # purpose
 \`\`\`
 
-## API overview (if applicable)
-- `GET /endpoint` — description
+## API overview (if backend project)
+
+- `GET /endpoint` — purpose
+- `POST /endpoint` — purpose
 
 ## Deployment
+
 See [docs/deployment.md](docs/deployment.md).
 ```
+
+Do NOT include `Claude`, `CLAUDE.md`, `.claude/`, or "AI" anywhere in the README.
+
+### Step 3: Generate docs/onboarding.md
+
+Write `docs/onboarding.md`. Preserve user edits where reasonable.
+
+Structure:
 
 ```markdown
 # Onboarding Guide
 
+For new developers joining the project.
+
 ## Prerequisites
-- Tool A vX.Y
-- Tool B vX.Y
+
+- <tool A> v<X.Y> — <reason>
+- <tool B> v<X.Y> — <reason>
 
 ## Setup
+
 1. Clone the repo
-2. Copy `.env.example` → `.env` and fill in values
-3. Install dependencies
-4. Run locally
+2. Copy `.env.example` → `.env` and fill values
+3. Install dependencies (`<command>`)
+4. Run locally (`<command>`)
 
 ## Architecture overview
-<high-level description>
 
-## Key files
-- `path/to/file` — purpose
+<2-4 paragraphs explaining the system at a high level — derived from docs/architecture/system.md, summarised for a newcomer>
+
+## Key files to know
+
+- `<path>` — <purpose, why it matters>
 
 ## Development workflow
-<branching, PR, review process>
+
+- Branching strategy: <e.g. trunk-based, feature branches, gitflow>
+- PR review: <process>
+- Code style: <linter / formatter>
 
 ## Running tests
+
 \`\`\`bash
-# test command
+<test command>
 \`\`\`
 
 ## Who to ask
-- <name/team> for <topic>
+
+- `<name / team>` for `<topic>`  ← placeholder if unknown
 ```
+
+### Step 4: Generate docs/deployment.md
+
+Write `docs/deployment.md`. Preserve user edits.
+
+Structure:
 
 ```markdown
 # Deployment Guide
 
 ## Environment requirements
-- Runtime: Node vX / Python vX / etc.
-- Infrastructure: <cloud provider, services>
+
+- Runtime: <Node vX / Python vX / Swift vX / etc.>
+- Infrastructure: <cloud provider, services in use>
+- External dependencies: <DB, Redis, S3, etc.>
 
 ## Deploy steps
+
 1. Step one
 2. Step two
+3. Step three
 
 ## Environment variables
-| Variable | Purpose | Example |
-|----------|---------|---------|
-| VAR_NAME | What it does | value |
 
-## Rollback
-<steps to roll back>
+| Variable | Purpose | Example value |
+|----------|---------|---------------|
+| `VAR_NAME` | What it does | `example_value` |
+
+## Rollback procedure
+
+<concrete steps to roll back a bad deploy>
 
 ## Monitoring / logging
-<where to find logs, alerts>
+
+- Logs: <where to find them>
+- Metrics dashboard: <URL or "not yet wired">
+- Alerting: <PagerDuty / Slack / "not yet wired">
 ```
 
-## Output allowlist
+Derive concrete deploy steps from the deployment configs found in Step 0.4. For projects without any deployment config, fill the file with stub guidance ("no deployment configuration found — fill manually once chosen").
 
-You may ONLY create or modify these files:
+### Step 5: Summary
+
+Render:
+
+```
+✓ write-project-docs complete
+  Files: README.md, docs/onboarding.md, docs/deployment.md
+  Action per file: <created | updated>
+  Deployment configs detected: <list, or "none — manual fill required">
+  Warnings: <warnings, if any>
+  Next: /vladyslav:pre-release-check  — verify before deploying
+```
+
+---
+
+## Why this is a Light Engineer skill
+
+- **Three generation passes** that benefit from LLM but don't need orchestration. Dispatch + YAML-return + present-summary boilerplate was ~50 lines of overhead per skill body, all gone in v3.1.0.
+- **Preservation of user edits** is the only nuance — Opus handles it inline.
+- **No allowlist enforcement** — exactly three output paths, all under-the-project-root, none surprising.
+
+## Output
+
 - `README.md`
 - `docs/onboarding.md`
 - `docs/deployment.md`
-
-If you discover need to touch any other file — STOP, do NOT make the change, return `status: scope_expansion_required`. Set `next_step_suggestion: /vladyslav:pre-release-check` in the YAML return.
-````

@@ -5,158 +5,118 @@ description: Use when adding Claude Code structure to an existing project. Auto-
 
 # Attach Project
 
+**Type:** Engineer (light)
+
 ## Overview
 
-Add Claude Code structure to an existing project. Never overwrites existing files. Auto-detects stacks.
+Add Claude Code structure to an **existing** project. Never overwrites existing files. Auto-detects stacks via `scripts/detect-stack.sh`. The bash scaffolder (`scripts/attach-project.sh`) does all the work in ~0.5 seconds.
 
-**Type:** Engineer
+This was a Heavy Engineer skill until v3.1.0. Like `init-project` v3.0.0, the dispatched Sonnet subagent was doing pure mechanics (`mkdir`, `cp`, `sed`) — no LLM thinking needed for any of it.
 
 ## Process
 
 ### Step 0: Pre-flight (Opus main)
 
-Interactive checks and setup before dispatching the subagent.
+Collect inputs that the scaffolder can't auto-detect.
 
-1. **Verify project root.** Check that `pwd` contains `.git/` or at least one recognizable project file:
-   - `requirements.txt` or `pyproject.toml` — python
-   - `go.mod` — go
-   - `pubspec.yaml` — flutter
-   - `Package.swift` or `*.xcodeproj` — swift
-   - `build.gradle` or `build.gradle.kts` — kotlin
-   - `package.json` — node/js
+1. **Verify project root.** Run `ls -A`. The scaffolder will reject the run if no project markers exist, so this is a pre-emptive sanity check. If pwd looks empty (no `.git/`, no language manifest like `package.json` / `requirements.txt` / etc.) → STOP and suggest `/vladyslav:init-project` for a new project.
 
-   If none of the above are found → STOP: "Not a project root — confirm the path or initialize git first".
+2. **Run stack detection** for the user's information:
 
-2. **Auto-detect stacks.** Report detected stacks to the user:
+   ```bash
+   <plugin-root>/scripts/detect-stack.sh .
+   ```
 
-   | File | Stack |
-   |------|-------|
-   | `requirements.txt` or `pyproject.toml` | python |
-   | `go.mod` | go |
-   | `pubspec.yaml` | flutter |
-   | `Package.swift` or `*.xcodeproj` | swift |
-   | `build.gradle` or `build.gradle.kts` | kotlin |
+   Parse the JSON to show the user what was detected. Example: "Detected: python, docker". This is informational — the scaffolder runs detection again internally.
 
-3. **AskUserQuestion — additional stacks** (multi-select):
-   > "Detected stacks: `<detected>`. Want to add any stacks not detected?"
-   > Options: python / go / flutter / swift / kotlin / other / none
+3. **AskUserQuestion — additional stacks not auto-detected** (multi-select):
+   > "Detected stacks: `<list>`. Want to add any stacks not detected?"
+   > Options: `python`, `go`, `flutter`, `swift`, `kotlin`, `other`, `none`.
 
-4. **If "other" selected** → for each "other" stack, AskUserQuestion:
-   - Label (e.g. "Rust backend")
-   - Directory name (e.g. `rust/`)
-   - .gitignore entries to add (comma-separated)
+4. **For each "other" stack** — AskUserQuestion three times:
+   - `label` (e.g. "Rust backend")
+   - `dir` (e.g. `rust`)
+   - `gitignore` entries (comma-separated, e.g. `target/,Cargo.lock`)
 
-5. **AskUserQuestion — domain** (free-text, optional):
-   > "What is the project domain? (e.g. 'iOS fitness app', 'Python data pipeline') — press Enter to skip"
+5. **AskUserQuestion — domain** (free text, optional):
+   > "Project domain / purpose? (e.g. 'iOS fitness app', 'Python data pipeline') — type `none` to skip"
 
-6. **AskUserQuestion — private mode** (yes/no):
-   > "Private mode? Gitignore AI workflow files (CLAUDE.md, .claude/, docs/)? (yes/no)"
+6. **AskUserQuestion — private mode** (single-select):
+   > "Private mode? Gitignore AI workflow files (CLAUDE.md, .claude/, docs/plans/)?"
+   > Options: `yes`, `no`.
 
-7. **Compose dynamic allowlist** based on the answers above. The allowlist is the union of:
-   - `CLAUDE.md` — only if it does not already exist
-   - `.gitignore` — always included (append-only, never overwrite)
-   - `.claude/agents/*.md` — only individual agent files that do not already exist
-   - Per detected + selected stack directories and scaffolding files (e.g. `python/`, `go/`, `flutter/`, `swift/`, `kotlin/`, plus any "other" stack directories)
-   - If private mode = no: `docs/architecture/system.md`, `docs/product/prd.md`, `docs/plans/tasks.md` — only files that do not already exist
+7. **Resolve plugin root.** Same approach as `init-project`: Glob `~/.claude/plugins/cache/vladyslav-marketplace/vladyslav/*/scripts/attach-project.sh` and take the directory two levels up. Fall back to `/Volumes/DevSSD/Development/vladyslav-skills` (dev clone).
 
-   Scan the filesystem now and exclude any path that already exists, producing the final allowlist of files the subagent may create or modify.
+### Step 1: Run the scaffolder
 
-8. **Pass to subagent:** detected stacks, additional stacks, "other" stack details, domain, private mode, project root path, final computed allowlist.
+Execute (via the Bash tool):
 
-### Step 1: Dispatch to Sonnet subagent
+```bash
+<plugin-root>/scripts/attach-project.sh \
+    --pwd <project pwd> \
+    --plugin-root <plugin-root> \
+    [--additional-stacks "python,go,..."] \
+    [--other-stacks "label1:dir1:gitignore-entries1;label2:dir2:gitignore-entries2"] \
+    --domain "<domain-or-empty>" \
+    --private-mode <yes|no>
+```
 
-Invoke the Agent tool with:
-- `subagent_type: "general-purpose"`
-- `model: "sonnet"`
-- `description: "Create missing Claude Code structure for the project"`
-- `prompt: <subagent prompt template below, filled with pre-flight outputs>`
+**`--other-stacks` format**: semicolon-separated list of `label:dir:gitignore` triples. The `gitignore` part is itself a comma-separated list. Pass empty string `""` if no "other" stacks were chosen.
 
-Wait for return.
+The script emits JSON:
+
+```json
+{
+  "status": "success" | "error",
+  "detected_stacks": [<auto-detected stack names>],
+  "files_written": [<paths>],
+  "files_skipped": [<paths that already existed and were preserved>],
+  "warnings": [<msgs>],
+  "error": "<msg if status=error>"
+}
+```
+
+Capture this output.
 
 ### Step 2: Present summary
 
-Pipe the subagent response through `<plugin>/scripts/parse-yaml-return.sh`. Then render the human-facing summary as specified in `<plugin>/skills/_shared/references/present-summary.md` (substitute `<skill-name>` → `attach-project`). That reference defines the four `status` branches (`success`, `partial`, `scope_expansion_required`, `error`) verbatim — follow it without paraphrasing.
+Parse the JSON. Render to the user:
 
-On `status: scope_expansion_required` and user approval, re-dispatch with an extended allowlist (add `scope_expansion_required[0].path`); reuse pre-flight outputs, do NOT re-run AskUserQuestion.
+**`status: success`**:
+
+```
+✓ attach-project complete
+  Detected: <detected_stacks joined>
+  Files written: <files_written count> — <list>
+  Files preserved (already existed): <files_skipped count> — <list, if any>
+  Warnings: <warnings, if any>
+  Next: /vladyslav:analyze-project  — scan codebase and populate docs/
+```
+
+**`status: error`**:
+
+```
+✗ attach-project failed
+  Error: <error from JSON>
+```
 
 ---
 
-## Subagent prompt template
+## What the scaffolder does (auditing reference)
 
-The full subagent prompt is composed by Opus main from these fragments, in order:
+The bash scaffolder, given the parameters above, writes ONLY these paths if they do not already exist:
 
-1. **Preamble** — verbatim contents of `<plugin>/skills/_shared/references/subagent-preamble.md` (substitute `<X>` → `attach-project`).
-2. **Project context** + **Task steps** — defined inline below.
-3. **YAML return contract** — verbatim contents of `<plugin>/skills/_shared/references/yaml-return.md`.
+- `CLAUDE.md` — with auto-generated Stack section based on detected + additional stacks
+- `.gitignore` — APPENDED with stack-specific entries (Python / Go / Flutter / Swift / Kotlin / Node / Web), editors/OS, secrets/env, logs, and (if private mode) AI workflow file lines. Existing entries are preserved verbatim, duplicates are skipped via `grep -Fxq`.
+- `.claude/settings.json` — with `PROJECT_DOCS_ROOT` env
+- `.claude/agents/docs-agent.md` — documentation maintainer
+- `.claude/agents/code-review-agent.md` — code-review agent
+- `docs/architecture/system.md`, `docs/product/prd.md`, `docs/plans/tasks.md` — stub files (`# Title\n\n*to be filled*\n`)
+- Per detected/added stack: a placeholder directory (`python/`, `go/`, `swift/`, `flutter/`, `kotlin/`) with `.gitkeep` — but ONLY if no matching directory (or sibling like `backend/`, `app/`, `ios/`, `android/`) already exists.
+- Per "other" stack: the user-specified `<dir>/` with `.gitkeep`.
 
-Concatenate the three into a single string and pass as `prompt:` to the Agent tool.
+**Idempotent:** rerun is safe. Every pre-existing file is reported in `files_skipped`. No file is ever overwritten.
 
-The inline part of the prompt template (item 2):
+**No git init:** the project already has version control. The scaffolder doesn't touch git.
 
-````
-## Project context
-
-Working directory: <pwd>
-Detected stacks: <auto-detected stacks from pre-flight>
-Additional stacks chosen by user: <additional stacks>
-Other stacks (user-defined): <label, directory, .gitignore entries per stack — or "none">
-Domain: <domain entered by user, or "not specified">
-Private mode: <yes/no>
-
-## Your task
-
-Create missing Claude Code structure for this project. Rules and reporting contract are in the preamble (above) and YAML return block (at the end).
-
-### Files to create (based on stacks)
-
-For each detected/selected stack, create the standard Claude Code scaffold:
-
-- **python:** `python/` directory; standard python entries in `.gitignore` (`__pycache__/`, `*.pyc`, `.venv/`, `dist/`, `*.egg-info/`)
-- **go:** `go/` directory; standard go entries in `.gitignore` (`/bin/`, `*.exe`, `*.test`, `*.out`)
-- **flutter:** `flutter/` directory; standard flutter entries in `.gitignore` (`.dart_tool/`, `build/`, `.flutter-plugins`, `.flutter-plugins-dependencies`)
-- **swift:** `swift/` or `ios/` directory; standard swift/xcode entries in `.gitignore` (`.build/`, `*.xcuserstate`, `DerivedData/`, `*.ipa`, `Pods/`)
-- **kotlin/android:** `android/` directory; standard android entries in `.gitignore` (`*.apk`, `*.aab`, `local.properties`, `.gradle/`, `build/`)
-- **other (user-defined):** `<directory name from user>` directory; `.gitignore` entries supplied by user
-
-For `CLAUDE.md` (if absent), use this template:
-```markdown
-# <project name from directory>
-
-## Project Type
-
-<domain if provided, else: "to be filled">
-
-## Stack
-
-<detected + added stacks>
-
-## Source of Truth
-
-| Doc | Purpose |
-|-----|---------|
-| `docs/architecture/system.md` | Architecture overview |
-| `docs/product/prd.md` | Product requirements |
-| `docs/plans/tasks.md` | Active tasks |
-
-## Working Rules
-
-- <add project-specific rules here>
-```
-
-For `docs/` structure (if private mode = no), create stubs only for files that do not exist:
-- `docs/architecture/system.md` → `# System Architecture\n\n*to be filled*\n`
-- `docs/product/prd.md` → `# Product Requirements\n\n*to be filled*\n`
-- `docs/plans/tasks.md` → `# Tasks\n\n*to be filled*\n`
-
-For `.claude/agents/` (create directory if missing; create each agent stub only if the individual file is absent):
-- `docs-agent.md` — documentation agent
-- `code-review-agent.md` — code review agent
-
-## Output allowlist
-
-You may ONLY create or modify the files listed in the allowlist below (computed by pre-flight based on the user's stack choices and filesystem state):
-
-<allowlist from pre-flight — one path per line>
-
-Do NOT touch any file not in this list. If you determine that a file outside this list is needed — STOP, do NOT make the change, return `status: scope_expansion_required` with the path and reason. Set `next_step_suggestion: /vladyslav:analyze-project` in the YAML return.
-````
+**No backend scaffolding:** unlike `init-project`, this skill does NOT create `requirements.txt`, FastAPI `main.py`, Dockerfile, docker-compose files, etc. Those would conflict with the existing project. attach-project adds only the AI workflow shell.
