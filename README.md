@@ -47,14 +47,20 @@ Run any skill from a single Opus session. No manual `/model` switching required.
 
 | Skill | Purpose |
 |-------|---------|
-| `/vladyslav:analyze-project` | Analyze existing codebase |
+| `/vladyslav:ingest` | **New in v3.3.0.** Existing-project intake: writes architecture docs AND seeds MemPalace in one scan pass. Replaces `analyze-project` + `seed-mempalace`. |
 | `/vladyslav:add-feature` | Add feature (full cycle, 9 superpowers) |
 | `/vladyslav:fix-bug` | Fix bug (full cycle, 7 superpowers) |
 | `/vladyslav:discover` | Auto-fill product/start-project.md via AI research |
 | `/vladyslav:discover-apple-check` | Apple App Store compliance pre-check (iOS only) |
 | `/vladyslav:design-sync` | Extract design tokens from code into docs/design/system.md |
 | `/vladyslav:design-page` | Design app screens in Pencil via parallel subagents |
-| `/vladyslav:seed-mempalace` | Bootstrap MemPalace memory from git log + docs |
+
+**Deprecated (use `/vladyslav:ingest` instead, scheduled for removal in v4.0):**
+
+| Skill | Replacement |
+|-------|-------------|
+| `/vladyslav:analyze-project` | `/vladyslav:ingest` (writes the same architecture docs) |
+| `/vladyslav:seed-mempalace` | `/vladyslav:ingest` (seeds MemPalace in the same pass) |
 
 **Engineer (light) — bash-driven:**
 
@@ -83,7 +89,7 @@ init-project → analyze-project → add-feature → write-test-docs → pre-rel
 
 **Existing project:**
 ```
-attach-project → analyze-project → add-feature
+attach-project → ingest → add-feature
 ```
 
 **Before release:**
