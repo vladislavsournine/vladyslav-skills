@@ -12,7 +12,7 @@
 
 ### Скіли що вимагають MemPalace 🧠
 
-`add-feature` · `fix-bug` · `discover` · `discover-apple-check` · `design-sync` · `ingest` · `pre-release-check` · `compact-save`
+`add-feature` · `fix-bug` · `discover` · `discover-apple-check` · `design-sync` · `ingest` · `pre-release-check` · `compact-save` · `save`
 
 Інші скіли (`init-project`, `attach-project`, `write-user-stories`, `write-test-docs`, `write-project-docs`, `help`, `swiftui-pro`, `design-page`) працюють без MemPalace.
 
@@ -126,6 +126,8 @@
 ### Session Continuity
 
 - **`/vladyslav:compact-save`** 🧠 — знімок поточного стану задачі в MemPalace (`compact-save` drawer). Автоматично викликається через `PreCompact` hook перед компресією контексту — не потрібно нічого робити вручну. Зберігає: поточна задача, змінені файли, останнє рішення, наступний крок.
+
+- **`/vladyslav:save`** 🧠 — зберігає окремий knowledge record у MemPalace для поточного wing. На відміну від `compact-save`, не прив'язаний до compaction — виклич будь-коли: після ключового рішення, наприкінці сесії, коли хочеш запам'ятати preference або milestone. Типи: `decision` · `preference` · `milestone` · `problem`. Перед записом перевіряє дублікати.
 
 Після компресії або на початку сесії глобальне правило **Compact-Save Continuity** (`~/.claude/CLAUDE.md`) автоматично знаходить останній compact-save для активного wing і відновлює контекст — без `/unstash`, без ручних кроків.
 
@@ -364,11 +366,13 @@ mempalace_search wing=<project>      # попередні міграції, gotc
 | `write-project-docs` | Engineer | README + deployment + onboarding |
 | `pre-release-check` | Engineer | Фінальна верифікація перед релізом |
 | `swiftui-pro` | Engineer | Ревю SwiftUI/Swift коду: deprecated API, accessibility, HIG, Swift concurrency (iOS 26 / Swift 6.2). Автоматично викликається в `add-feature` Step 6.5 для iOS проектів. |
+| `compact-save` | Engineer 🧠 | Знімок task state в MemPalace (auto перед compaction) |
+| `save` | Engineer 🧠 | Зберігає knowledge record в MemPalace (decision / preference / milestone / problem) |
 | `help` | — | Список скілів і хелп |
 
 **Architect** (8 скілів: `ingest`, `add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `design-page`, `swiftui-pro`) — інтерактивно в Opus main. Внутрішні Agent dispatches позначені `model="sonnet"` (executor) або `model="opus"` (synthesis).
 **Engineer (light) — bash-driven** (`init-project`, `attach-project`, `pre-release-check`) — pre-flight Q&A в Opus, потім bash-скрипт, потім summary.
-**Engineer (light) — Opus inline** (`write-user-stories`, `write-test-docs`, `write-project-docs`, `compact-save`, `help`) — LLM-генерація без dispatch.
+**Engineer (light) — Opus inline** (`write-user-stories`, `write-test-docs`, `write-project-docs`, `compact-save`, `save`, `help`) — LLM-генерація без dispatch.
 
 ---
 
@@ -618,4 +622,4 @@ $ cd ~/python-tax && claude
 
 ---
 
-*Останнє оновлення: 2026-05-11 (v4.0.1 — chess-duel приклад refresh, Helper Scripts секція додана; 16 active skills, 15 helper scripts)*
+*Останнє оновлення: 2026-05-15 (v4.1.0 — новий скіл `save` для збереження knowledge records у MemPalace; 17 active skills, 15 helper scripts)*

@@ -19,11 +19,11 @@ claude
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview)
 - [Superpowers plugin](https://github.com/obra/superpowers) — used by `add-feature`, `fix-bug`, `ingest`, `pre-release-check`, `write-test-docs`
-- **MemPalace MCP server** (required for 8 skills marked 🧠 below) — long-term cross-session memory. Configure as an MCP server in your Claude Code setup; without it, the skills below will fail when trying to read/write memory. See [`examples/mcp-config.example.json`](examples/mcp-config.example.json) for a copy-paste config block.
+- **MemPalace MCP server** (required for 9 skills marked 🧠 below) — long-term cross-session memory. Configure as an MCP server in your Claude Code setup; without it, the skills below will fail when trying to read/write memory. See [`examples/mcp-config.example.json`](examples/mcp-config.example.json) for a copy-paste config block.
 
 ### Skills that require MemPalace 🧠
 
-`add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `ingest`, `pre-release-check`, `compact-save`
+`add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `ingest`, `pre-release-check`, `compact-save`, `save`
 
 The other skills (`init-project`, `attach-project`, `write-*`, `help`, `swiftui-pro`, `design-page`) work without MemPalace.
 
@@ -35,7 +35,7 @@ Run any skill from a single Opus session. No manual `/model` switching required.
 |-----------|---------------|
 | **Architect** (8 skills) | Opus main session — interactive design + synthesis. Internal `Agent(...)` dispatches annotated explicitly with `model="sonnet"` (executor work) or `model="opus"` (synthesis/research). |
 | **Engineer (light) — bash-driven** (`init-project`, `attach-project`, `pre-release-check`) | Pre-flight Q&A in Opus main → a single deterministic bash helper does the work (~1 second) → summary rendered. |
-| **Engineer (light) — Opus inline** (`write-user-stories`, `write-test-docs`, `write-project-docs`, `compact-save`, `help`) | Pre-flight Q&A + LLM-driven generation, all in Opus main, no Sonnet subagent dispatch. |
+| **Engineer (light) — Opus inline** (`write-user-stories`, `write-test-docs`, `write-project-docs`, `compact-save`, `save`, `help`) | Pre-flight Q&A + LLM-driven generation, all in Opus main, no Sonnet subagent dispatch. |
 
 > **Heavy Engineer (deprecated):** v2.x wrapped Engineer skills in a Sonnet subagent dispatch with a YAML return contract. As of v3.1.0 no skill uses this pattern — the migrated skills run as Light Engineers and the shared references that documented the contract are kept for future use. See `docs/architecture/system.md`.
 
@@ -72,6 +72,7 @@ Run any skill from a single Opus session. No manual `/model` switching required.
 | `/vladyslav:write-test-docs` | Test plan + manual QA docs |
 | `/vladyslav:write-project-docs` | README, onboarding, deployment |
 | `/vladyslav:compact-save` | Snapshot task state to MemPalace (auto before compact) |
+| `/vladyslav:save` | Save a knowledge record to MemPalace (decision / preference / milestone / problem) |
 | `/vladyslav:help` | This reference |
 
 ## Workflows
@@ -126,5 +127,7 @@ All 13 non-meta superpowers skills are integrated:
 ### Session Continuity
 
 - **`/vladyslav:compact-save`** — snapshot current task state (task description, modified files, last decision, next action) to MemPalace as a `compact-save` drawer. Called automatically via `PreCompact` hook before Claude Code compresses the context window. Can also be called manually at any time.
+
+- **`/vladyslav:save`** — save a single knowledge record (decision, preference, milestone, or problem) to MemPalace for the current project wing. Use it at the end of a session or any time after a key insight — no compaction required. Duplicate-checks before writing.
 
 At session start (or after compaction), the global `~/.claude/CLAUDE.md` rule **Compact-Save Continuity** searches for a recent compact-save and restores context automatically — no manual resume command needed.
