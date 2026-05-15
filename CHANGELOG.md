@@ -1,5 +1,28 @@
 # Changelog
 
+## v4.0.1 — 2026-05-11
+
+Pure-docs patch closing the two TODOs deferred from v4.0.0. No code or skill behaviour changes.
+
+### Changed — `SkillsManual.md`
+
+- **Example 1 (chess-duel) refreshed** — removed the v1.x `/model opus` manual switching artifacts:
+  - Step 1 label: `(Engineer Sonnet)` → `(Engineer light — bash-driven, v3.0+)`. Body now mentions `scripts/scaffold-project.sh` and ~1-second runtime.
+  - Step 3 label: `(Architect Opus). Перемикаєш: /model opus` → `(Architect, в тій самій сесії)`.
+  - Step 4 label: `(Architect Opus)` → `(Architect)`.
+- **New "Helper scripts" section** added near the end (before the footer). Groups all 15 scripts into three buckets: Discovery/detection (7), Scaffolding (4), Verification/reporting (4). Cross-links to `docs/architecture/system.md` as the canonical reference.
+
+### Migration
+
+```
+/plugin marketplace update vladyslav-marketplace
+/plugin update vladyslav
+```
+
+…or skip — v4.0.1 only changes documentation. Runtime is identical to v4.0.0.
+
+---
+
 ## v4.0.0 — 2026-05-11
 
 **BREAKING.** Removes the deprecated `analyze-project` and `seed-mempalace` skills (introduced as stubs in v3.3.0 when `ingest` superseded them). All cross-references across SKILL.md, docs, diagrams, README, and SkillsManual cleaned up. SkillsManual deep-refreshed to v3.x/v4.0 reality.

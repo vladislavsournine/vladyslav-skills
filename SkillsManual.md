@@ -440,11 +440,11 @@ HIG правила по 10 категоріях (CRITICAL/HIGH/MEDIUM) з Correc
 $ mkdir ~/chess-duel && cd ~/chess-duel && claude
 ```
 
-**Крок 1 — структура (Engineer Sonnet).**
+**Крок 1 — структура (Engineer light — bash-driven, v3.0+).**
 ```
 > /vladyslav:init-project
 ```
-Я питаю стек — ти: "Swift + SwiftUI, iOS 17+". Я створюю `docs/`, `.claude/agents/`, `CLAUDE.md`, Swift skeleton, і пишу порожній `docs/product/start-project.md` зі шаблона `skills/init-project/assets/StartProject.md`. Report: "Заповни секції 1–4 і запусти `/vladyslav:discover`".
+Я питаю стек — ти: "Swift + SwiftUI, iOS 17+". Pre-flight Q&A в Opus main, потім `scripts/scaffold-project.sh` за ~1 секунду створює `docs/`, `.claude/agents/`, `CLAUDE.md`, Swift skeleton, та пише порожній `docs/product/start-project.md` зі шаблона `skills/init-project/assets/StartProject.md`. Report: "Заповни секції 1–4 і запусти `/vladyslav:discover`".
 
 **Крок 2 — заповнюєш руками секції 1–4** в `docs/product/start-project.md`:
 - §1 Ідея: "iOS шахи з ШІ що пояснює кожен твій хід українською"
@@ -452,7 +452,7 @@ $ mkdir ~/chess-duel && cd ~/chess-duel && claude
 - §3 Аудиторія: "1200–1800 ELO, українськомовні"
 - §4 MVP scope: "Дошка + ходи + один простий бот + post-move пояснення"
 
-**Крок 3 — discovery (Architect Opus).** Перемикаєш: `/model opus`
+**Крок 3 — discovery (Architect, в тій самій сесії).**
 ```
 > /vladyslav:discover
 ```
@@ -465,7 +465,7 @@ $ mkdir ~/chess-duel && cd ~/chess-duel && claude
 
 Пишу `docs/product/discovery-summary.md`. Ти читаєш YELLOW verdict → вирішуєш що диференціатор OK → продовжуєш.
 
-**Крок 4 — перша фіча (Architect Opus).**
+**Крок 4 — перша фіча (Architect).**
 ```
 > /vladyslav:add-feature
 ```
@@ -580,4 +580,42 @@ $ cd ~/python-tax && claude
 
 ---
 
-*Останнє оновлення: 2026-05-11 (v4.0.0 — ingest replaces analyze-project + seed-mempalace; 16 active skills)*
+## Helper scripts (`scripts/`, 15 штук)
+
+Детермінована робота винесена в bash-скрипти — скіли передають їм параметри і споживають JSON, замість того щоб LLM писав інструкції типу "тут роби `mkdir`, тут `grep`, тут `git init`". Канонічна довідка живе у `docs/architecture/system.md`; тут — короткий зведений список.
+
+**Discovery / detection (читаємо проект, нічого не пишемо):**
+
+| Скрипт | Що повертає |
+|---|---|
+| `detect-stack.sh` | JSON з ознаками стеку (ios/python/go/...) |
+| `scan-architecture.sh` | Entry points + routes (FastAPI/Flask/Express/Go stdlib) + schema + deps |
+| `gather-seed-signals.sh` | Git themes + decision commits + manifests + existing docs |
+| `extract-tokens.sh` | Design tokens (colors/typography/icons/spacing) per platform |
+| `section-status.sh` | Які секції `start-project.md` уже filled / pending |
+| `grep-replace-me.sh` | Quote-safe пошук `REPLACE_ME` / `TBD` placeholders |
+| `derive-wing.sh` | Канонічна назва MemPalace wing |
+
+**Scaffolding (створюють файли):**
+
+| Скрипт | Викликає скіл |
+|---|---|
+| `scaffold-project.sh` | `init-project` (повний scaffold нового проекту) |
+| `attach-project.sh` | `attach-project` (skip-if-exists scaffold у існуючому проекті) |
+| `write-stub.sh` | utility для одного doc-stub |
+| `init-git-repo.sh` | idempotent `git init` + initial commit |
+
+**Verification / reporting:**
+
+| Скрипт | Викликає скіл |
+|---|---|
+| `pre-release-checks.sh` | `pre-release-check` (5 cross-platform checks → JSON) |
+| `check-plan-scope.sh` | `add-feature` Auto mode guard rails |
+| `changelog-from-git.sh` | `pre-release-check` (draft CHANGELOG з git log) |
+| `parse-yaml-return.sh` | reserved для Heavy Engineer pattern (наразі без consumer'а) |
+
+Усі скрипти POSIX-portable (macOS + Linux), без python/node залежностей, віддають JSON або машинно-читабельний текст. Більшість завершуються за <1 секунду.
+
+---
+
+*Останнє оновлення: 2026-05-11 (v4.0.1 — chess-duel приклад refresh, Helper Scripts секція додана; 16 active skills, 15 helper scripts)*
