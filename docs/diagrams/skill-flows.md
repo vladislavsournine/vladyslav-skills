@@ -1,6 +1,6 @@
 # Skill Flows
 
-Simplified lifecycle diagrams for all 16 skills. Render natively on GitHub.
+Simplified lifecycle diagrams for all 17 skills. Render natively on GitHub.
 
 ---
 
@@ -267,4 +267,27 @@ flowchart LR
 
     classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
     classDef done  fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
+```
+
+---
+
+### save — Save a knowledge record to MemPalace
+
+```mermaid
+flowchart LR
+    A([/save]):::start --> B[Detect wing\nfrom pwd]
+    B --> C{Content\nprovided?}
+    C -- no --> D[Ask: what + type\ndecision / preference\nmilestone / problem]
+    C -- yes --> E[Classify room type]
+    D --> E
+    E --> F[Check duplicate\nmempalace_check_duplicate]
+    F --> G{Duplicate\nfound?}
+    G -- yes --> H{{Ask: update /\nnew / cancel}}:::approval
+    G -- no  --> I[Write MemPalace\nadd_drawer]
+    H --> I
+    I --> J([Saved — wing · room · name]):::done
+
+    classDef start    fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
+    classDef done     fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
+    classDef approval fill:#fde7c2,stroke:#a87000,color:#5a3a00,font-weight:bold
 ```

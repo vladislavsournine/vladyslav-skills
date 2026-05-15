@@ -1,5 +1,21 @@
 # Changelog
 
+## v4.1.0 — 2026-05-15
+
+New `save` skill for saving semantic knowledge to MemPalace on demand — without compaction, without task-state framing.
+
+### Added
+
+- **`vladyslav:save`** (`skills/save/SKILL.md`, `commands/save.md`) — Engineer (light) skill. Saves a single knowledge record (decision / preference / milestone / problem) to MemPalace for the current project wing. Duplicate-checks before writing. Triggered by `/vladyslav:save`, "save to MemPalace", "remember this", "запам'ятай це".
+
+  Complements `compact-save`: `compact-save` captures *task state before compaction* (structured YAML: task/files/next); `save` captures *semantic knowledge at any time* (decisions, preferences, milestones).
+
+### Changed
+
+- `README.md`, `SkillsManual.md`, `docs/diagrams/skill-flows.md` — updated to include `save` in all relevant sections.
+
+---
+
 ## v4.0.1 — 2026-05-11
 
 Pure-docs patch closing the two TODOs deferred from v4.0.0. No code or skill behaviour changes.
