@@ -17,7 +17,7 @@ Generate three human-readable documents for team members, new developers, and st
 
 These are NOT AI-context documents — they are for humans. No mentions of Claude, CLAUDE.md, skills, or plugin internals.
 
-This was a Heavy Engineer skill until v3.1.0. v3.1.0 runs inline in Opus — same outcome, no dispatch overhead.
+This was a Heavy Engineer skill until v3.1.0 (inline in Opus). v4.2.0 fans the three independent doc generations out to parallel `sonnet` subagents — the Opus main session keeps pre-flight, the no-AI-mention gate, and the merge. See `_shared/references/orchestration-conventions.md`.
 
 ## Process
 
@@ -41,7 +41,15 @@ This was a Heavy Engineer skill until v3.1.0. v3.1.0 runs inline in Opus — sam
 
 Read the FULL content of every available input file (do not truncate). The output must be accurate to the actual code state.
 
-### Step 2: Generate README.md
+### Steps 2–4: Generate the three docs (parallel fan-out)
+
+The three documents are independent — none references another's output. Dispatch them as **three `Agent` calls in a single message** so they run concurrently, each `model: "sonnet"` (pure generation from decided inputs — see `_shared/references/orchestration-conventions.md`).
+
+Give each subagent: the relevant input content from Step 1, its structure block below, the preservation rule (merge, don't clobber user-edited sections of an existing file), and the no-AI-mention rule. Each subagent writes its own file.
+
+After all three return, the Opus main session runs the **no-AI-mention gate** (grep the three outputs for `Claude` / `CLAUDE.md` / `.claude/` / "AI" and fix any leak) before rendering the summary. This gate stays in the main session — never delegated.
+
+### Step 2: Generate README.md  *(subagent → `README.md`)*
 
 Write `README.md` at the project root. If it exists, preserve any custom sections; merge the rest.
 
@@ -78,7 +86,7 @@ See [docs/deployment.md](docs/deployment.md).
 
 Do NOT include `Claude`, `CLAUDE.md`, `.claude/`, or "AI" anywhere in the README.
 
-### Step 3: Generate docs/onboarding.md
+### Step 3: Generate docs/onboarding.md  *(subagent → `docs/onboarding.md`)*
 
 Write `docs/onboarding.md`. Preserve user edits where reasonable.
 
@@ -126,7 +134,7 @@ For new developers joining the project.
 - `<name / team>` for `<topic>`  ← placeholder if unknown
 ```
 
-### Step 4: Generate docs/deployment.md
+### Step 4: Generate docs/deployment.md  *(subagent → `docs/deployment.md`)*
 
 Write `docs/deployment.md`. Preserve user edits.
 
@@ -181,11 +189,11 @@ Render:
 
 ---
 
-## Why this is a Light Engineer skill
+## Why this is a Light Engineer skill (with parallel generation)
 
-- **Three generation passes** that benefit from LLM but don't need orchestration. Dispatch + YAML-return + present-summary boilerplate was ~50 lines of overhead per skill body, all gone in v3.1.0.
-- **Preservation of user edits** is the only nuance — Opus handles it inline.
-- **No allowlist enforcement** — exactly three output paths, all under-the-project-root, none surprising.
+- **Three independent generation passes.** v3.1.0 dropped the old Heavy Engineer YAML-return + present-summary boilerplate (~50 lines of tax). v4.2.0 keeps that lean body but fans the three generations out to parallel `sonnet` subagents — wall-clock ~3× faster and cheaper than three sequential opus passes, with no contract boilerplate.
+- **The Opus main session stays the control plane** — pre-flight, the no-AI-mention gate, and preservation sanity all run in main, not in subagents.
+- **No allowlist enforcement** — exactly three output paths, all under-the-project-root, none surprising. Each subagent owns exactly one path.
 
 ## Output
 

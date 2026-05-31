@@ -92,7 +92,7 @@ Pre-assign regions from the orchestrator:
 
 ### Step 5: Dispatch parallel subagents
 
-For each **independent batch** (screens with no dependencies between them), dispatch Agent tool calls in a **single message** (true parallel execution):
+For each **independent batch** (screens with no dependencies between them), dispatch Agent tool calls in a **single message** (true parallel execution). Screen drawing stays on `model: "opus"` — design is a judgment task, not mechanical generation (see `_shared/references/orchestration-conventions.md`). The pre-assigned, non-overlapping canvas coordinates from Step 4 are what make this fan-out safe.
 
 ```
 For each screen in batch:
