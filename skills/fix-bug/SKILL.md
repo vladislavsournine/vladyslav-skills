@@ -19,7 +19,7 @@ Apply the verify-working-directory contract from `<plugin>/skills/_shared/refere
 
 ### Step 1: Read project context
 
-Read these files before anything else:
+Read these files before anything else (independent reads — fetch them in one parallel batch). For subagent dispatch, model tiers, and parallelism-safety rules used throughout this skill, see `_shared/references/orchestration-conventions.md`.
 - `CLAUDE.md`
 - `docs/architecture/system.md`
 - `docs/architecture/api.md` (if exists)

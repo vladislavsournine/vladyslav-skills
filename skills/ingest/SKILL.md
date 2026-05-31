@@ -36,11 +36,13 @@ Glob `~/.claude/plugins/cache/vladyslav-marketplace/vladyslav/*/scripts/scan-arc
 
 ### Step 2: Scan the codebase
 
-Run two scripts back-to-back. Each is deterministic, takes well under a second on a typical project, and emits JSON.
+Run the two scripts **in parallel** — they are independent and write to separate JSON outputs (one shell invocation, backgrounded):
 
 ```bash
-ARCH=$(<plugin-root>/scripts/scan-architecture.sh --pwd .)
-SIGNALS=$(<plugin-root>/scripts/gather-seed-signals.sh --pwd .)
+<plugin-root>/scripts/scan-architecture.sh   --pwd . > /tmp/ingest-arch.json    &
+<plugin-root>/scripts/gather-seed-signals.sh --pwd . > /tmp/ingest-signals.json &
+wait
+ARCH=$(cat /tmp/ingest-arch.json); SIGNALS=$(cat /tmp/ingest-signals.json)
 ```
 
 `ARCH` schema:
@@ -95,7 +97,9 @@ Categorise existing records:
 
 Path-validation rule applies to every search result — drawers referencing non-existent paths are marked `[STALE]` and excluded.
 
-### Step 4: Synthesise architecture docs
+> **Orchestration (Steps 4 + 5):** once the Step 3 user decision is settled (a serial gate), Steps 4 and 5 are independent — Step 4 writes only `docs/`, Step 5 writes only MemPalace. Dispatch them concurrently: **Step 4 as a `sonnet` subagent** (narrative generation from JSON), **Step 5 on `opus`** (decision extraction is judgment — keep it on the strongest model). The Opus main session merges results and runs Step 6. See `_shared/references/orchestration-conventions.md`. (MemPalace writes inside Step 5 still run `check_duplicate` sequentially — never parallelize writes.)
+
+### Step 4: Synthesise architecture docs  *(`sonnet` subagent)*
 
 Using `ARCH`, write or update:
 
@@ -190,7 +194,7 @@ Next steps:
 
 - **Synthesis is genuine LLM work.** Combining `ARCH` and `SIGNALS` into a narrative `docs/architecture/system.md` requires reading the structured data, identifying the load-bearing patterns, and writing in human prose. No bash script can substitute.
 - **Decision extraction requires judgement.** "Is this commit a real architectural decision, or just a bug fix?" — that's semantic. The script supplies the candidate pool (`signals.decision_commits`); the LLM curates.
-- **The two bash scripts (`scan-architecture.sh` and `gather-seed-signals.sh`) do all the I/O.** The LLM doesn't read files directly — it reads the JSON. That's the leverage.
+- **The two bash scripts (`scan-architecture.sh` and `gather-seed-signals.sh`) do all the I/O.** The LLM doesn't read files directly — it reads the JSON. That's the leverage. The scripts run in parallel (Step 2); doc synthesis (`sonnet`) and decision extraction (`opus`) run as a concurrent fan-out (Steps 4+5).
 
 ## Output files
 

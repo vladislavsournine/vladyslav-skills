@@ -11,7 +11,7 @@ description: Use when test docs are missing or outdated. Generates test plan and
 
 Generate `docs/testing/test-plan.md` and `docs/testing/manual-qa.md` — the automated test plan and the manual QA checklist that QA runs before each release.
 
-This was a Heavy Engineer skill until v3.1.0. The Sonnet dispatch + YAML-return contract paid no rent for what is essentially "read inputs, write two markdown files". v3.1.0 runs inline in Opus.
+This was a Heavy Engineer skill until v3.1.0 (inline in Opus). v4.2.0 fans the two independent files out to parallel `sonnet` subagents — the Opus main session keeps pre-flight, the coverage-target semantics, and the merge. See `_shared/references/orchestration-conventions.md`.
 
 ## Process
 
@@ -33,7 +33,11 @@ This was a Heavy Engineer skill until v3.1.0. The Sonnet dispatch + YAML-return 
 
 Read the FULL content of every available input file. Optionally also peek at the test runner config (`pytest.ini` / `pyproject.toml` / `package.json` test script / xcodeproj scheme) to align the plan with the actual stack.
 
-### Step 2: Generate the test plan
+### Steps 2–3: Generate the two files (parallel fan-out)
+
+The test plan and the manual-QA checklist are independent — both read the same inputs but neither uses the other's output. Dispatch them as **two `Agent` calls in a single message** (concurrent), each `model: "sonnet"`. Give each subagent the Step 1 inputs, its structure block below, the stack-specific rules, and the preserve-on-update rule; each writes its own file. The Opus main session validates coverage-target semantics and renders the summary after both return.
+
+### Step 2: Generate the test plan  *(subagent → `docs/testing/test-plan.md`)*
 
 Write `docs/testing/test-plan.md`. If it exists, preserve user-edited sections and merge.
 
@@ -71,7 +75,7 @@ Structure:
 
 Derive each category's contents from the user-stories file. Every ✅ Done story gets at least one entry in either Unit or Integration. Every 🚧 Partial story gets a `[ ]` task.
 
-### Step 3: Generate manual QA checklist
+### Step 3: Generate manual QA checklist  *(subagent → `docs/testing/manual-qa.md`)*
 
 Write `docs/testing/manual-qa.md`. Same preserve-on-update behaviour.
 
@@ -125,11 +129,11 @@ Render:
 
 ---
 
-## Why this is a Light Engineer skill
+## Why this is a Light Engineer skill (with parallel generation)
 
-- **Generation is LLM work**, but it's one synthesis pass per file — not a multi-stage pipeline. Dispatch overhead is pure tax.
-- **Two output files, both predictable paths.** No allowlist enforcement needed.
-- **Preservation logic** (don't overwrite user-edited sections) is the only nuance — and it's a single semantic step Opus can handle without ceremony.
+- **Two independent generation passes.** v3.1.0 dropped the old Sonnet-dispatch + YAML-return tax; v4.2.0 keeps the lean body but runs the two generations as parallel `sonnet` subagents — ~2× faster wall-clock, cheaper than two opus passes, no contract boilerplate.
+- **Two output files, both predictable paths.** No allowlist enforcement needed; each subagent owns one path.
+- **Coverage-target semantics and preservation** stay in the Opus main session — the only judgment steps, never delegated.
 
 ## Output
 

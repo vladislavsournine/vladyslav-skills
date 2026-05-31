@@ -34,7 +34,7 @@ Read:
 
 **Crucial:** `swift-calories` is the wing of the one app that actually passed Apple review. Its lessons are the canonical reference for "what Apple actually rejects."
 
-Run these searches and surface ALL hits to the user:
+Run these searches as **one parallel batch** (independent reads — see `_shared/references/orchestration-conventions.md`) and surface ALL hits to the user:
 
 ```
 mempalace_search wing=swift-calories "apple review"

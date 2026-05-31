@@ -65,7 +65,7 @@ Add any HIG findings as drift items in §8 with severity `hig-violation` (handle
 
 ### Step 2: MemPalace — prior design decisions (hypothesis, NOT truth)
 
-Search the project wing:
+Search the project wing — these are independent reads, dispatch them as **one parallel batch** (`_shared/references/orchestration-conventions.md`). The hypothesis gate below stays serial.
 ```
 mempalace_search wing=<project> "design"
 mempalace_search wing=<project> "color"
