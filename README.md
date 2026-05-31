@@ -19,7 +19,8 @@ claude
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code/overview)
 - [Superpowers plugin](https://github.com/obra/superpowers) — used by `add-feature`, `fix-bug`, `ingest`, `pre-release-check`, `write-test-docs`
-- **MemPalace MCP server** (required for 9 skills marked 🧠 below) — long-term cross-session memory. Configure as an MCP server in your Claude Code setup; without it, the skills below will fail when trying to read/write memory. See [`examples/mcp-config.example.json`](examples/mcp-config.example.json) for a copy-paste config block.
+- **MemPalace MCP server** (required for 9 skills marked 🧠 below) — long-term cross-session memory. Configure as an MCP server in your Claude Code setup; without it, the skills below will fail when trying to read/write memory. See [`examples/mcp-config.example.json`](examples/mcp-config.example.json) for a copy-paste config block, and [`docs/operations/dependencies.md`](docs/operations/dependencies.md) for install / update / interpreter-pinning steps.
+- **Graphify** (optional, not integrated) — code knowledge-graph CLI you can run ad-hoc. See [`docs/operations/dependencies.md`](docs/operations/dependencies.md).
 
 ### Skills that require MemPalace 🧠
 

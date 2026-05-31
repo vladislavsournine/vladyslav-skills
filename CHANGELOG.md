@@ -7,6 +7,7 @@ Opus 4.8 orchestration pass. Centralises the subagent-dispatch contract into one
 ### Added
 
 - **`skills/_shared/references/orchestration-conventions.md`** — single source of truth for `Skill` vs `Agent` vs `Workflow`, model tiers (`opus` reasoning / `sonnet` generation / `haiku` mechanical, conservative default), and parallelism-safety rules (what is / is not safe to fan out). Extends the model-override rule in `CLAUDE.md`; does not replace it.
+- **`docs/operations/dependencies.md`** — install / update steps for the MemPalace MCP server (required) and Graphify (optional, ad-hoc code knowledge-graph; evaluated and deliberately **not** integrated into any skill). Includes the interpreter-pinning gotcha for the MemPalace MCP `command`.
 
 ### Changed
 
@@ -17,6 +18,7 @@ Opus 4.8 orchestration pass. Centralises the subagent-dispatch contract into one
 - **`add-feature`, `fix-bug`** — Step 1 context-file reads parallelised; both now point to `orchestration-conventions.md` for dispatch/model/parallelism rules.
 - **`design-page`** — added a pointer to the shared reference; screen drawing stays on `opus` (design is judgment, not mechanical generation).
 - **`CLAUDE.md`, `docs/architecture/system.md`** — document the new shared reference and unify the model-override guidance.
+- **`examples/mcp-config.example.json`** — corrected the MemPalace example from a stale `node`/`dist/server.js`/`MEMPALACE_DB_PATH` config to the real Python config (`python3 -m mempalace.mcp_server`, `MEMPALACE_PALACE_PATH`), with an absolute-interpreter `command`. `README.md` Requirements links to the new dependencies doc.
 
 ### Deliberately NOT changed
 
