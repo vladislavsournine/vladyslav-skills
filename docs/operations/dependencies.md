@@ -11,33 +11,38 @@ How to install and update the external tools the skills rely on. Two tools matte
 
 Long-term cross-session memory. Python package `mempalace` (repo: [MemPalace/mempalace](https://github.com/MemPalace/mempalace)), exposed to Claude Code as an MCP stdio server. No API key required.
 
-### Install
+### Install (recommended: dedicated venv)
+
+A dedicated virtualenv keeps `mempalace` isolated and immune to system / Homebrew Python upgrades:
 
 ```bash
-pip install mempalace          # Requires-Python >= 3.9
+python3.11 -m venv ~/.mempalace-venv                 # any Python >= 3.9
+~/.mempalace-venv/bin/pip install --upgrade mempalace
 ```
 
-Then register it as an MCP server (user scope). Copy the `mcpServers.mempalace` block from [`examples/mcp-config.example.json`](../../examples/mcp-config.example.json) into your `~/.claude.json` (or `~/.claude/settings.json`) and adjust the palace path:
+Then register it as an MCP server (user scope). Copy the `mcpServers.mempalace` block from [`examples/mcp-config.example.json`](../../examples/mcp-config.example.json) into your `~/.claude.json`, pointing `command` at the venv's interpreter and setting your palace path:
 
 ```json
 "mempalace": {
   "type": "stdio",
-  "command": "python3",
+  "command": "/Users/<you>/.mempalace-venv/bin/python",
   "args": ["-m", "mempalace.mcp_server"],
   "env": { "MEMPALACE_PALACE_PATH": "/absolute/path/to/your/.mempalace" }
 }
 ```
 
-> **Pin the interpreter.** The MCP server launches with whatever `command` resolves to at startup. If your machine has several Python installs, a bare `python3` can resolve to an interpreter where `mempalace` is **not** installed — the MCP server then fails to start with `No module named 'mempalace'`. Use the **absolute path** to the interpreter that has `mempalace` (e.g. `/opt/homebrew/bin/python3.11`) as `command`, not bare `python3`.
+> **Use an absolute interpreter path — never bare `python3`.** The MCP server launches with whatever `command` resolves to at startup. A bare `python3` can resolve to an interpreter where `mempalace` is **not** installed (e.g. a newer Homebrew Python) — the server then fails with `No module named 'mempalace'`. A dedicated venv with an absolute path removes this whole class of breakage.
+>
+> After editing the config, **restart Claude Code** (or reload MCP servers) — a running MCP connection keeps the old config until reload.
 
 ### Update
 
 ```bash
-<interpreter> -m pip install --upgrade mempalace   # use the SAME interpreter the MCP server runs
-<interpreter> -m pip show mempalace                # verify the version
+~/.mempalace-venv/bin/pip install --upgrade mempalace
+~/.mempalace-venv/bin/mempalace --version            # verify
 ```
 
-If you have more than one Python with `mempalace` installed, upgrade the one the MCP `command` points at — upgrading a different interpreter changes nothing for the running server.
+Then restart Claude Code so the MCP server reloads on the new version. Latest known version: 3.3.5.
 
 ### Data
 
