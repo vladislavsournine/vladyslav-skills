@@ -9,6 +9,8 @@ description: Use after init-project to fill docs/product/start-project.md with A
 
 Fills sections 6, 8, 9, 10 (and 11 for iOS) of `docs/product/start-project.md` using AI-research and `c-level-skills:*` advisory skills. Runs sequentially so each section builds on the previous one — monetization references competitor pricing, valuation references unit economics, marketing references SOM constraints.
 
+> **Orchestration:** the section chain (Steps 4→5→6→7) is a genuine dependency pipeline — do **not** fan it out, the cross-references would break (`_shared/references/orchestration-conventions.md` → "NOT safe to parallelize"). The only safe parallelism here is the read-only MemPalace search batch in Step 2. Research stays on the `c-level-skills` (they pick their own model).
+
 **Type:** Architect
 
 ## When to use
@@ -39,7 +41,7 @@ Read:
 
 Apply the verify-working-directory contract from `<plugin>/skills/_shared/references/verify-pwd.md`: confirms CLAUDE.md exists, derives the canonical MemPalace wing name, warns on stale-wing duplicates, and establishes the mandatory path-validation rule for the rest of this skill's MemPalace reads.
 
-Run all searches upfront:
+Run all searches upfront as **parallel reads** (independent, no shared state — dispatch in one batch):
 
 ```
 mempalace_search wing=<wing> "competitors"

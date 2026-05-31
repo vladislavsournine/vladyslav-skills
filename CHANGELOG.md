@@ -1,5 +1,30 @@
 # Changelog
 
+## v4.2.0 — 2026-05-31
+
+Opus 4.8 orchestration pass. Centralises the subagent-dispatch contract into one shared reference and applies safe parallel fan-out + conservative model overrides where the work is genuinely independent. Process discipline (approval gates, contract-first, Blast-Radius, MemPalace `check_duplicate`/path-validation, never-overwrite, the Apple-review prompt contract) is unchanged.
+
+### Added
+
+- **`skills/_shared/references/orchestration-conventions.md`** — single source of truth for `Skill` vs `Agent` vs `Workflow`, model tiers (`opus` reasoning / `sonnet` generation / `haiku` mechanical, conservative default), and parallelism-safety rules (what is / is not safe to fan out). Extends the model-override rule in `CLAUDE.md`; does not replace it.
+
+### Changed
+
+- **`write-project-docs`** — the three independent doc generations (README + onboarding + deployment) now fan out to parallel `sonnet` subagents (~3× wall-clock). Opus main keeps pre-flight, the no-AI-mention gate, and the merge.
+- **`write-test-docs`** — test-plan + manual-QA generated as two parallel `sonnet` subagents (~2×). Coverage-target semantics and preservation stay in Opus main.
+- **`ingest`** — the two scan scripts run in parallel (Step 2); doc synthesis (`sonnet`) and MemPalace decision-extraction (`opus`) run as a concurrent fan-out (Steps 4+5) once the Step 3 user gate is settled. MemPalace writes still serialise behind `check_duplicate`.
+- **`discover`, `design-sync`, `discover-apple-check`** — read-only MemPalace search batches now dispatched as parallel reads. The hypothesis/known-risk gates remain serial. `discover`'s section chain (4→5→6→7) is explicitly documented as a genuine dependency pipeline that must **not** be parallelized.
+- **`add-feature`, `fix-bug`** — Step 1 context-file reads parallelised; both now point to `orchestration-conventions.md` for dispatch/model/parallelism rules.
+- **`design-page`** — added a pointer to the shared reference; screen drawing stays on `opus` (design is judgment, not mechanical generation).
+- **`CLAUDE.md`, `docs/architecture/system.md`** — document the new shared reference and unify the model-override guidance.
+
+### Deliberately NOT changed
+
+- The 34-line `apple-appstore-reviewer` prompt in `discover-apple-check` Step 4 — it is the reviewer's contract (9 guideline areas + decide-now/during/before format), not orchestrator hand-holding. Trimming it would shrink Apple-review coverage.
+- `init-project`, `attach-project` (pure bash), `save`, `compact-save`, `help`, `swiftui-pro` — no meaningful dispatch to parallelise; forcing changes would be churn.
+
+---
+
 ## v4.1.0 — 2026-05-15
 
 New `save` skill for saving semantic knowledge to MemPalace on demand — without compaction, without task-state framing.
