@@ -7,6 +7,7 @@ New `qsave` skill + a fix to the canonical wing-deriver. Closes the mid-session 
 ### Added
 
 - **`skills/qsave/SKILL.md` + `commands/qsave.md`** — `/vladyslav:qsave`, a zero-question quick-save. Derives the most salient decision/problem/milestone from the current conversation and files it to the wing in the `[WHAT]/[WHY]/[FILES]/[DATE]` shape. Sits between `compact-save` (task-resume state, fires on compaction) and `save` (full Q&A). Intended to also be **offered proactively** by the assistant at task completion — see the global `CLAUDE.md` rule. Requires MemPalace.
+- **`docs/operations/wing-migration.md`** — how to detect and merge split / duplicate MemPalace wings (case mismatches, stale prefixes), for users upgrading from ≤ v4.2.0. Includes a prompt-based and a script-based merge, plus the personal-miner fix.
 
 ### Changed
 

@@ -28,6 +28,8 @@ claude
 
 The other skills (`init-project`, `attach-project`, `write-*`, `help`, `swiftui-pro`, `design-page`) work without MemPalace.
 
+Upgrading from ≤ v4.2.0 and seeing duplicate wings (e.g. `swift-Sudoku` vs `swift-sudoku`, or `plugin-foo` vs `foo`)? See [`docs/operations/wing-migration.md`](docs/operations/wing-migration.md) — most users only need to update the plugin.
+
 ## One-Terminal Workflow (v3.x)
 
 Run any skill from a single Opus session. No manual `/model` switching required.
