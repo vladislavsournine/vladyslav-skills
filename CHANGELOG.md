@@ -1,5 +1,22 @@
 # Changelog
 
+## v4.3.0 — 2026-06-11
+
+New `qsave` skill + a fix to the canonical wing-deriver. Closes the mid-session memory-capture gap and removes a latent split-brain wing bug.
+
+### Added
+
+- **`skills/qsave/SKILL.md` + `commands/qsave.md`** — `/vladyslav:qsave`, a zero-question quick-save. Derives the most salient decision/problem/milestone from the current conversation and files it to the wing in the `[WHAT]/[WHY]/[FILES]/[DATE]` shape. Sits between `compact-save` (task-resume state, fires on compaction) and `save` (full Q&A). Intended to also be **offered proactively** by the assistant at task completion — see the global `CLAUDE.md` rule. Requires MemPalace.
+- **`docs/operations/wing-migration.md`** — how to detect and merge split / duplicate MemPalace wings (case mismatches, stale prefixes), for users upgrading from ≤ v4.2.0. Includes a prompt-based and a script-based merge, plus the personal-miner fix.
+
+### Changed
+
+- **`scripts/derive-wing.sh`** — simplified to **basename-only** (separators normalized to hyphens; case preserved). Removed the lowercasing step (which turned `phD` → `phd`) and the `detect-stack.sh` prefix-prepend step (which turned `vladyslav-skills` → `plugin-vladyslav-skills`). Both diverged from the real wing names in the palace and from the `SessionEnd` miner's bare-basename naming, silently splitting a project's memory across two wings. The canonical wings already carry their convention prefix in the directory name where one applies.
+- **`skills/_shared/references/mempalace-record.md`** — wing-derivation guidance updated to match the basename-only algorithm.
+- **`README.md`, `.claude-plugin/plugin.json`** — MemPalace-dependent skill count 9 → 10; added `qsave` to the skills tables and Session Continuity section; version 4.2.0 → 4.3.0.
+
+---
+
 ## v4.2.0 — 2026-05-31
 
 Opus 4.8 orchestration pass. Centralises the subagent-dispatch contract into one shared reference and applies safe parallel fan-out + conservative model overrides where the work is genuinely independent. Process discipline (approval gates, contract-first, Blast-Radius, MemPalace `check_duplicate`/path-validation, never-overwrite, the Apple-review prompt contract) is unchanged.

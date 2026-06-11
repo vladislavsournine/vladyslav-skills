@@ -35,7 +35,7 @@ Use these `room` values consistently:
 
 ## Wing
 
-Always pass the canonical wing name. Use `scripts/derive-wing.sh` (or for manual paths, follow the same algorithm: lowercase basename + platform prefix). Avoid case-mismatch wings like `swift-Sudoku` (must be `swift-sudoku`).
+Always pass the canonical wing name. Use `scripts/derive-wing.sh` (or for manual paths, follow the same algorithm: the project directory **basename**, with whitespace/underscores/dots collapsed to single hyphens — case preserved, no lowercasing, no added stack prefix). The basename already carries its own convention prefix where one applies (`swift-calories`, `python-tax`) and deliberately omits it where it doesn't (`brain`, `documents`, `phD`, `vladyslav-skills`). After deriving, reconcile against the wings list in `~/.claude/CLAUDE.md` to catch case drift like `swift-Sudoku` vs `swift-sudoku`.
 
 ## Searchability test
 
