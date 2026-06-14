@@ -44,6 +44,45 @@ Then register it as an MCP server (user scope). Copy the `mcpServers.mempalace` 
 
 Then restart Claude Code so the MCP server reloads on the new version. Latest known version: 3.3.5.
 
+### Why it works in every project automatically
+
+The `mcpServers.mempalace` block above is registered at **user scope** (top-level `mcpServers` in `~/.claude.json`). User scope is **global — not tied to any path**, so:
+
+- every existing project sees MemPalace,
+- every *new* project you create — under any directory — sees it too, with **zero per-project setup**.
+
+This is different from the other two MCP scopes, neither of which gives global coverage:
+
+| Scope | Where it lives | Coverage |
+|-------|----------------|----------|
+| **user** ← register MemPalace here | `~/.claude.json` top-level `mcpServers` | **all projects, current and future** |
+| project | `<project>/.mcp.json` | that project only (and prompts for trust) |
+| local | `~/.claude.json` › `projects.<path>.mcpServers` | that one path only |
+
+Verify the scope at any time:
+
+```bash
+claude mcp get mempalace
+# Scope: User config (available in all your projects)   ← this line is what matters
+```
+
+> **Launch profiles do not affect this.** If you start Claude Code via a `--settings <profile>.json` wrapper, the profile controls `enabledPlugins` only — `mcpServers` is always read from `~/.claude.json`. A profile can never strip MemPalace.
+
+### Guarantee it stays everywhere (self-heal)
+
+The user-scope record is what makes MemPalace automatic. It can still be lost on a fresh machine, a reset `~/.claude.json`, or an accidental `claude mcp remove`. [`scripts/ensure-mempalace.sh`](../../scripts/ensure-mempalace.sh) is the idempotent recovery net:
+
+```bash
+bash scripts/ensure-mempalace.sh
+# OK: MemPalace already registered at user scope (available in all projects).
+```
+
+- If the user-scope entry exists → it does nothing.
+- If missing → it re-registers MemPalace at user scope (after sanity-checking the interpreter).
+- Override defaults via env: `MEMPALACE_INTERP` (venv python) and `MEMPALACE_PALACE_PATH` (data store).
+
+Run it once on every new box, or any time `claude mcp get mempalace` does **not** print `Scope: User config`.
+
 ### Data
 
 Records live under `MEMPALACE_PALACE_PATH`. It is a local store (SQLite + index) — back it up; it is not regenerable.
