@@ -1,5 +1,20 @@
 # Changelog
 
+## v4.3.1 — 2026-06-14
+
+Operational safety net for the MemPalace dependency. No skill behavior changes.
+
+### Added
+
+- **`scripts/ensure-mempalace.sh`** — idempotent self-heal script that guarantees the MemPalace MCP server is registered at **user scope** (global, so it covers every project — current and future — with zero per-project setup). If the user-scope record is already present it does nothing; if it was lost (fresh machine, reset `~/.claude.json`, accidental `claude mcp remove`) it re-registers it after sanity-checking the interpreter. Override via `MEMPALACE_INTERP` / `MEMPALACE_PALACE_PATH`.
+
+### Changed
+
+- **`docs/operations/dependencies.md`** — new sections explaining *why* MemPalace works in every project automatically (user scope vs project/local scope, and that `--settings` launch profiles only touch `enabledPlugins`, never `mcpServers`), how to verify it (`claude mcp get mempalace`), and how to run the self-heal script.
+- **`.claude-plugin/plugin.json`** — version 4.3.0 → 4.3.1.
+
+---
+
 ## v4.3.0 — 2026-06-11
 
 New `qsave` skill + a fix to the canonical wing-deriver. Closes the mid-session memory-capture gap and removes a latent split-brain wing bug.
