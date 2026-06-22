@@ -121,10 +121,13 @@ check_mempalace_readme() {
     grep -q 'mempalace_' "$f" || continue
     printf '%s' "$section" | grep -q "\`$name\`" || err "$name: calls mempalace_* but missing from README list"
   done
-  # backward: every listed name is a real mempalace caller
+  # backward: every listed name is a real skill. We do NOT require a literal
+  # mempalace_ token: orchestrator skills (e.g. add-feature, fix-bug) require
+  # MemPalace via natural-language instructions ("write a MemPalace record")
+  # without calling the tool by name, so a token grep would false-positive.
+  # This pass exists to catch stale entries (deleted/renamed skills).
   for name in $(printf '%s' "$section" | grep -oE '`[a-z0-9-]+`' | tr -d '`' | sort -u); do
-    if [ ! -d "$SKILLS/$name" ]; then err "README list has unknown skill \`$name\`"; continue; fi
-    grep -q 'mempalace_' "$SKILLS/$name/SKILL.md" 2>/dev/null || err "README lists \`$name\` but it has no mempalace_* call"
+    [ -d "$SKILLS/$name" ] || err "README list has unknown skill \`$name\`"
   done
 }
 

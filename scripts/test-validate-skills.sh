@@ -119,7 +119,13 @@ T "mempalace caller missing from README fails" 1 "$R"
 
 R="$(make_valid)"
 sed -i.bak 's/Skills that require MemPalace:/Skills that require MemPalace: `beta`/' "$R/README.md"
-T "README lists unknown/non-caller skill fails" 1 "$R"
+T "README lists unknown (non-existent) skill fails" 1 "$R"
+
+# A listed name that IS a real skill but has no literal mempalace_ token must
+# pass — orchestrators require MemPalace indirectly (via NL instructions).
+R="$(make_valid)"
+sed -i.bak 's/Skills that require MemPalace:/Skills that require MemPalace: `alpha`/' "$R/README.md"
+T "listed real skill without literal mempalace_ passes" 0 "$R"
 
 printf '\n%s passed, %s failed\n' "$pass" "$failc"
 [ "$failc" -eq 0 ]
