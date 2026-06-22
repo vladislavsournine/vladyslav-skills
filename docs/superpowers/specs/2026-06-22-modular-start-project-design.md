@@ -1,22 +1,22 @@
-# Design: Modular adaptive `start-project` (retires `init-project`)
+# Design: Modular adaptive `init-project` (in-place rewrite)
 
 > Created: 2026-06-22
 
 ## Summary
 
-Replace the monolithic `init-project` with a single adaptive orchestrator skill,
-**`vladyslav:start-project`**. Instead of scaffolding a fixed project tree, the skill
-always lays a bare AI shell (CORE) and creates everything else **only on explicit
-confirmation**. The monolithic `scripts/scaffold-project.sh` is decomposed into
-independent, idempotent, re-runnable per-component module scripts under
-`scripts/modules/`, which the orchestrator calls à la carte.
+Rewrite `vladyslav:init-project` in place: keep the command name and entry point, but
+replace its monolithic fixed-tree behavior with a single adaptive orchestrator. Instead
+of scaffolding a fixed project tree, the skill always lays a bare AI shell (CORE) and
+creates everything else **only on explicit confirmation**. The monolithic
+`scripts/scaffold-project.sh` is decomposed into independent, idempotent, re-runnable
+per-component module scripts under `scripts/modules/`, which the orchestrator calls
+à la carte.
 
 Guiding principle, end to end: **"don't know → don't create."** No empty stub files,
 no uniform tree imposed on every project.
 
-> **Name is overridable.** This spec uses `start-project`. If you prefer to keep the
-> command name `init-project` (muscle memory) with the new behavior, say so at review —
-> only the skill/command name changes, nothing else in the design.
+> **Decided at review:** keep the name `init-project` (muscle memory) with the new
+> behavior. Version bump = **minor**.
 
 ---
 
@@ -41,18 +41,18 @@ the proven deterministic bash for the mechanical work.
 
 ## Locked decisions
 
-1. **New skill `start-project` sits as the single new-project entry point.**
-2. **`init-project` is retired** — the skill and its `/vladyslav:init-project` command
-   are removed. Its `scaffold-project.sh` is refactored into modular scripts that
-   `start-project` consumes.
+1. **`init-project` keeps its name and command**, rewritten in place as the adaptive
+   orchestrator (single new-project entry point).
+2. **`scaffold-project.sh` is decomposed** into modular scripts that the rewritten
+   `init-project` consumes. The monolith is deleted.
 3. **`attach-project` is unchanged** (separate scenario: existing projects).
 4. **CORE is always created, with zero questions.** Everything else is opt-in, default = no.
 5. **Docs are on-demand**, not core (final call after discussion).
 6. **No frontend/Swift code modules** — their projects are born from Xcode / `flutter create`.
 7. **No new orchestrator/helper skills** — the lifecycle family already covers this.
-8. **Roadmap-gate is inherited** by `start-project` (from
+8. **Roadmap-gate is inherited** by `init-project` (from
    `docs/superpowers/specs/2026-04-30-roadmap-gate-design.md`).
-9. **Smart `Next:`** suggestion at the end of `start-project`, based on what was created.
+9. **Smart `Next:`** suggestion at the end of `init-project`, based on what was created.
 
 ---
 
@@ -130,7 +130,7 @@ The skill **never auto-runs** the next skill — it only suggests (per Scope Sen
 | `design-system.sh` | `docs/design/system.md` (always available, not UI-gated) |
 | `architecture.sh` | `docs/architecture/system.md` |
 
-### backend-infra (opt-in, only if backend present)
+### backend-infra (opt-in)
 | Module | Writes |
 |--------|--------|
 | `docker.sh` | `Dockerfile`, `docker-compose.yml`, `docs/operations/docker.md` |
@@ -174,7 +174,7 @@ helpers so each module stays short and consistent.
 
 ---
 
-## What `start-project` does NOT create (on-demand ownership)
+## What `init-project` does NOT create (on-demand ownership)
 
 These docs are never stubbed at init. Each is created by the skill that owns it, when
 that work actually happens:
@@ -195,25 +195,24 @@ Result: a folder appears when its owning skill runs — no dead stubs.
 
 ## Frontend / Swift
 
-No code-scaffolding modules. For Swift/Flutter/Kotlin projects, `start-project`
+No code-scaffolding modules. For Swift/Flutter/Kotlin projects, `init-project`
 contributes only CORE + (opt-in) docs + design-system + agents. The actual project is
 created by native tooling (Xcode / `xcodegen`, `flutter create`). The backend-infra
 group is still shown but left untouched for a pure frontend/Swift project.
 
 ---
 
-## Migration / retire `init-project`
+## Migration (in-place rewrite of `init-project`)
 
-- Delete `skills/init-project/` and `commands/init-project.md`.
-- Create `skills/start-project/SKILL.md` and `commands/start-project.md`.
+- Rewrite `skills/init-project/SKILL.md` body to the adaptive orchestrator flow.
+  Command name and `commands/init-project.md` are kept (command delegates as before).
 - Refactor `scripts/scaffold-project.sh` → `scripts/modules/*` (delete the monolith).
 - Keep `scripts/detect-stack.sh` (still used by `attach-project`).
-- Update `skills/help/SKILL.md`: rename `init-project` → `start-project` in the
-  bash-driven table and "New project" workflow.
-- Update `README.md` and `CLAUDE.md` references to `init-project`.
-- `CHANGELOG.md` entry + `.claude-plugin/plugin.json` version bump (minor — new skill +
-  breaking command rename; treat as **minor** with a clear CHANGELOG note, or **major**
-  if the rename is considered breaking — decide at release).
+- Update `skills/help/SKILL.md`: `init-project` row description + "New project" workflow
+  reflect the new minimal/interactive behavior (name unchanged).
+- Update `README.md` and `CLAUDE.md` `init-project` descriptions where they imply a fixed
+  full tree.
+- `CHANGELOG.md` entry + `.claude-plugin/plugin.json` **minor** version bump.
 - `references/stack-*.md` retained for human reading (as today).
 
 ---
@@ -230,20 +229,21 @@ group is still shown but left untouched for a pure frontend/Swift project.
 
 ## Testing / verification
 
-- **Frontmatter lint** — automatic via `PostToolUse` hook on `start-project/SKILL.md`.
-- **Smoke run** — invoke `start-project` in a fresh `/tmp/` dir; confirm `minimal`
+- **Frontmatter lint** — automatic via `PostToolUse` hook on `init-project/SKILL.md`.
+- **Smoke run** — invoke `init-project` in a fresh `/tmp/` dir; confirm `minimal`
   produces exactly CORE and nothing else.
 - **Module idempotency** — run each module twice; second run must report all paths in
   `files_skipped`, write nothing new.
 - **End-to-end** — `interactive` run selecting docs + docker + postgres + alembic on a
   throwaway project; verify compose has both services, alembic scaffold present, no FastAPI
   boilerplate, no dead doc stubs.
-- **Retire check** — `/vladyslav:init-project` no longer resolves; `help` and `README`
-  contain no stale `init-project` references.
+- **Rewrite check** — `/vladyslav:init-project` still resolves and now runs the
+  minimal/interactive flow; `help` and `README` describe the new behavior, not the old
+  fixed tree; no references to `scaffold-project.sh` remain.
 
 ---
 
-## Open items (confirm at review)
+## Resolved at review
 
-1. **Name** — `start-project` vs reuse `init-project`.
-2. **Version bump** — minor vs major for the command rename.
+1. **Name** — keep `init-project` (in-place rewrite, no rename).
+2. **Version bump** — **minor**.
