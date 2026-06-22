@@ -44,9 +44,26 @@ check_frontmatter() { # name, file
   body "$f" | grep -qiE '^\**Type:' || err "$name: body missing Type: line"
 }
 
+check_commands() { # name, file (file unused; kept for for_each_skill signature)
+  local name="$1" cmd="$COMMANDS/$1.md"
+  if [ ! -f "$cmd" ]; then err "$name: missing commands/$name.md"; return; fi
+  grep -q "$name" "$cmd" || err "$name: command does not reference skill"
+}
+
+check_orphan_commands() {
+  local cmd name
+  for cmd in "$COMMANDS"/*.md; do
+    [ -f "$cmd" ] || continue
+    name="$(basename "$cmd" .md)"
+    [ -d "$SKILLS/$name" ] || err "command $name.md has no skill dir"
+  done
+}
+
 main() {
   [ -d "$SKILLS" ] || { printf 'FAIL: no skills/ under %s\n' "$ROOT"; exit 2; }
   for_each_skill check_frontmatter
+  for_each_skill check_commands
+  check_orphan_commands
   if [ "$fail" -ne 0 ]; then printf -- '--- validate-skills: FAILURES found\n'; exit 1; fi
   printf -- '--- validate-skills: all checks PASS\n'; exit 0
 }
