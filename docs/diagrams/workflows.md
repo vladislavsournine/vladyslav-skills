@@ -11,7 +11,7 @@ From zero to first deployed feature.
 ```mermaid
 flowchart LR
     A([Start:\nnew idea]):::start
-    A --> B["/init-project\nBootstrap dirs / files\nstack setup / agents"]
+    A --> B["/init-project\nBare AI shell (minimal)\nor opt-in modules (interactive)"]
     B --> C["/discover\nCompetitors / monetization\nvaluation / marketing"]
     C --> D["/ingest\nDocument architecture\nseeds MemPalace"]
     D --> E["/add-feature\nDesign → contract\n→ plan → implement"]
