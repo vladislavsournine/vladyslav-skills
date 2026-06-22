@@ -68,5 +68,10 @@ T "command not referencing skill fails" 1 "$R"
 R="$(make_valid)"; printf 'orphan\n' > "$R/commands/ghost.md"
 T "orphan command (no skill) fails" 1 "$R"
 
+# --- Check C: cross-reference existence ---
+R="$(make_valid)"
+printf 'see skills/_shared/references/missing.md\n' >> "$R/skills/alpha/SKILL.md"
+T "broken _shared reference fails" 1 "$R"
+
 printf '\n%s passed, %s failed\n' "$pass" "$failc"
 [ "$failc" -eq 0 ]

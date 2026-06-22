@@ -59,11 +59,21 @@ check_orphan_commands() {
   done
 }
 
+check_crossrefs() { # name, file
+  local name="$1" f="$2" refs ref
+  [ -f "$f" ] || return
+  refs="$(grep -oE '(skills/_shared/references/[A-Za-z0-9_./-]+\.md|docs/[A-Za-z0-9_./-]+\.md)' "$f" | sort -u)"
+  for ref in $refs; do
+    [ -e "$ROOT/$ref" ] || err "$name: broken reference $ref"
+  done
+}
+
 main() {
   [ -d "$SKILLS" ] || { printf 'FAIL: no skills/ under %s\n' "$ROOT"; exit 2; }
   for_each_skill check_frontmatter
   for_each_skill check_commands
   check_orphan_commands
+  for_each_skill check_crossrefs
   if [ "$fail" -ne 0 ]; then printf -- '--- validate-skills: FAILURES found\n'; exit 1; fi
   printf -- '--- validate-skills: all checks PASS\n'; exit 0
 }
