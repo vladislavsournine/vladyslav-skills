@@ -448,7 +448,7 @@ $ mkdir ~/chess-duel && cd ~/chess-duel && claude
 ```
 > /vladyslav:init-project
 ```
-Я питаю стек — ти: "Swift + SwiftUI, iOS 17+". Pre-flight Q&A в Opus main, потім `scripts/scaffold-project.sh` за ~1 секунду створює `docs/`, `.claude/agents/`, `CLAUDE.md`, Swift skeleton, та пише порожній `docs/product/start-project.md` зі шаблона `skills/init-project/assets/StartProject.md`. Report: "Заповни секції 1–4 і запусти `/vladyslav:discover`".
+Я питаю режим — ти: "interactive". Pre-flight Q&A в Opus main, потім `scripts/modules/core.sh` за ~1 секунду пише голий AI shell (`CLAUDE.md`, `.claude/settings.json`, `.gitignore`, `.remember/`), далі opt-in меню дозволяє вибрати docs / backend-infra / agents — кожен модуль в `scripts/modules/` виконується тільки якщо вибраний. Report: "Заповни секції 1–4 і запусти `/vladyslav:discover`".
 
 **Крок 2 — заповнюєш руками секції 1–4** в `docs/product/start-project.md`:
 - §1 Ідея: "iOS шахи з ШІ що пояснює кожен твій хід українською"
@@ -604,7 +604,7 @@ $ cd ~/python-tax && claude
 
 | Скрипт | Викликає скіл |
 |---|---|
-| `scaffold-project.sh` | `init-project` (повний scaffold нового проекту) |
+| `scripts/modules/core.sh` + `scripts/modules/*.sh` | `init-project` (модульний scaffold: core завжди, решта — opt-in) |
 | `attach-project.sh` | `attach-project` (skip-if-exists scaffold у існуючому проекті) |
 | `write-stub.sh` | utility для одного doc-stub |
 | `init-git-repo.sh` | idempotent `git init` + initial commit |

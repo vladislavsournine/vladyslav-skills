@@ -13,7 +13,7 @@ The plugin uses three Engineer/Architect patterns. Picking the right one for a n
 ### Engineer (light) — bash-driven
 - **Where it runs:** Pre-flight Q&A in Opus main, then a bash script does the work, then a summary is rendered.
 - **When to use:** The skill's body is fundamentally deterministic — `mkdir`, `cp`, `sed`, `git init`, grep, file detection, JSON shaping. No LLM thinking is required for the mechanical part.
-- **Examples:** `init-project` (calls `scaffold-project.sh`), `attach-project` (calls `attach-project.sh`), `pre-release-check` (calls `pre-release-checks.sh`).
+- **Examples:** `init-project` (calls `scripts/modules/core.sh` + opt-in modules via `scripts/modules/*`), `attach-project` (calls `attach-project.sh`), `pre-release-check` (calls `pre-release-checks.sh`).
 - **Performance impact:** Eliminates ~8 minutes and ~40k tokens per invocation versus the v2.x Heavy Engineer pattern, because the scaffold step is now a 1-second bash run instead of a Sonnet subagent grinding through file writes.
 
 ### Engineer (light) — Opus inline
@@ -76,14 +76,14 @@ Fifteen POSIX-portable bash helpers (macOS + Linux, no python/node dependency). 
 |---|---|---|
 | `detect-stack.sh` | `attach-project`, `discover`, `discover-apple-check`, `design-sync`, `extract-tokens`, `scan-architecture`, `pre-release-checks` | Probes pwd → JSON `{ios, swift, flutter, kotlin, android, python, go, node, web, backend, plugin, ui, docker}` |
 | `derive-wing.sh` | (callable by any skill; currently unused inline — `_shared/verify-pwd.md` documents the algorithm) | Canonical MemPalace wing name (lowercase, platform-prefixed). Eliminates case-mismatch bugs. |
-| `write-stub.sh` | `scaffold-project`, `attach-project` | Idempotent placeholder Markdown writer: `# Title\n\n*to be filled*\n` |
-| `init-git-repo.sh` | `scaffold-project` | Idempotent `git init` + initial commit; safe to call on existing repos. |
+| `write-stub.sh` | `attach-project` | Idempotent placeholder Markdown writer: `# Title\n\n*to be filled*\n` |
+| `init-git-repo.sh` | none (legacy — `core.sh` inlines `git init`) | Idempotent `git init` + initial commit; safe to call on existing repos. |
 | `grep-replace-me.sh` | `pre-release-checks` | Quote-safe placeholder grep with consistent excludes. |
 | `parse-yaml-return.sh` | (reserved for future Heavy Engineer skills) | Locates the last fenced ` ```yaml ` block in a subagent response, validates `status:`, emits JSON. |
 | `section-status.sh` | `discover` | Scans `start-project.md` for filled vs pending sections. |
 | `changelog-from-git.sh` | `pre-release-checks` | Drafts a Markdown CHANGELOG section from `git log` (human edits before commit). |
 | `check-plan-scope.sh` | `add-feature` (Auto mode guard rails) | Verifies the diff stays within the approved plan (files, contract hash, read-only globs). |
-| `scaffold-project.sh` (v3.0.0) | `init-project` | Full new-project scaffolder. Replaces 8-minute Sonnet subagent with ~1-second bash. |
+| `scripts/modules/core.sh` + `scripts/modules/*.sh` | `init-project` | Modular adaptive scaffolder. `core.sh` always writes the bare AI shell (CLAUDE.md, .claude/settings.json, .gitignore, .remember/). Optional modules (docs, backend-infra, agents, etc.) run only when selected via the interactive menu. |
 | `attach-project.sh` (v3.1.0) | `attach-project` | Auto-detect stack + skip-if-exists scaffolder for existing projects. |
 | `pre-release-checks.sh` (v3.1.0) | `pre-release-check` | Runs 5 cross-platform release checks (tasks, tests, config, docs, translations) → JSON. |
 | `extract-tokens.sh` (v3.2.0) | `design-sync` | Per-platform design-token extractor → JSON (colors / typography / icons / spacing, sorted by usage count). |

@@ -77,14 +77,12 @@ Stub with comment:
 
 Empty file.
 
-### Docker compose files (read from plugin assets)
+### Docker compose files
 
-Read each from `<plugin>/skills/init-project/assets/backend/` and write to `backend/`:
+Docker Compose scaffolding is now handled by the modular scripts:
 
-- `assets/backend/docker-compose.yml` → `backend/docker-compose.yml` (no substitutions)
-- `assets/backend/docker-compose.prod.yml` → `backend/docker-compose.prod.yml`
-  - If no domain: remove the `certbot` service and `certbot_*` volumes; nginx uses port 80 only.
-- `assets/backend/docker-compose.prod-selfhosted.yml` → `backend/docker-compose.prod-selfhosted.yml`
-  - Same certbot rule applies.
+- `scripts/modules/docker.sh` — writes `backend/docker-compose.yml` and `backend/docker-compose.prod.yml`
+- `scripts/modules/postgres.sh` — adds Postgres service into the compose files
+- `scripts/modules/redis.sh` — adds Redis service into the compose files
 
-If any asset cannot be located, return `status: error`: `"Cannot find skills/init-project/assets/backend/<name> in vladyslav-skills plugin. Please reinstall or run git pull."`
+These scripts are invoked by `init-project` when the user opts into the backend-infra module. This reference fragment does not need to call them directly.

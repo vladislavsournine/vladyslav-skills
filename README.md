@@ -26,9 +26,11 @@ claude
 
 ### Skills that require MemPalace 🧠
 
+<!-- mempalace-skills:start -->
 `add-feature`, `fix-bug`, `discover`, `discover-apple-check`, `design-sync`, `ingest`, `pre-release-check`, `compact-save`, `save`, `qsave`
+<!-- mempalace-skills:end -->
 
-The other skills (`init-project`, `attach-project`, `write-*`, `help`, `swiftui-pro`, `design-page`) work without MemPalace.
+The other skills (`init-project`, `attach-project`, `write-*`, `help`, `swiftui-pro`, `design-page`, `smoke-test-skills`) work without MemPalace.
 
 Upgrading from ≤ v4.2.0 and seeing duplicate wings (e.g. `swift-Sudoku` vs `swift-sudoku`, or `plugin-foo` vs `foo`)? See [`docs/operations/wing-migration.md`](docs/operations/wing-migration.md) — most users only need to update the plugin.
 
@@ -60,12 +62,13 @@ Run any skill from a single Opus session. No manual `/model` switching required.
 | `/vladyslav:design-sync` | Extract design tokens from code into docs/design/system.md |
 | `/vladyslav:design-page` | Design app screens in Pencil via parallel subagents |
 | `/vladyslav:swiftui-pro` | SwiftUI/Swift code review for iOS 26 / Swift 6.2 best practices |
+| `/vladyslav:smoke-test-skills` | Batch-validate all plugin skills (frontmatter, command delegation, cross-references, Architect model= rule, README↔MemPalace sync) |
 
 **Engineer (light) — bash-driven:**
 
 | Skill | Purpose |
 |-------|---------|
-| `/vladyslav:init-project` | Create new project (calls `scripts/scaffold-project.sh`) |
+| `/vladyslav:init-project` | Create new project — bare AI shell (`minimal`) or interactive module menu (`scripts/modules/*`) |
 | `/vladyslav:attach-project` | Add structure to existing project (calls `scripts/attach-project.sh`) |
 | `/vladyslav:pre-release-check` | Pre-release verification (calls `scripts/pre-release-checks.sh`) |
 
@@ -108,7 +111,7 @@ fix-bug → write-test-docs → pre-release-check
 **Backend:** `python` (default), `go`, `other`, `none`
 **Frontend/Mobile:** `flutter`, `swift`, `kotlin`, `other`, `none`
 
-Predefined stacks get full scaffold. "Other" = directory + docs only.
+All stacks: CORE (bare AI shell) is always written. Docs / backend-infra / agents are opt-in via the interactive menu. `minimal` mode = CORE only.
 
 ## Superpowers Integration
 
