@@ -29,12 +29,21 @@ Fills sections 6, 8, 9, 10 (and 11 for iOS) of `docs/product/start-project.md` u
 ### Step 1: Read context
 
 Read:
-- `docs/product/start-project.md` — full file, primary input for all sections
-- `CLAUDE.md` — project-level rules
+- `CLAUDE.md` — project-level rules (derive project name from the `# <name>` title; fall back to the current directory basename)
 - `docs/product/prd.md` (if exists)
+- `docs/product/start-project.md` — full file, primary input for all sections
 
-**Hard stops:**
-- `start-project.md` missing → stop, tell user to run `/vladyslav:init-project` first
+**If `docs/product/start-project.md` is missing — self-seed it:**
+
+1. Resolve the plugin root: Glob `~/.claude/plugins/cache/vladyslav-marketplace/vladyslav/*/skills/discover/SKILL.md` and take the directory two levels up. If Glob returns nothing, fall back to `/Volumes/DevSSD/Development/vladyslav-skills`.
+2. Read `<plugin-root>/skills/init-project/assets/StartProject.md`.
+   - If that template is also missing → stop with: *"Template `skills/init-project/assets/StartProject.md` not found in the vladyslav-skills plugin. Please reinstall or run `git pull`."*
+3. Replace every occurrence of `<PROJECT_NAME>` in the template with the project name derived from CLAUDE.md (or directory basename).
+4. Create `docs/product/` if it does not exist, then write the substituted content to `docs/product/start-project.md`.
+5. Inform the user: *"Created `docs/product/start-project.md` from template. Sections 1–5 still contain placeholder text — please fill in your idea, problem statement, audience, MVP scope, and non-goals before the research sections are filled."*
+6. Continue with Step 2 below (do not stop — proceed into MemPalace search and section detection).
+
+**Hard stop (applies whether file existed or was just created):**
 - Sections 1-5 still contain `<...>` placeholders → stop, ask user to fill the foundation first
 
 ### Step 2: MemPalace — batch search
