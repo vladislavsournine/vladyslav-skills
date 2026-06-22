@@ -21,8 +21,8 @@ Fills sections 6, 8, 9, 10 (and 11 for iOS) of `docs/product/start-project.md` u
 
 ## Prerequisites
 
-- `docs/product/start-project.md` exists with sections 1-5 filled (ідея, проблема, audience, MVP scope, non-goals)
-- At least section 1 must be non-empty — empty StartProject is a hard stop
+- `docs/product/start-project.md` need not pre-exist — it is auto-created from the template if missing (see Step 1 "self-seed")
+- Sections 1-5 (ідея, проблема, audience, MVP scope, non-goals) must be filled with real content — if any still contain `<...>` placeholders, that is a hard stop (Step 1)
 
 ## Process
 
