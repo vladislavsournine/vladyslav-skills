@@ -65,7 +65,7 @@ Run any skill from a single Opus session. No manual `/model` switching required.
 
 | Skill | Purpose |
 |-------|---------|
-| `/vladyslav:init-project` | Create new project (calls `scripts/scaffold-project.sh`) |
+| `/vladyslav:init-project` | Create new project — bare AI shell (`minimal`) or interactive module menu (`scripts/modules/*`) |
 | `/vladyslav:attach-project` | Add structure to existing project (calls `scripts/attach-project.sh`) |
 | `/vladyslav:pre-release-check` | Pre-release verification (calls `scripts/pre-release-checks.sh`) |
 
@@ -108,7 +108,7 @@ fix-bug → write-test-docs → pre-release-check
 **Backend:** `python` (default), `go`, `other`, `none`
 **Frontend/Mobile:** `flutter`, `swift`, `kotlin`, `other`, `none`
 
-Predefined stacks get full scaffold. "Other" = directory + docs only.
+All stacks: CORE (bare AI shell) is always written. Docs / backend-infra / agents are opt-in via the interactive menu. `minimal` mode = CORE only.
 
 ## Superpowers Integration
 
