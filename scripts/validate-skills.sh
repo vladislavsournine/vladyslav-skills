@@ -78,12 +78,12 @@ check_agent_model() { # name, file
 }
 
 check_mempalace_readme() {
-  local section d name f listed
+  local section d name f
   [ -f "$README" ] || { err "README: file missing"; return; }
-  section="$(awk '/<!-- mempalace-skills:start -->/{p=1;next} /<!-- mempalace-skills:end -->/{p=0} p' "$README")"
   if ! grep -q 'mempalace-skills:start' "$README"; then
     err "README: mempalace-skills markers not found"; return
   fi
+  section="$(awk '/<!-- mempalace-skills:start -->/{p=1;next} /<!-- mempalace-skills:end -->/{p=0} p' "$README")"
   # forward: every mempalace caller is listed
   for d in "$SKILLS"/*/; do
     name="$(basename "$d")"; [ "$name" = "_shared" ] && continue
