@@ -28,6 +28,8 @@ write_file "docs/operations/docker.md" "# Docker
 
 \`docker compose up --build\` to run locally. Add services (postgres, redis) via the
 matching init-project modules; re-run them any time to append missing services.
+Postgres data is ephemeral by default; add a named volume (with a top-level \`volumes:\`
+section) to docker-compose.yml if you need persistence.
 "
 
 emit_json "success"

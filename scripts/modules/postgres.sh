@@ -24,10 +24,6 @@ else
       POSTGRES_DB: app
     ports:
       - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-volumes:
-  pgdata:
 YAML
     WRITTEN+=("$COMPOSE#postgres")
 fi
