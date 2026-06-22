@@ -81,13 +81,28 @@ check_agent_model() { # name, file
   local name="$1" f="$2" start
   [ -f "$f" ] || return
   body "$f" | grep -qiE '^\**Type:\**[[:space:]]*Architect' || return
+  # A block closes on a line whose first non-space char is ")" (idiomatic
+  # multi-line call style), so a ")" embedded in a string value does not
+  # close it early. A single-line Agent(...) closes on its own opening line.
+  # "model" counts only with assignment syntax (model= or model:), so prose
+  # mentioning "the model" does not suppress a real finding.
   while IFS= read -r start; do
     err "$name: Agent() call without model= (near line $start)"
   done < <(awk '
     function flush() { if (inblk && !hasmodel) print start; inblk=0; hasmodel=0 }
-    { if (!inblk && /Agent\(/) { inblk=1; start=NR; hasmodel=0 }
-      if (inblk && /model/) hasmodel=1
-      if (inblk && /\)/) flush() }
+    {
+      if (!inblk && /Agent\(/) {
+        inblk=1; start=NR; hasmodel=0
+        if (/model[[:space:]]*[=:]/) hasmodel=1
+        rest=$0; sub(/.*Agent\(/, "", rest)
+        if (rest ~ /\)/) { flush(); next }
+        next
+      }
+      if (inblk) {
+        if (/model[[:space:]]*[=:]/) hasmodel=1
+        if (/^[[:space:]]*\)/) flush()
+      }
+    }
     END { if (inblk) flush() }
   ' "$f")
 }

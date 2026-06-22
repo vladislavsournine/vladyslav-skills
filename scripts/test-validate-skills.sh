@@ -102,6 +102,16 @@ sed -i.bak 's/^\*\*Type:\*\* Engineer (light)/**Type:** Architect/' "$R/skills/a
 printf 'Dispatch:\n  Agent(\n    prompt,\n    subagent_type: "x",\n  )\n' >> "$R/skills/alpha/SKILL.md"
 T "Architect multiline Agent() without model fails" 1 "$R"
 
+R="$(make_valid)"
+sed -i.bak 's/^\*\*Type:\*\* Engineer (light)/**Type:** Architect/' "$R/skills/alpha/SKILL.md"
+printf 'Dispatch:\n  Agent(\n    prompt: "draw (carefully) now",\n    model: "opus",\n  )\n' >> "$R/skills/alpha/SKILL.md"
+T "embedded ) in string does not close block early (passes)" 0 "$R"
+
+R="$(make_valid)"
+sed -i.bak 's/^\*\*Type:\*\* Engineer (light)/**Type:** Architect/' "$R/skills/alpha/SKILL.md"
+printf 'Dispatch:\n  Agent(\n    prompt: "the model decides",\n    subagent_type: "x",\n  )\n' >> "$R/skills/alpha/SKILL.md"
+T "prose word model (no model= ) does not suppress finding (fails)" 1 "$R"
+
 # --- Check E: README <-> MemPalace sync ---
 R="$(make_valid)"
 printf 'calls mempalace_search here\n' >> "$R/skills/alpha/SKILL.md"
