@@ -74,12 +74,22 @@ check_crossrefs() { # name, file
 }
 
 check_agent_model() { # name, file
-  local name="$1" f="$2" line
+  # Architect skills must pass model= to every Agent() dispatch. Block-aware
+  # heuristic: an Agent( call spans from its opening line to the line that
+  # closes the paren; model may appear anywhere in that block (e.g. on its
+  # own line in a multi-line call). Flags a block where model never appears.
+  local name="$1" f="$2" start
   [ -f "$f" ] || return
   body "$f" | grep -qiE '^\**Type:\**[[:space:]]*Architect' || return
-  while IFS= read -r line; do
-    printf '%s' "$line" | grep -q 'model' || err "$name: Agent() without model= -> $line"
-  done < <(grep -E 'Agent\(' "$f")
+  while IFS= read -r start; do
+    err "$name: Agent() call without model= (near line $start)"
+  done < <(awk '
+    function flush() { if (inblk && !hasmodel) print start; inblk=0; hasmodel=0 }
+    { if (!inblk && /Agent\(/) { inblk=1; start=NR; hasmodel=0 }
+      if (inblk && /model/) hasmodel=1
+      if (inblk && /\)/) flush() }
+    END { if (inblk) flush() }
+  ' "$f")
 }
 
 check_mempalace_readme() {

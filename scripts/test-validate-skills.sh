@@ -92,6 +92,16 @@ sed -i.bak 's/^\*\*Type:\*\* Engineer (light)/**Type:** Architect/' "$R/skills/a
 printf 'Dispatch: Agent(prompt, model="sonnet")\n' >> "$R/skills/alpha/SKILL.md"
 T "Architect Agent() with model passes" 0 "$R"
 
+R="$(make_valid)"
+sed -i.bak 's/^\*\*Type:\*\* Engineer (light)/**Type:** Architect/' "$R/skills/alpha/SKILL.md"
+printf 'Dispatch:\n  Agent(\n    prompt,\n    model: "opus",\n  )\n' >> "$R/skills/alpha/SKILL.md"
+T "Architect multiline Agent() with model on own line passes" 0 "$R"
+
+R="$(make_valid)"
+sed -i.bak 's/^\*\*Type:\*\* Engineer (light)/**Type:** Architect/' "$R/skills/alpha/SKILL.md"
+printf 'Dispatch:\n  Agent(\n    prompt,\n    subagent_type: "x",\n  )\n' >> "$R/skills/alpha/SKILL.md"
+T "Architect multiline Agent() without model fails" 1 "$R"
+
 # --- Check E: README <-> MemPalace sync ---
 R="$(make_valid)"
 printf 'calls mempalace_search here\n' >> "$R/skills/alpha/SKILL.md"
