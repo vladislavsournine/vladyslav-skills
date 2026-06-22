@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Repo-wide static validator for skills. See docs/superpowers/specs/2026-06-22-smoke-test-skills-design.md
 set -u
+shopt -s nullglob
 
 ROOT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 SKILLS="$ROOT/skills"
@@ -37,6 +38,7 @@ check_frontmatter() { # name, file
   fm="$(frontmatter "$f")"
   [ -n "$fm" ] || { err "$name: no frontmatter block"; return; }
   nm="$(printf '%s\n' "$fm" | sed -nE 's/^name:[[:space:]]*(.*[^[:space:]])[[:space:]]*$/\1/p' | head -1)"
+  [ -n "$nm" ] || { err "$name: missing name field"; return; }
   [ "$nm" = "$name" ] || err "$name: frontmatter name '$nm' != dir"
   printf '%s\n' "$fm" | grep -qE '^description:[[:space:]]*\S' || err "$name: missing description"
   body "$f" | grep -qiE '^\**Type:' || err "$name: body missing Type: line"

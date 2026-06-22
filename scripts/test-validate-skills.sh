@@ -52,5 +52,11 @@ T "missing description fails" 1 "$R"
 R="$(make_valid)"; sed -i.bak '/^\*\*Type:/d' "$R/skills/alpha/SKILL.md"
 T "missing Type line fails" 1 "$R"
 
+R="$(make_valid)"; sed -i.bak 's/^name: alpha/name:/' "$R/skills/alpha/SKILL.md"
+T "blank name field fails" 1 "$R"
+
+R="$(make_valid)"; rm -rf "$R/skills/alpha"
+T "empty skills dir does not false-positive" 0 "$R"
+
 printf '\n%s passed, %s failed\n' "$pass" "$failc"
 [ "$failc" -eq 0 ]
