@@ -249,6 +249,13 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 
 ### Task 3: Check C (cross-reference existence)
 
+> **CORRECTED during implementation:** the shipped Check C validates ONLY
+> `skills/_shared/references/*.md`. The `docs/**.md` branch shown below was
+> dropped — those paths are targets the skill creates in the end user's
+> project, not files in this repo (they caused ~30 false positives). Also
+> `for_each_skill` was changed to iterate only directories containing a
+> `SKILL.md`. See the shipped `scripts/validate-skills.sh` for the final code.
+
 **Files:**
 - Modify: `scripts/validate-skills.sh` (add `check_crossrefs`, wire into `main`)
 - Modify: `scripts/test-validate-skills.sh` (add one test)
@@ -380,6 +387,14 @@ Co-Authored-By: Claude Opus 4.8 <noreply@anthropic.com>"
 ---
 
 ### Task 5: Check E (README ↔ MemPalace bidirectional sync)
+
+> **CORRECTED during implementation:** the shipped backward pass checks ONLY
+> that each listed name is a real skill directory — it does NOT require a
+> literal `mempalace_` token. Orchestrators (`add-feature`, `fix-bug`) require
+> MemPalace via natural-language instructions without naming the tool, so the
+> token-based backward check shown below false-positived on them. The forward
+> pass (literal callers must be listed) is unchanged. See the shipped
+> `scripts/validate-skills.sh` for the final code.
 
 **Files:**
 - Modify: `scripts/validate-skills.sh` (add `check_mempalace_readme`, wire into `main`)

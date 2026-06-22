@@ -58,16 +58,36 @@ existing hook. Repo-wide static checks the per-edit hook cannot do:
 2. **Command delegation** — `commands/<name>.md` exists for every skill and
    references the skill name; and every `commands/<name>.md` has a matching skill
    (no orphans). `_shared` is exempt (no command).
-3. **Cross-reference existence** — every `_shared/references/*.md` and relative
-   `docs/**.md` path mentioned in a SKILL.md resolves to a real file.
-4. **Explicit-model rule** — any `Agent(` call inside a `Type: Architect` skill
-   includes a `model` argument (CLAUDE.md orchestration rule). Heuristic grep.
-5. **MemPalace README sync** — every skill whose SKILL.md calls `mempalace_*`
-   appears in the README "Skills that require MemPalace" list, and every listed
-   skill really calls `mempalace_*` (bidirectional).
+3. **Cross-reference existence** — every `skills/_shared/references/*.md` path
+   mentioned in a SKILL.md resolves to a real file. `docs/**.md` paths are NOT
+   checked: in this plugin they are targets the skill creates in the END USER's
+   project, not files in this repo. Only `skills/<name>/` directories that
+   contain a `SKILL.md` are treated as skills (so `skills/docs/`, `skills/_shared/`
+   are skipped).
+4. **Explicit-model rule** — every `Agent(` dispatch inside a `Type: Architect`
+   skill passes a `model` argument (CLAUDE.md orchestration rule). Block-aware
+   heuristic: `model` may appear anywhere within the `Agent(...)` call block
+   (e.g. on its own line in a multi-line call); a block closes on a line whose
+   first non-space char is `)`, and `model` counts only with assignment syntax
+   (`model=` / `model:`).
+5. **MemPalace README sync** — forward: every skill whose SKILL.md contains a
+   literal `mempalace_*` token appears in the README "Skills that require
+   MemPalace" list (between marker comments). Backward: every name listed there
+   is a real skill directory. The backward pass does NOT require a literal token
+   — orchestrators (`add-feature`, `fix-bug`) require MemPalace via natural-language
+   instructions without naming the tool, so a token check false-positives; the
+   backward pass exists to catch stale/renamed/deleted entries.
 
-Output: per-check `PASS`/`FAIL` lines with offending file paths, a summary count,
-and a non-zero exit on any failure (CI- and `/loop`-friendly).
+Output: per-check `FAIL` lines with offending file paths and a non-zero exit on
+any failure (CI- and `/loop`-friendly); a final all-pass line on success.
+
+> **Implementation note (corrections during build):** Checks 3, 4, and 5 above
+> reflect refinements made when the validator was first run against the real
+> repo — the original draft checked `docs/**.md` (false positives on user-project
+> targets), used a line-scoped `model` grep (false positives on multi-line
+> `Agent()` calls), and required a literal `mempalace_` token in the backward
+> pass (false positives on prose-style orchestrators). The descriptions here are
+> the shipped behavior.
 
 ### B. `skills/smoke-test-skills/SKILL.md` (`Type: Architect`)
 
