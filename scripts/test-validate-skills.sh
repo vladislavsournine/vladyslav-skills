@@ -75,7 +75,11 @@ T "broken _shared reference fails" 1 "$R"
 
 R="$(make_valid)"
 printf 'see docs/architecture/missing.md\n' >> "$R/skills/alpha/SKILL.md"
-T "broken docs reference fails" 1 "$R"
+T "docs/ reference is NOT checked (user-project target)" 0 "$R"
+
+# --- Non-skill dirs under skills/ are ignored (no SKILL.md) ---
+R="$(make_valid)"; mkdir -p "$R/skills/docs/superpowers"
+T "non-skill dir under skills/ is ignored" 0 "$R"
 
 # --- Check D: Architect Agent() must pass model= ---
 R="$(make_valid)"

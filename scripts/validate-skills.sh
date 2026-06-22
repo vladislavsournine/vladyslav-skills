@@ -22,12 +22,14 @@ body() {
        state=="fm"&&/^---[[:space:]]*$/{state="body"}' "$1"
 }
 
-# Iterate real skills (skip _shared). Usage: for_each_skill <fn>
+# Iterate real skills. A skill is a directory containing SKILL.md, which
+# excludes non-skill dirs like _shared/ and docs/. Usage: for_each_skill <fn>
 for_each_skill() {
   local fn="$1" d name
   for d in "$SKILLS"/*/; do
     name="$(basename "$d")"
     [ "$name" = "_shared" ] && continue
+    [ -f "$d/SKILL.md" ] || continue
     "$fn" "$name" "$d/SKILL.md"
   done
 }
@@ -60,9 +62,12 @@ check_orphan_commands() {
 }
 
 check_crossrefs() { # name, file
+  # Only intra-repo references are validated: skills/_shared/references/*.md.
+  # docs/**.md paths in a SKILL.md are targets the skill creates in the END
+  # USER's project, not files in this plugin repo, so they are NOT checked.
   local name="$1" f="$2" refs ref
   [ -f "$f" ] || return
-  refs="$(grep -oE '(skills/_shared/references/[A-Za-z0-9_./-]+\.md|docs/[A-Za-z0-9_./-]+\.md)' "$f" | sort -u)"
+  refs="$(grep -oE 'skills/_shared/references/[A-Za-z0-9_./-]+\.md' "$f" | sort -u)"
   for ref in $refs; do
     [ -e "$ROOT/$ref" ] || err "$name: broken reference $ref"
   done
