@@ -77,6 +77,27 @@ check_agent_model() { # name, file
   done < <(grep -E 'Agent\(' "$f")
 }
 
+check_mempalace_readme() {
+  local section d name f listed
+  [ -f "$README" ] || { err "README: file missing"; return; }
+  section="$(awk '/<!-- mempalace-skills:start -->/{p=1;next} /<!-- mempalace-skills:end -->/{p=0} p' "$README")"
+  if ! grep -q 'mempalace-skills:start' "$README"; then
+    err "README: mempalace-skills markers not found"; return
+  fi
+  # forward: every mempalace caller is listed
+  for d in "$SKILLS"/*/; do
+    name="$(basename "$d")"; [ "$name" = "_shared" ] && continue
+    f="$d/SKILL.md"; [ -f "$f" ] || continue
+    grep -q 'mempalace_' "$f" || continue
+    printf '%s' "$section" | grep -q "\`$name\`" || err "$name: calls mempalace_* but missing from README list"
+  done
+  # backward: every listed name is a real mempalace caller
+  for name in $(printf '%s' "$section" | grep -oE '`[a-z0-9-]+`' | tr -d '`' | sort -u); do
+    if [ ! -d "$SKILLS/$name" ]; then err "README list has unknown skill \`$name\`"; continue; fi
+    grep -q 'mempalace_' "$SKILLS/$name/SKILL.md" 2>/dev/null || err "README lists \`$name\` but it has no mempalace_* call"
+  done
+}
+
 main() {
   [ -d "$SKILLS" ] || { printf 'FAIL: no skills/ under %s\n' "$ROOT"; exit 2; }
   for_each_skill check_frontmatter
@@ -84,6 +105,7 @@ main() {
   check_orphan_commands
   for_each_skill check_crossrefs
   for_each_skill check_agent_model
+  check_mempalace_readme
   if [ "$fail" -ne 0 ]; then printf -- '--- validate-skills: FAILURES found\n'; exit 1; fi
   printf -- '--- validate-skills: all checks PASS\n'; exit 0
 }

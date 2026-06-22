@@ -88,5 +88,14 @@ sed -i.bak 's/^\*\*Type:\*\* Engineer (light)/**Type:** Architect/' "$R/skills/a
 printf 'Dispatch: Agent(prompt, model="sonnet")\n' >> "$R/skills/alpha/SKILL.md"
 T "Architect Agent() with model passes" 0 "$R"
 
+# --- Check E: README <-> MemPalace sync ---
+R="$(make_valid)"
+printf 'calls mempalace_search here\n' >> "$R/skills/alpha/SKILL.md"
+T "mempalace caller missing from README fails" 1 "$R"
+
+R="$(make_valid)"
+sed -i.bak 's/Skills that require MemPalace:/Skills that require MemPalace: `beta`/' "$R/README.md"
+T "README lists unknown/non-caller skill fails" 1 "$R"
+
 printf '\n%s passed, %s failed\n' "$pass" "$failc"
 [ "$failc" -eq 0 ]
