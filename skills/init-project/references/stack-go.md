@@ -98,12 +98,12 @@ Keys: `APP_ENV`, `APP_PORT`, `APP_SECRET_KEY`, `DATABASE_URL`, `REDIS_URL`. If a
 
 Empty file.
 
-### Docker compose files (read from plugin assets)
+### Docker compose files
 
-Same as the Python stack — read each from `<plugin>/skills/init-project/assets/backend/`:
+Docker Compose scaffolding is now handled by the modular scripts (same as the Python stack):
 
-- `assets/backend/docker-compose.yml` → `backend/docker-compose.yml`
-- `assets/backend/docker-compose.prod.yml` → `backend/docker-compose.prod.yml`
-- `assets/backend/docker-compose.prod-selfhosted.yml` → `backend/docker-compose.prod-selfhosted.yml`
+- `scripts/modules/docker.sh` — writes `backend/docker-compose.yml` and `backend/docker-compose.prod.yml`
+- `scripts/modules/postgres.sh` — adds Postgres service into the compose files
+- `scripts/modules/redis.sh` — adds Redis service into the compose files
 
-Apply the same domain conditional (drop certbot if no domain).
+These scripts are invoked by `init-project` when the user opts into the backend-infra module. This reference fragment does not need to call them directly.

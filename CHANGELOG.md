@@ -1,5 +1,19 @@
 # Changelog
 
+## v4.4.0
+
+- `init-project` rewritten as a modular adaptive orchestrator: bare AI shell (CORE) by
+  default; `interactive` mode adds docs / backend-infra / agents only on explicit
+  confirmation ("don't know → don't create").
+- `scripts/scaffold-project.sh` decomposed into idempotent `scripts/modules/*.sh`
+  (core, docs, design-system, architecture, docker, postgres, redis, alembic,
+  backend-skeleton, agents) with a shared `_lib.sh` and a `tests/` suite.
+- Roadmap-gate inherited by `init-project`; smart context-aware `Next:` suggestion.
+- No code scaffolding for frontend/Swift — handled by native tooling. `attach-project`
+  unchanged.
+
+---
+
 ## v4.3.2 — 2026-06-17
 
 Shareable global-instructions template. No skill behavior changes.

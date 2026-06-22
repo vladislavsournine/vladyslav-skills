@@ -1,6 +1,6 @@
 ---
 name: init-project
-description: Use when creating a new project from scratch. Interactive Q&A on stack, then scaffolds directories, docs, agents, and CLAUDE.md.
+description: Use when creating a new project. Bare AI shell by default; interactive menu adds docs / backend-infra / agents on demand.
 ---
 
 # Init Project
@@ -9,79 +9,47 @@ description: Use when creating a new project from scratch. Interactive Q&A on st
 
 ## Overview
 
-Bootstrap a new project with a full Claude Code structure. Pre-flight Q&A in Opus main collects the user's choices, then `scripts/scaffold-project.sh` writes the entire scaffold in one second of pure bash — no Sonnet subagent, no LLM cost for the mechanical work.
-
-This was a Heavy Engineer skill until v3.0.0. The Sonnet subagent dispatch spent ~8 minutes and ~43k tokens doing `mkdir` + `cp` + `sed` + `git init`. None of that needs LLM thinking, so it was lifted into `scripts/scaffold-project.sh`. The skill keeps the interactive part (where the user's input genuinely matters) and delegates everything else to bash.
+Bootstrap a new project with the minimal Claude Code shell (`CLAUDE.md`, `.gitignore`, `.claude/settings.json`). In interactive mode an opt-in menu adds documentation, backend infrastructure, and agent stubs — only the modules you actually tick. Everything runs via focused bash modules under `scripts/modules/`; no LLM cost for the mechanical scaffold work.
 
 ## Process
 
 ### Step 0: Pre-flight (Opus main)
 
-Collect every decision needed by the scaffolder. All Q&A happens here via AskUserQuestion.
+All Q&A happens here before any bash is executed.
 
-1. **Verify working directory.** Run `ls -A`. If it is non-empty (anything other than `.git/` alone), ask:
+1. **Verify working directory.** Run `ls -A` on the target directory (default: cwd). If it is non-empty — anything beyond `.git/` alone — ask via AskUserQuestion:
    > "The current directory is not empty. Contents: `<list>`. Continue and add project structure here, or abort?"
-   - If user chooses **abort** → exit cleanly. Do not call the script.
-   - If user chooses **continue** → proceed. The scaffolder is idempotent and will skip existing files.
+   - **Abort** → exit cleanly. Do not proceed.
+   - **Continue** → proceed. Modules skip files that already exist.
 
 2. **AskUserQuestion — project name** (free text):
    > "What is the project called?"
 
-3. **AskUserQuestion — backend stack** (single-select):
-   > "Backend stack?"
-   - Options: `python`, `go`, `other`, `none`
-   - If `other`: ask three follow-ups via AskUserQuestion for `label`, `dir`, `gitignore` (comma-separated entries).
+3. **AskUserQuestion — mode** (single-select):
+   > "Scaffold mode?"
+   - Options: `minimal` | `interactive`
+   - `minimal` — only core module runs (bare AI shell).
+   - `interactive` — core runs first, then the module menu (Step 2) is presented.
 
-4. **AskUserQuestion — frontend/mobile stacks** (single-select for simplicity in v3.0.0; multi-select via AskUserQuestion had schema issues):
-   > "Frontend/mobile stack?"
-   - Options: `flutter`, `swift`, `kotlin`, `other`, `none`
-   - If `swift`: ask via AskUserQuestion for `bundle ID prefix` (default `com.vlad`) and `deployment target` (default `17.0`).
-   - If `other`: ask for `label`, `dir`, `gitignore`.
-
-5. **AskUserQuestion — domain** (free text, optional):
-   > "Project domain? (e.g. `api.myapp.com`) — type `none` to skip"
-
-6. **AskUserQuestion — private mode** (single-select):
-   > "Private mode? Gitignore AI workflow files (CLAUDE.md, .claude/, docs/plans/)?"
-   - Options: `yes`, `no`
-
-7. **AskUserQuestion — agents to install** (single-select per agent, run a small loop):
-   For each of these in turn — ask `install <name>?` yes/no:
-   - `architect-reviewer` (always available)
-   - `backend-engineer` (only ask if backend stack ≠ `none`)
-   - `ios-engineer` (only ask if `swift` was selected)
-   - `qa-reviewer` (always available)
-   - `release-manager` (always available)
-
-   Collect the `yes` answers into a comma-separated string.
-
-8. **Resolve the plugin root.** The scaffolder needs `<plugin-root>` to read `assets/`. Determine it by:
-   - Glob for `~/.claude/plugins/cache/vladyslav-marketplace/vladyslav/*/scripts/scaffold-project.sh` and take the directory two levels up.
+4. **Resolve plugin root.**
+   - Glob `~/.claude/plugins/cache/vladyslav-marketplace/vladyslav/*/scripts/modules/core.sh`.
+   - Take the matching path and go three levels up (strip `scripts/modules/core.sh`) to get `<root>`.
    - Fall back to `/Volumes/DevSSD/Development/vladyslav-skills` if Glob returns nothing (development clone).
-   - Verify the resolved path has `skills/init-project/assets/` inside.
+   - Verify `<root>/skills/init-project/assets/` exists. If missing, warn the user and continue — assets are optional for core operation.
 
-### Step 1: Run the scaffolder
+Capture: `<pwd>`, `<name>`, `<mode>`, `<root>`.
 
-Execute (via the Bash tool):
+---
+
+### Step 1: Core (always)
+
+Execute via Bash tool:
 
 ```bash
-<plugin-root>/scripts/scaffold-project.sh \
-    --pwd <project pwd from Step 0.1> \
-    --name <name from Step 0.2> \
-    --plugin-root <plugin-root from Step 0.8> \
-    --backend <python|go|other|none> \
-    [--backend-other-label "<label>"] \
-    [--backend-other-dir <dir>] \
-    [--backend-other-gitignore "<entries>"] \
-    --frontend <flutter|swift|kotlin|other|none> \
-    [--swift-bundle-id-prefix com.vlad] \
-    [--swift-deployment-target 17.0] \
-    [--frontend-other-label "<label>"] \
-    [--frontend-other-dir <dir>] \
-    [--frontend-other-gitignore "<entries>"] \
-    --domain "<domain-or-empty>" \
-    --private-mode <yes|no> \
-    --agents "<comma list, or empty for none>"
+<root>/scripts/modules/core.sh \
+    --pwd <pwd> \
+    --plugin-root <root> \
+    --name <name>
 ```
 
 The script emits a single line of JSON on stdout:
@@ -89,95 +57,211 @@ The script emits a single line of JSON on stdout:
 ```json
 {
   "status": "success" | "partial" | "error",
-  "files_written": [<paths>],
-  "files_skipped": [<paths>],
-  "warnings": [<msgs>],
+  "files_written": ["<path>", ...],
+  "files_skipped": ["<path>", ...],
+  "warnings": ["<msg>", ...],
   "error": "<msg if status=error>"
 }
 ```
 
-Capture this output.
+Capture this JSON. If `status` is `error`, surface the error and stop — do not proceed to Step 2.
 
-### Step 2: Present summary
+---
 
-Parse the JSON. Render to the user:
+### Step 2: Module menu (interactive mode only)
 
-**`status: success`** (or `partial` with no skipped paths):
+Skip entirely if `<mode>` is `minimal`.
+
+Present **three grouped AskUserQuestion multi-selects**, each with all options unticked by default. Run only the modules the user ticks. Unticked items are silently skipped — "don't know → don't create".
+
+#### Group A — Docs
+
+> "Which documentation scaffolds do you want?"
+> (all unticked by default)
+
+| Option | Module call |
+|---|---|
+| `prd + planning` | `docs.sh --pwd <pwd> --plugin-root <root>` |
+| `design system` | `design-system.sh --pwd <pwd> --plugin-root <root> --name <name>` |
+| `architecture` | `architecture.sh --pwd <pwd> --plugin-root <root>` |
+
+#### Group B — Backend infra
+
+> "Which backend infrastructure do you want?"
+> (all unticked by default)
+
+| Option | Module call |
+|---|---|
+| `docker` | `docker.sh --pwd <pwd> --plugin-root <root>` |
+| `postgres` | `postgres.sh --pwd <pwd> --plugin-root <root>` |
+| `redis` | `redis.sh --pwd <pwd> --plugin-root <root>` |
+| `alembic` | `alembic.sh --pwd <pwd> --plugin-root <root>` |
+| `backend skeleton` | `backend-skeleton.sh --pwd <pwd> --plugin-root <root>` |
+
+#### Group C — Agents
+
+> "Which Claude Code agents do you want installed?"
+> (all unticked by default)
+>
+> Options: `architect-reviewer`, `backend-engineer`, `qa-reviewer`, `release-manager`
+
+Collect the ticked names into a comma-separated string, then run:
+
+```bash
+<root>/scripts/modules/agents.sh \
+    --pwd <pwd> \
+    --plugin-root <root> \
+    --agents "<csv>"
+```
+
+If no agents are ticked, skip the `agents.sh` call entirely.
+
+Each module call emits the same JSON shape as core. Capture all outputs.
+
+---
+
+### Step 3: Roadmap gate
+
+After modules complete, ask via AskUserQuestion:
+
+> "Які ключові фічі плануєш в цьому проекті? Розіб'ємо на MVP-фази в `ROADMAP.md`"
+
+- If the user provides features → generate `ROADMAP.md` at `<pwd>/ROADMAP.md` using the phase structure below, then commit the file to git.
+- If the user skips ("потім", "не знаю", empty answer, or declines) → do not create the file. Continue normally.
+
+This step is **non-blocking** — `init-project` completes regardless of the answer.
+
+**`ROADMAP.md` phase structure:**
+
+```markdown
+# Roadmap: <name>
+
+> Created: YYYY-MM-DD
+
+## Phase 1: <Name>
+**Done when:** <one sentence criteria>
+
+- [ ] Task 1
+- [ ] Task 2
+- [ ] Task 3
+
+## Phase 2: <Name>
+**Done when:** <one sentence criteria>
+
+- [ ] Task 1
+- [ ] Task 2
+```
+
+Phases represent MVP milestones — what ships in the first release vs. what comes after.
+
+---
+
+### Step 4: Summary + smart Next
+
+Merge all module JSON outputs. Render to the user:
 
 ```
 ✓ init-project complete
   Project: <name> in <pwd>
-  Stack: <human-readable summary, e.g. "Python backend, no frontend">
-  Files written: <count> (see git log -1 for the manifest)
-  Warnings: <warnings list, if any>
-  Next: /vladyslav:discover  — fill docs/product/start-project.md with research
+  Mode: <minimal|interactive>
+  Files written: <total count across all modules>
+  Skipped (already existed): <list, omit section if empty>
+  Warnings: <list, omit section if empty>
+  ROADMAP.md: <created | skipped>
 ```
 
-**`status: partial`** (with files_skipped non-empty — usually pre-existing files preserved):
+Then append a **context-aware `Next:` line** — pick the first that applies:
 
-Same as success, plus:
-```
-  Skipped (already existed): <list>
-```
+| Condition | Next line |
+|---|---|
+| No docs module was ticked | `Next: docs народяться за потреби — discover / write-user-stories / write-test-docs.` |
+| Any backend-infra module was ticked | `Next: /vladyslav:add-feature щоб почати фічу.` |
+| `minimal` mode | `Next: повернись у interactive за потреби, або одразу /vladyslav:add-feature.` |
 
-**`status: error`**:
+The skill **never auto-runs the next skill**. The Next line is informational only.
 
-```
-✗ init-project failed
-  Error: <error from JSON>
-  Files written before failure: <list, if any>
-```
-
-Do not retry automatically. Surface the error.
+**`status: error` from any module:** surface the error and which module failed. List files written before the failure. Do not retry automatically.
 
 ---
 
 ## Why this is a Light Engineer skill
 
-- **No subagent dispatch.** Heavy Engineer pattern's value is when each step requires reading existing code, semantic decisions, or narrative composition. Scaffolding a fresh project tree from user-provided parameters is none of that — it's pure mechanics.
-- **Idempotent.** Re-running the script on an existing project will skip everything already present (returns those paths in `files_skipped`). Safe to re-run after manual changes.
-- **Deterministic.** Same inputs always produce the same scaffold. No model variability.
-- **~1 second, 0 LLM tokens** for the scaffold step itself. Q&A in Step 0 is the only model-driven part.
+- **No subagent dispatch.** Each module is a deterministic bash script. No LLM reasoning is needed for file creation.
+- **Modular and opt-in.** Only requested modules run, so a minimal project stays minimal.
+- **Idempotent.** Modules skip files that already exist and report them in `files_skipped`.
+- **~1 second, 0 LLM tokens** per module. Q&A in Step 0 is the only model-driven part.
 
-## Stack-specific scaffolding details
+---
 
-The bash scaffolder handles every stack inline. For developers debugging the script:
-- Python backend logic: lines ~210-270 in `scripts/scaffold-project.sh`
-- Go backend logic: lines ~272-340
-- Swift frontend logic (xcodegen + Info.plist + App.swift): lines ~360-420
-- Flutter / Kotlin / "other" frontends: lines ~422-460
-- Shared backend infra (docker-compose, optional nginx with domain): lines ~340-358
+## Output allowlist
 
-The `references/stack-<name>.md` files from v2.3.x are retained for human reading and historical reference but are no longer composed into a subagent prompt — the same content is implemented directly in the bash scaffolder.
+Paths the modules may write (relative to `<pwd>`). The modules never modify pre-existing files except where noted (append operations on `docker-compose.yml` and `.env`).
 
-## Output allowlist (informational)
-
-For users who need to audit what `init-project` may create. The scaffolder will only write to paths from this list (relative to the project pwd):
-
+**core.sh** (always):
 ```
 .gitignore
-CLAUDE.md
 .claude/settings.json
-.claude/settings.local.json                    (Swift only)
-.claude/agents/<chosen>.md                     (per agent selection)
-docs/product/{idea,competitors,prd,user-stories,start-project}.md
-docs/architecture/{system,api,db-schema.sql}.md   (api/db only if backend)
-docs/architecture/adr/                            (empty dir)
-docs/ux/{screens,flows}.md
-docs/plans/{implementation,tasks,backlog-next}.md
-docs/testing/{test-plan,manual-qa}.md
-docs/release/{checklist,changelog,rollback}.md
-docs/operations/{docker,incidents}.md             (docker only if backend)
-docs/marketing/launch-notes.md
-docs/design/system.md                              (UI projects only)
-backend/{requirements.txt, src/{__init__.py, main.py}, Dockerfile, .env, .env.example, secrets/.gitkeep}   (Python backend)
-backend/docker-compose{,prod,prod-selfhosted}.yml  (Python or Go backend)
-backend/{go.mod, cmd/server/main.go, .air.toml, ...}   (Go backend)
-infra/nginx/nginx.conf                              (backend + domain)
-project.yml, app/Info.plist, app/<Name>App.swift, app/ContentView.swift   (Swift)
-flutter/.gitkeep                                    (Flutter)
-kotlin/.gitkeep                                     (Kotlin)
-<other-dir>/.gitkeep                                ("other" stacks)
+CLAUDE.md
+.remember/now.md
 ```
 
-The scaffolder never modifies pre-existing files — it skips them and reports the path in `files_skipped`.
+**docs.sh**:
+```
+docs/product/prd.md
+docs/plans/tasks.md
+docs/plans/backlog-next.md
+```
+
+**design-system.sh**:
+```
+docs/design/system.md
+```
+
+**architecture.sh**:
+```
+docs/architecture/system.md
+```
+
+**docker.sh**:
+```
+Dockerfile
+docker-compose.yml
+docs/operations/docker.md
+```
+
+**postgres.sh**:
+```
+docker-compose.yml              (appends postgres service block)
+.env                            (appends DATABASE_URL)
+```
+
+**redis.sh**:
+```
+docker-compose.yml              (appends redis service block)
+.env                            (appends REDIS_URL)
+```
+
+**alembic.sh**:
+```
+alembic.ini
+migrations/env.py
+migrations/versions/.gitkeep
+migrations/README
+```
+
+**backend-skeleton.sh**:
+```
+requirements.txt
+src/__init__.py
+src/main.py
+```
+
+**agents.sh**:
+```
+.claude/agents/<name>.md        (one per chosen agent)
+```
+
+**Roadmap gate (Step 3)**:
+```
+ROADMAP.md
+```

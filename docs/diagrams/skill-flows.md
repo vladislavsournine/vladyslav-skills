@@ -10,11 +10,12 @@ Simplified lifecycle diagrams for all 17 skills. Render natively on GitHub.
 
 ```mermaid
 flowchart LR
-    A([/init-project]):::start --> B["Pre-flight Q&A<br/>(Opus main)"]
-    B --> C["Resolve plugin root<br/>(Glob + fallback)"]
-    C --> D[Run scripts/scaffold-project.sh<br/>~1 second]
-    D --> E[Parse JSON output]
-    E --> F[Render summary]
+    A([/init-project]):::start --> B["Pre-flight Q&A<br/>(Opus main)<br/>mode: minimal | interactive"]
+    B --> C["Run scripts/modules/core.sh<br/>CLAUDE.md · .claude/settings.json<br/>.gitignore · .remember/"]
+    C --> D{mode?}
+    D -- minimal --> F[Render summary]
+    D -- interactive --> E["Opt-in menus<br/>docs · backend-infra · agents<br/>run selected scripts/modules/*.sh"]
+    E --> F
     F --> G([Done → /vladyslav:discover]):::done
 
     classDef start fill:#d0f0d0,stroke:#006600,color:#003300,font-weight:bold
