@@ -1,5 +1,14 @@
 # Changelog
 
+## v4.5.0
+
+- `smoke-test-skills` skill + `scripts/validate-skills.sh`: deterministic repo-wide
+  static validation of all skills (frontmatter, command delegation, cross-references,
+  Architect `model=` rule, README↔MemPalace sync), with a `scripts/test-validate-skills.sh`
+  harness. Stage A of the batch smoke-test; run via `/vladyslav:smoke-test-skills`.
+
+---
+
 ## v4.4.0
 
 - `init-project` rewritten as a modular adaptive orchestrator: bare AI shell (CORE) by
