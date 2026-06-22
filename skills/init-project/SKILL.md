@@ -195,79 +195,65 @@ The skill **never auto-runs the next skill**. The Next line is informational onl
 
 ## Output allowlist
 
-Paths the modules may write (relative to `<pwd>`). The modules never modify pre-existing files.
+Paths the modules may write (relative to `<pwd>`). The modules never modify pre-existing files except where noted (append operations on `docker-compose.yml` and `.env`).
 
 **core.sh** (always):
 ```
 .gitignore
-CLAUDE.md
 .claude/settings.json
+CLAUDE.md
+.remember/now.md
 ```
 
 **docs.sh**:
 ```
-docs/product/idea.md
 docs/product/prd.md
-docs/product/user-stories.md
-docs/product/start-project.md
-docs/plans/implementation.md
 docs/plans/tasks.md
 docs/plans/backlog-next.md
-docs/testing/test-plan.md
-docs/testing/manual-qa.md
-docs/release/checklist.md
-docs/release/changelog.md
-docs/release/rollback.md
-docs/marketing/launch-notes.md
 ```
 
 **design-system.sh**:
 ```
 docs/design/system.md
-docs/ux/screens.md
-docs/ux/flows.md
 ```
 
 **architecture.sh**:
 ```
 docs/architecture/system.md
-docs/architecture/api.md
-docs/architecture/db-schema.sql
-docs/architecture/adr/          (directory)
 ```
 
 **docker.sh**:
 ```
-backend/docker-compose.yml
-backend/docker-compose.prod.yml
+Dockerfile
+docker-compose.yml
 docs/operations/docker.md
 ```
 
 **postgres.sh**:
 ```
-backend/docker-compose.yml      (postgres service block)
+docker-compose.yml              (appends postgres service block)
+.env                            (appends DATABASE_URL)
 ```
 
 **redis.sh**:
 ```
-backend/docker-compose.yml      (redis service block)
+docker-compose.yml              (appends redis service block)
+.env                            (appends REDIS_URL)
 ```
 
 **alembic.sh**:
 ```
-backend/alembic.ini
-backend/alembic/env.py
-backend/alembic/versions/       (directory)
+alembic.ini
+migrations/env.py
+migrations/versions/.gitkeep
+migrations/README
 ```
 
 **backend-skeleton.sh**:
 ```
-backend/requirements.txt
-backend/src/__init__.py
-backend/src/main.py
-backend/Dockerfile
-backend/.env.example
-backend/secrets/.gitkeep
+requirements.txt
+src/__init__.py
+src/main.py
 ```
 
 **agents.sh**:
