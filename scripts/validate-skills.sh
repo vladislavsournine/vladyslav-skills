@@ -68,12 +68,22 @@ check_crossrefs() { # name, file
   done
 }
 
+check_agent_model() { # name, file
+  local name="$1" f="$2" line
+  [ -f "$f" ] || return
+  body "$f" | grep -qiE '^\**Type:\**[[:space:]]*Architect' || return
+  while IFS= read -r line; do
+    printf '%s' "$line" | grep -q 'model' || err "$name: Agent() without model= -> $line"
+  done < <(grep -E 'Agent\(' "$f")
+}
+
 main() {
   [ -d "$SKILLS" ] || { printf 'FAIL: no skills/ under %s\n' "$ROOT"; exit 2; }
   for_each_skill check_frontmatter
   for_each_skill check_commands
   check_orphan_commands
   for_each_skill check_crossrefs
+  for_each_skill check_agent_model
   if [ "$fail" -ne 0 ]; then printf -- '--- validate-skills: FAILURES found\n'; exit 1; fi
   printf -- '--- validate-skills: all checks PASS\n'; exit 0
 }

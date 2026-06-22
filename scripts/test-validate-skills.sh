@@ -77,5 +77,16 @@ R="$(make_valid)"
 printf 'see docs/architecture/missing.md\n' >> "$R/skills/alpha/SKILL.md"
 T "broken docs reference fails" 1 "$R"
 
+# --- Check D: Architect Agent() must pass model= ---
+R="$(make_valid)"
+sed -i.bak 's/^\*\*Type:\*\* Engineer (light)/**Type:** Architect/' "$R/skills/alpha/SKILL.md"
+printf 'Dispatch: Agent(prompt, subagent_type="x")\n' >> "$R/skills/alpha/SKILL.md"
+T "Architect Agent() without model fails" 1 "$R"
+
+R="$(make_valid)"
+sed -i.bak 's/^\*\*Type:\*\* Engineer (light)/**Type:** Architect/' "$R/skills/alpha/SKILL.md"
+printf 'Dispatch: Agent(prompt, model="sonnet")\n' >> "$R/skills/alpha/SKILL.md"
+T "Architect Agent() with model passes" 0 "$R"
+
 printf '\n%s passed, %s failed\n' "$pass" "$failc"
 [ "$failc" -eq 0 ]
