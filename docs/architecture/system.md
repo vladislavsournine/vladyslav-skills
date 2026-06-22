@@ -76,8 +76,8 @@ Fifteen POSIX-portable bash helpers (macOS + Linux, no python/node dependency). 
 |---|---|---|
 | `detect-stack.sh` | `attach-project`, `discover`, `discover-apple-check`, `design-sync`, `extract-tokens`, `scan-architecture`, `pre-release-checks` | Probes pwd → JSON `{ios, swift, flutter, kotlin, android, python, go, node, web, backend, plugin, ui, docker}` |
 | `derive-wing.sh` | (callable by any skill; currently unused inline — `_shared/verify-pwd.md` documents the algorithm) | Canonical MemPalace wing name (lowercase, platform-prefixed). Eliminates case-mismatch bugs. |
-| `write-stub.sh` | `scaffold-project`, `attach-project` | Idempotent placeholder Markdown writer: `# Title\n\n*to be filled*\n` |
-| `init-git-repo.sh` | `scaffold-project` | Idempotent `git init` + initial commit; safe to call on existing repos. |
+| `write-stub.sh` | `attach-project` | Idempotent placeholder Markdown writer: `# Title\n\n*to be filled*\n` |
+| `init-git-repo.sh` | none (legacy — `core.sh` inlines `git init`) | Idempotent `git init` + initial commit; safe to call on existing repos. |
 | `grep-replace-me.sh` | `pre-release-checks` | Quote-safe placeholder grep with consistent excludes. |
 | `parse-yaml-return.sh` | (reserved for future Heavy Engineer skills) | Locates the last fenced ` ```yaml ` block in a subagent response, validates `status:`, emits JSON. |
 | `section-status.sh` | `discover` | Scans `start-project.md` for filled vs pending sections. |
