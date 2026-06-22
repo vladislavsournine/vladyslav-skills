@@ -1,5 +1,20 @@
 # Changelog
 
+## v4.3.2 — 2026-06-17
+
+Shareable global-instructions template. No skill behavior changes.
+
+### Added
+
+- **`examples/CLAUDE.example.md`** — a sanitized, public version of the global `~/.claude/CLAUDE.md` that pairs with this plugin. Includes the new **"the ladder"** rung (YAGNI → stdlib → native → existing dep → one line → minimal code) in the Minimal Change Principle, plus a matching check in the Code Review checklist. Private data (project/wing list, personal stats, people's names) removed; MemPalace / QSave / Compact-Save sections marked as plugin-dependent.
+
+### Changed
+
+- **`README.md`** — added a pointer to `examples/CLAUDE.example.md` under Requirements.
+- **`.claude-plugin/plugin.json`** — version 4.3.1 → 4.3.2.
+
+---
+
 ## v4.3.1 — 2026-06-14
 
 Operational safety net for the MemPalace dependency. No skill behavior changes.
